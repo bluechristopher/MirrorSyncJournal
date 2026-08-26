@@ -19,7 +19,16 @@ import {
   deleteDoc, 
   updateDoc 
 } from 'firebase/firestore';
-import firebaseConfig from '../firebase-applet-config.json';
+const firebaseConfig = {
+  projectId: "genaiacademy3",
+  appId: "1:217104786977:web:default",
+  apiKey: "AIzaSy_demo_client_key",
+  authDomain: "genaiacademy3.firebaseapp.com",
+  firestoreDatabaseId: "(default)",
+  storageBucket: "genaiacademy3.firebasestorage.app",
+  messagingSenderId: "217104786977",
+};
+
 import type { UserPersona, JournalEntry } from './types';
 
 // Initialize Firebase App
@@ -27,7 +36,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 export const auth = getAuth(app);
 // Use explicit custom database ID from config if present
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefined);
+export const db = getFirestore(app);
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
