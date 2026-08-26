@@ -1,0 +1,6 @@
+{
+  "name": "MirrorSync",
+  "description": "Persona-adaptive cognitive journal with AI reflection coaching, multi-domain tone calibration, and intuitive Google Maps integration.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

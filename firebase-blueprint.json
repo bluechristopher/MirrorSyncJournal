@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "UserPersona": {
+      "title": "UserPersona",
+      "description": "User persona profile storing occupation, coaching tone, and custom goals",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "occupation": { "type": "string" },
+        "department": { "type": "string" },
+        "communicationStyle": { "type": "string" },
+        "coachingTone": { "type": "string" },
+        "customGoals": { "type": "string" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["userId"]
+    },
+    "JournalEntry": {
+      "title": "JournalEntry",
+      "description": "A reflection entry containing raw text, adaptive synthesized response, action items, location context, and multi-turn messages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "rawText": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "reflectionSummary": { "type": "string" },
+        "adaptiveResponse": { "type": "string" },
+        "category": { "type": "object" },
+        "actionItems": { "type": "array" },
+        "creativeSpark": { "type": "string" },
+        "editorialArtPrompt": { "type": "string" },
+        "location": { "type": "object" },
+        "locationContext": { "type": "string" },
+        "cognitiveMetrics": { "type": "object" },
+        "bookmarked": { "type": "boolean" },
+        "messages": { "type": "array" }
+      },
+      "required": ["id", "userId", "rawText", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserPersona",
+      "description": "Private persona document for an authenticated user"
+    },
+    "/users/{userId}/entries/{entryId}": {
+      "schema": "JournalEntry",
+      "description": "Sub-collection of user reflections and synthesized actions"
+    }
+  }
+}

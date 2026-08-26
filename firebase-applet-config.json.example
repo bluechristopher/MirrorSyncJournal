@@ -1,0 +1,12 @@
+﻿{
+  " projectId\: \YOUR_FIREBASE_PROJECT_ID\,
+ \appId\: \1:00000000000:web:000000000000000000\,
+ \apiKey\: \YOUR_FIREBASE_API_KEY\,
+ \authDomain\: \YOUR_PROJECT_ID.firebaseapp.com\,
+ \firestoreDatabaseId\: \YOUR_DATABASE_ID\,
+ \storageBucket\: \YOUR_PROJECT_ID.firebasestorage.app\,
+ \messagingSenderId\: \00000000000\,
+ \measurementId\: \\,
+ \oAuthClientId\: \\,
+ \recaptchaSiteKey\: \\
+}

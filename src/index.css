@@ -1,0 +1,642 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --apple-midnight-bg: linear-gradient(135deg, #070d1e 0%, #0b152d 50%, #050914 100%);
+    
+    /* Gold / Champagne Accents */
+    --gold-accent: #d4af37;
+    --gold-accent-light: #f6e7b8;
+    --gold-accent-glow: rgba(212, 175, 55, 0.35);
+    
+    /* Sapphire / Titanium Blue Accents */
+    --blue-accent: #38bdf8;
+    --blue-accent-light: #bae6fd;
+    --blue-accent-glow: rgba(56, 189, 248, 0.35);
+    
+    /* Emerald / Jade Green Accents */
+    --green-accent: #34d399;
+    --green-accent-light: #a7f3d0;
+    --green-accent-glow: rgba(52, 211, 153, 0.35);
+    
+    /* Amethyst / Purple Accents */
+    --purple-accent: #c084fc;
+    --purple-accent-light: #e9d5ff;
+    --purple-accent-glow: rgba(192, 132, 252, 0.35);
+
+    --ai-gold-text: #f6e7b8;
+    --ai-gold-text-muted: #e6d396;
+    --metallic-sheen-highlight: rgba(255, 255, 255, 0.3);
+  }
+
+  body {
+    font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: -0.01em;
+    line-height: 1.6;
+    background: #060b18;
+    background-image: 
+      radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 85% 25%, rgba(192, 132, 252, 0.10) 0%, transparent 50%),
+      radial-gradient(circle at 50% 80%, rgba(52, 211, 153, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 90% 90%, rgba(212, 175, 55, 0.10) 0%, transparent 45%),
+      linear-gradient(135deg, #060b18 0%, #091326 40%, #040812 100%);
+    background-attachment: fixed;
+    color: #f1f5f9;
+    min-height: 100vh;
+  }
+
+  code, pre, .font-mono {
+    font-family: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  .font-sans, .font-montserrat {
+    font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  .font-neuton, .font-journal-text, .font-user-entry {
+    font-family: "Neuton", Georgia, serif;
+    letter-spacing: 0.01em;
+  }
+
+  .font-libre-baskerville, .font-ai-response, .font-serif-baskerville {
+    font-family: "Libre Baskerville", Georgia, Cambria, serif;
+    letter-spacing: 0.005em;
+  }
+}
+
+/* ========================================================
+   3D METALLIC SURFACES, PANELS & SPECULAR LIGHTING
+   ======================================================== */
+
+/* Base 3D Metallic Card */
+.metallic-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(175, 195, 225, 0.04) 30%, rgba(255, 255, 255, 0.08) 65%, rgba(130, 150, 185, 0.03) 100%);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.40),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.50),
+    0 14px 40px -4px rgba(0, 0, 0, 0.65),
+    0 4px 12px -2px rgba(0, 0, 0, 0.40);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-card:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(255, 255, 255, 0.50),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.60),
+    0 20px 48px -6px rgba(0, 0, 0, 0.75),
+    0 0 20px -2px rgba(255, 255, 255, 0.12);
+}
+
+/* ========================================================
+   DISTINCT DARK METALLIC POST THEMES (AERO / OBSIDIAN)
+   ======================================================== */
+
+/* 1. Sapphire / Deep Midnight Blue (Work Domain) */
+.metallic-card-work {
+  background: linear-gradient(145deg, rgba(12, 28, 58, 0.88) 0%, rgba(5, 14, 30, 0.96) 45%, rgba(18, 38, 76, 0.84) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 
+    inset 0 1.5px 1.5px 0 rgba(186, 230, 253, 0.40),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
+    0 16px 44px -4px rgba(0, 0, 0, 0.80),
+    0 0 24px -4px rgba(56, 189, 248, 0.18);
+}
+
+.metallic-card-work:hover {
+  border-color: rgba(125, 211, 252, 0.60);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(224, 242, 254, 0.60),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
+    0 24px 54px -6px rgba(0, 0, 0, 0.90),
+    0 0 32px 2px rgba(56, 189, 248, 0.30);
+}
+
+/* 2. Emerald / Jade Obsidian (Personal Domain) */
+.metallic-card-personal {
+  background: linear-gradient(145deg, rgba(8, 38, 26, 0.88) 0%, rgba(3, 18, 12, 0.96) 45%, rgba(12, 48, 34, 0.84) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  box-shadow: 
+    inset 0 1.5px 1.5px 0 rgba(167, 243, 208, 0.40),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
+    0 16px 44px -4px rgba(0, 0, 0, 0.80),
+    0 0 24px -4px rgba(52, 211, 153, 0.18);
+}
+
+.metallic-card-personal:hover {
+  border-color: rgba(110, 231, 183, 0.60);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(209, 250, 229, 0.60),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
+    0 24px 54px -6px rgba(0, 0, 0, 0.90),
+    0 0 32px 2px rgba(52, 211, 153, 0.30);
+}
+
+/* 3. Amethyst / Deep Violet Titanium (Creative Domain) */
+.metallic-card-creative {
+  background: linear-gradient(145deg, rgba(38, 14, 56, 0.88) 0%, rgba(18, 6, 28, 0.96) 45%, rgba(50, 18, 76, 0.84) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  box-shadow: 
+    inset 0 1.5px 1.5px 0 rgba(233, 213, 255, 0.40),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
+    0 16px 44px -4px rgba(0, 0, 0, 0.80),
+    0 0 24px -4px rgba(192, 132, 252, 0.18);
+}
+
+.metallic-card-creative:hover {
+  border-color: rgba(216, 180, 254, 0.60);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(243, 232, 255, 0.60),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
+    0 24px 54px -6px rgba(0, 0, 0, 0.90),
+    0 0 32px 2px rgba(192, 132, 252, 0.30);
+}
+
+/* 4. Ocean Steel / Aquamarine Titanium (Email Drafting Domain) */
+.metallic-card-email {
+  background: linear-gradient(145deg, rgba(10, 36, 48, 0.88) 0%, rgba(4, 18, 25, 0.96) 45%, rgba(14, 46, 62, 0.84) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 
+    inset 0 1.5px 1.5px 0 rgba(186, 230, 253, 0.40),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
+    0 16px 44px -4px rgba(0, 0, 0, 0.80),
+    0 0 24px -4px rgba(56, 189, 248, 0.18);
+}
+
+.metallic-card-email:hover {
+  border-color: rgba(125, 211, 252, 0.60);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(224, 242, 254, 0.60),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
+    0 24px 54px -6px rgba(0, 0, 0, 0.90),
+    0 0 32px 2px rgba(56, 189, 248, 0.30);
+}
+
+/* 5. Obsidian Gold / Champagne Titanium (Default / Fallback) */
+.metallic-card-gold {
+  background: linear-gradient(145deg, rgba(34, 26, 10, 0.88) 0%, rgba(16, 12, 4, 0.96) 45%, rgba(44, 34, 14, 0.84) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(246, 231, 184, 0.35);
+  box-shadow: 
+    inset 0 1.5px 1.5px 0 rgba(246, 231, 184, 0.40),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
+    0 16px 44px -4px rgba(0, 0, 0, 0.80),
+    0 0 24px -4px rgba(212, 175, 55, 0.18);
+}
+
+.metallic-card-gold:hover {
+  border-color: rgba(246, 231, 184, 0.65);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(255, 250, 220, 0.65),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
+    0 24px 54px -6px rgba(0, 0, 0, 0.90),
+    0 0 32px 2px rgba(212, 175, 55, 0.35);
+}
+
+/* ========================================================
+   AERO FLOAT UP & FLOAT RIGHT INTERACTION EFFECT
+   ======================================================== */
+.aero-float-card {
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.32s ease, filter 0.32s ease;
+  will-change: transform, box-shadow;
+}
+
+.aero-float-card:hover {
+  transform: translate3d(5px, -5px, 0) !important;
+}
+
+/* ========================================================
+   DARK METALLIC ENRICHED JOURNAL PROPOSAL PANEL
+   ======================================================== */
+.metallic-proposal-card {
+  background: linear-gradient(145deg, rgba(20, 16, 7, 0.94) 0%, rgba(10, 8, 3, 0.98) 45%, rgba(26, 20, 9, 0.92) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(246, 231, 184, 0.38);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.85),
+    0 16px 40px -4px rgba(0, 0, 0, 0.85),
+    0 0 18px rgba(212, 175, 55, 0.12);
+}
+
+.metallic-panel {
+  background: linear-gradient(145deg, rgba(240, 245, 255, 0.11) 0%, rgba(170, 185, 215, 0.03) 45%, rgba(230, 240, 255, 0.08) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.30),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.35),
+    0 8px 24px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* ========================================================
+   METALLIC COLOR SUITES (Gold, Blue, Green, Purple)
+   ======================================================== */
+
+/* --- 1. METALLIC GOLD / CHAMPAGNE --- */
+.metallic-gold-panel {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.35) 0%, rgba(246, 231, 184, 0.20) 45%, rgba(185, 140, 30, 0.30) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(246, 231, 184, 0.70);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.60),
+    inset 0 -1px 1px 0 rgba(120, 80, 10, 0.40),
+    0 10px 30px rgba(0, 0, 0, 0.50),
+    0 0 18px rgba(212, 175, 55, 0.22);
+}
+
+.metallic-gold-button {
+  background: linear-gradient(135deg, #fae8a8 0%, #e2b74b 45%, #c28b24 100%);
+  border: 1px solid rgba(255, 250, 220, 0.95);
+  color: #0b1120 !important;
+  font-weight: 700;
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1.5px 0 rgba(140, 95, 15, 0.60),
+    0 6px 18px rgba(212, 175, 55, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-gold-button:hover {
+  background: linear-gradient(135deg, #fff3c4 0%, #ecc157 45%, #d8992c 100%);
+  border-color: #ffffff;
+  color: #050811 !important;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 0 rgba(150, 105, 20, 0.70),
+    0 8px 24px rgba(212, 175, 55, 0.60),
+    0 0 20px rgba(246, 231, 184, 0.40);
+  transform: translateY(-1px);
+}
+
+.metallic-gold-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 2. METALLIC BLUE / SAPPHIRE (Work & Strategy) --- */
+.metallic-blue-panel {
+  background: linear-gradient(135deg, rgba(30, 64, 175, 0.40) 0%, rgba(56, 189, 248, 0.22) 45%, rgba(15, 23, 42, 0.60) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(125, 211, 252, 0.65);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 1px 0 rgba(15, 30, 80, 0.50),
+    0 10px 30px rgba(0, 0, 0, 0.50),
+    0 0 20px rgba(56, 189, 248, 0.25);
+}
+
+.metallic-blue-button {
+  background: linear-gradient(135deg, #bae6fd 0%, #38bdf8 45%, #0284c7 100%);
+  border: 1px solid rgba(224, 242, 254, 0.95);
+  color: #031428 !important;
+  font-weight: 700;
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1.5px 0 rgba(3, 105, 161, 0.60),
+    0 6px 18px rgba(56, 189, 248, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-blue-button:hover {
+  background: linear-gradient(135deg, #e0f2fe 0%, #54c9ff 45%, #0396e3 100%);
+  border-color: #ffffff;
+  color: #020c18 !important;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 0 rgba(3, 105, 161, 0.70),
+    0 8px 24px rgba(56, 189, 248, 0.60),
+    0 0 20px rgba(56, 189, 248, 0.40);
+  transform: translateY(-1px);
+}
+
+.metallic-blue-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 3. METALLIC GREEN / EMERALD (Personal & Recovery) --- */
+.metallic-green-panel {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.45) 0%, rgba(52, 211, 153, 0.22) 45%, rgba(4, 30, 24, 0.65) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(110, 231, 183, 0.65);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 1px 0 rgba(6, 40, 30, 0.50),
+    0 10px 30px rgba(0, 0, 0, 0.50),
+    0 0 20px rgba(52, 211, 153, 0.25);
+}
+
+.metallic-green-button {
+  background: linear-gradient(135deg, #a7f3d0 0%, #34d399 45%, #059669 100%);
+  border: 1px solid rgba(209, 250, 229, 0.95);
+  color: #022014 !important;
+  font-weight: 700;
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1.5px 0 rgba(4, 120, 87, 0.60),
+    0 6px 18px rgba(52, 211, 153, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-green-button:hover {
+  background: linear-gradient(135deg, #d1fae5 0%, #4ae3aa 45%, #0aa777 100%);
+  border-color: #ffffff;
+  color: #01140c !important;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 0 rgba(4, 120, 87, 0.70),
+    0 8px 24px rgba(52, 211, 153, 0.60),
+    0 0 20px rgba(52, 211, 153, 0.40);
+  transform: translateY(-1px);
+}
+
+.metallic-green-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 4. METALLIC PURPLE / AMETHYST (Creative Sparks) --- */
+.metallic-purple-panel {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.45) 0%, rgba(192, 132, 252, 0.22) 45%, rgba(30, 10, 50, 0.65) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(216, 180, 254, 0.65);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 1px 0 rgba(45, 10, 75, 0.50),
+    0 10px 30px rgba(0, 0, 0, 0.50),
+    0 0 20px rgba(192, 132, 252, 0.25);
+}
+
+.metallic-purple-button {
+  background: linear-gradient(135deg, #e9d5ff 0%, #c084fc 45%, #9333ea 100%);
+  border: 1px solid rgba(243, 232, 255, 0.95);
+  color: #1e0538 !important;
+  font-weight: 700;
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1.5px 0 rgba(107, 33, 168, 0.60),
+    0 6px 18px rgba(192, 132, 252, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-purple-button:hover {
+  background: linear-gradient(135deg, #f3e8ff 0%, #cb97fd 45%, #a149f0 100%);
+  border-color: #ffffff;
+  color: #120224 !important;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 0 rgba(107, 33, 168, 0.70),
+    0 8px 24px rgba(192, 132, 252, 0.60),
+    0 0 20px rgba(192, 132, 252, 0.40);
+  transform: translateY(-1px);
+}
+
+.metallic-purple-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 5. TITANIUM / BRUSHED STEEL BUTTON --- */
+.metallic-titanium-button {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(200, 215, 240, 0.07) 50%, rgba(150, 165, 190, 0.14) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.40),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.40),
+    0 3px 10px rgba(0, 0, 0, 0.40);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-titanium-button:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(220, 230, 250, 0.12) 50%, rgba(180, 195, 220, 0.20) 100%);
+  border-color: rgba(255, 255, 255, 0.40);
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.60),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.50),
+    0 6px 16px rgba(0, 0, 0, 0.50);
+  transform: translateY(-0.5px);
+}
+
+.metallic-titanium-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Light Gold AI Content Typography */
+.ai-gold-text {
+  color: #f6e7b8 !important;
+}
+
+.ai-gold-text-muted {
+  color: #e2ce8c !important;
+}
+
+.ai-gold-heading {
+  color: #fae8b0;
+  text-shadow: 0 1px 8px rgba(212, 175, 55, 0.25);
+}
+
+/* Top Bar: Polished Cool Gray-Black Metallic Chrome Gradient */
+.metallic-header {
+  background: linear-gradient(180deg, #242933 0%, #171b22 35%, #0f1217 70%, #090b0f 100%);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1.5px 0 0 rgba(0, 0, 0, 0.85),
+    0 8px 32px -2px rgba(0, 0, 0, 0.85),
+    0 2px 10px 0 rgba(0, 0, 0, 0.60);
+}
+
+/* Markdown typography styling */
+.markdown-body {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+  color: #fae8b0;
+  font-weight: 700;
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.35;
+}
+
+.markdown-body h1 { font-size: 1.05rem; }
+.markdown-body h2 { font-size: 0.95rem; }
+.markdown-body h3 { font-size: 0.875rem; }
+
+.markdown-body p {
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-body strong {
+  color: #fae8b0;
+  font-weight: 700;
+}
+
+.markdown-body em {
+  font-style: italic;
+  color: #f6e7b8;
+}
+
+.markdown-body blockquote {
+  border-left: 3px solid rgba(246, 231, 184, 0.6);
+  padding-left: 0.85rem;
+  margin: 0.75rem 0;
+  color: #e6d396;
+  font-style: italic;
+}
+
+.markdown-body code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85em;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.35rem;
+  color: #f6e7b8;
+}
+
+.markdown-body pre {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.85rem;
+  border-radius: 0.65rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.metallic-input {
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 16, 32, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.metallic-input:focus {
+  border-color: rgba(246, 231, 184, 0.6);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    0 0 0 2px rgba(212, 175, 55, 0.25),
+    0 0 14px rgba(212, 175, 55, 0.2);
+}
+
+/* Apple-inspired Metallic Glass Panels (compatibility) */
+.apple-metallic-surface {
+  background: linear-gradient(145deg, rgba(235, 240, 255, 0.11) 0%, rgba(175, 190, 215, 0.04) 50%, rgba(225, 235, 255, 0.08) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 8px 32px 0 rgba(0, 0, 0, 0.45);
+}
+
+.apple-metallic-surface-hover:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: linear-gradient(145deg, rgba(240, 245, 255, 0.15) 0%, rgba(185, 200, 225, 0.07) 50%, rgba(235, 245, 255, 0.12) 100%);
+}
+
+.apple-gold-badge {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18) 0%, rgba(246, 231, 184, 0.06) 50%, rgba(212, 175, 55, 0.14) 100%);
+  color: #f6e7b8;
+  border: 1px solid rgba(246, 231, 184, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.apple-gold-badge:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.28) 0%, rgba(246, 231, 184, 0.12) 50%, rgba(212, 175, 55, 0.22) 100%);
+  border-color: rgba(246, 231, 184, 0.65);
+}
+
+.apple-gold-glow {
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.25);
+}
+
+.apple-gold-focus:focus {
+  outline: none;
+  border-color: rgba(246, 231, 184, 0.6);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(246, 231, 184, 0.5);
+}
+
