@@ -1369,6 +1369,17 @@ Generate the refined email and reply with proper paragraph breaks and formatting
   }
 });
 
+// Dynamic Runtime Config Endpoint (Serves Firebase and Google Maps keys loaded from Secret Manager)
+app.get('/api/config', (_req: Request, res: Response) => {
+  res.json({
+    firebaseApiKey: process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY || '',
+    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    projectId: process.env.GCP_PROJECT || 'genaiacademy3',
+    appId: process.env.FIREBASE_APP_ID || '1:217104786977:web:default',
+    authDomain: 'genaiacademy3.firebaseapp.com'
+  });
+});
+
 // Geocoding Proxy Endpoint (Worldwide location search + reverse GPS geocoding)
 app.get('/api/geocode', async (req: Request, res: Response) => {
   try {

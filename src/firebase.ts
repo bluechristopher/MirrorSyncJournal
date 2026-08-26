@@ -19,7 +19,7 @@ import {
   deleteDoc, 
   updateDoc 
 } from 'firebase/firestore';
-const firebaseConfig = {
+const defaultFallbackConfig = {
   projectId: "genaiacademy3",
   appId: "1:217104786977:web:default",
   apiKey: "AIzaSy_demo_client_key",
@@ -32,11 +32,38 @@ const firebaseConfig = {
 import type { UserPersona, JournalEntry } from './types';
 
 // Initialize Firebase App
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app = !getApps().length ? initializeApp(defaultFallbackConfig) : getApp();
+export let auth = getAuth(app);
+export let db = getFirestore(app);
 
-export const auth = getAuth(app);
-// Use explicit custom database ID from config if present
-export const db = getFirestore(app);
+// Fetch dynamic runtime config from Secret Manager backend
+export async function initializeRuntimeFirebase(): Promise<void> {
+  try {
+    const res = await fetch('/api/config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.firebaseApiKey && data.firebaseApiKey !== 'AIzaSy_demo_client_key') {
+        const liveConfig = {
+          projectId: data.projectId || "genaiacademy3",
+          appId: data.appId || "1:217104786977:web:default",
+          apiKey: data.firebaseApiKey,
+          authDomain: data.authDomain || "genaiacademy3.firebaseapp.com",
+          firestoreDatabaseId: "(default)",
+          storageBucket: "genaiacademy3.firebasestorage.app",
+          messagingSenderId: "217104786977",
+        };
+        app = initializeApp(liveConfig, 'liveApp');
+        auth = getAuth(app);
+        db = getFirestore(app);
+      }
+    }
+  } catch (e) {
+    console.warn('Could not load dynamic firebase config from /api/config:', e);
+  }
+}
+
+// Auto-run on module load in background
+initializeRuntimeFirebase();
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
@@ -44,6 +71,7 @@ googleProvider.setCustomParameters({
 });
 
 export const signInWithGoogle = async (): Promise<User> => {
+  await initializeRuntimeFirebase();
   const result = await signInWithPopup(auth, googleProvider);
   return result.user;
 };
