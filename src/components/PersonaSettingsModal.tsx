@@ -116,7 +116,7 @@ export function PersonaSettingsModal({
                 type="text"
                 value={occupation}
                 onChange={(e) => setOccupation(e.target.value)}
-                placeholder="e.g. Lead Architect, Founder, Product Lead..."
+                placeholder="e.g. A-Level Computing Educator (JC), Senior CS Lecturer..."
                 className="w-full metallic-panel rounded-xl p-2.5 border border-white/15 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 shadow-inner"
               />
             </div>
@@ -127,7 +127,7 @@ export function PersonaSettingsModal({
                 type="text"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                placeholder="e.g. Distributed Systems, Creative Design..."
+                placeholder="e.g. Computer Science, STEM & EdTech..."
                 className="w-full metallic-panel rounded-xl p-2.5 border border-white/15 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 shadow-inner"
               />
             </div>
@@ -139,7 +139,7 @@ export function PersonaSettingsModal({
               type="text"
               value={communicationStyle}
               onChange={(e) => setCommunicationStyle(e.target.value)}
-              placeholder="e.g. Analytical & structured, concise & direct, visionary & strategic, empathetic..."
+              placeholder="e.g. Pedagogical & structured, Socratic, encouraging, clear & precise..."
               className="w-full metallic-panel rounded-xl p-2.5 border border-white/15 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 shadow-inner"
             />
           </div>
@@ -150,7 +150,7 @@ export function PersonaSettingsModal({
               type="text"
               value={coachingTone}
               onChange={(e) => setCoachingTone(e.target.value)}
-              placeholder="e.g. Supportive Cheerleader, Strategic Advisor, Mindful Mentor..."
+              placeholder="e.g. Academic Mentor, Strategic Exam Coach, Socratic Challenger..."
               className="w-full metallic-panel rounded-xl p-2.5 border border-white/15 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 shadow-inner"
             />
           </div>

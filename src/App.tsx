@@ -50,163 +50,257 @@ import { motion } from 'motion/react';
 
 const DEFAULT_PERSONA: UserPersona = {
   userId: 'local-user',
-  occupation: 'Knowledge Practitioner',
-  department: 'Strategy & Focus',
-  communicationStyle: 'Clear & Insightful',
-  coachingTone: 'Supportive & Strategic',
-  customGoals: 'Gain clarity on daily decisions and cultivate healthy habits.',
+  occupation: 'A-Level Computing Educator (JC)',
+  department: 'Computer Science & Educational Technology',
+  communicationStyle: 'Pedagogical, Structured & Encouraging',
+  coachingTone: 'Academic Mentor & Strategic Coach',
+  customGoals: 'Prepare JC2 students (age 17-18) for A-Level Computing Theory and Python Practical examinations with deep conceptual mastery.',
   updatedAt: Date.now()
 };
 
 const SEED_ENTRIES: JournalEntry[] = [
   {
-    id: 'seed-1',
+    id: 'seed-work-1',
     userId: 'local-user',
-    rawText: 'Navigated a heated cross-team review regarding database partitioning strategy versus global replication. The frontend team wants sub-10ms response times while operations is worried about regional compliance and write costs. Felt drained by circular consensus-seeking.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 3, // 3 hours ago
-    reflectionSummary: 'A complex architectural meeting revealed trade-offs between low UI latency and infrastructure write costs. Circular consensus-seeking drained cognitive bandwidth.',
-    adaptiveResponse: 'When teams stall on competing requirements, frame the debate around tiered Service Level Objectives (SLOs) rather than an all-or-nothing compromise.\n\nQuantify latency impact by feature priority, and nominate a clear decision owner for the write overhead.',
+    rawText: 'Conducted a 2-hour timed Paper 2 Practical mock exam focusing on OOP and SQLite database connectivity with Python. Noticed several JC2 students struggled with parameterised queries and exception handling when reading CSV datasets into linked lists. Need to design targeted scaffolding for edge-case debugging before next week\'s review.',
+    createdAt: Date.now() - 1000 * 60 * 60 * 2, // 2 hours ago
+    reflectionSummary: 'Timed Paper 2 mock exam highlighted key conceptual gaps in SQLite database integration and defensive exception handling among JC2 candidates.',
+    adaptiveResponse: 'Focus subsequent practical clinics on live code refactoring and step-through debugging. Encourage students to write test assertions before assembling full SQL queries to build automatic verification habits under exam time constraints.',
     category: {
       domain: 'Work',
-      department: 'Core Infrastructure',
-      projectTags: ['Databases', 'Latency', 'Alignment']
+      department: 'A-Level Practical Prep',
+      projectTags: ['PythonPractical', 'OOP', 'SQLite', 'ExamTechnique']
     },
     actionItems: [
       {
-        id: 'act-1',
-        text: 'Document benchmarked latency tradeoffs for tier-1 vs tier-2 data paths',
-        completed: true,
+        id: 'act-c1',
+        text: 'Prepare 5 targeted CSV-to-SQLite edge case debugging worksheets for tomorrow\'s lab clinic',
+        completed: false,
         priority: 'high',
         category: 'Next Step'
       },
       {
-        id: 'act-2',
-        text: 'Schedule single-decider alignment with VP of Infrastructure before Friday',
-        completed: false,
+        id: 'act-c2',
+        text: 'Record a 10-minute walkthrough on parameterised query best practices and error handling',
+        completed: true,
         priority: 'high',
         category: 'Next Step'
       }
     ],
-    editorialArtPrompt: 'Abstract balanced architectural geometric forms in graphite and translucent cyan.',
+    editorialArtPrompt: 'Clean minimalist chalkboard with elegant Python syntax diagrams, relational database schemas, and warm golden lighting.',
     cognitiveMetrics: {
-      clarityScore: 92,
-      sentimentResonance: 'Analytical Alignment',
-      focusDimension: 'Strategic Alignment'
+      clarityScore: 94,
+      sentimentResonance: 'Pedagogical Precision',
+      focusDimension: 'Curriculum Scaffolding'
     },
     bookmarked: true,
     messages: [
       {
-        id: 'seed-msg-1',
+        id: 'msg-w1-1',
         role: 'user',
-        content: '📋 Structure this reflection with clear headers and bullet points.',
-        timestamp: Date.now() - 1000 * 60 * 60 * 2.5,
+        content: '📋 Structure this reflection with clear headers and bullet points for departmental sync.',
+        timestamp: Date.now() - 1000 * 60 * 50,
         quickActionType: 'structure_notes'
       },
       {
-        id: 'seed-msg-2',
+        id: 'msg-w1-2',
         role: 'assistant',
-        content: '### Key Insights\n- **Tension:** Sub-10ms latency goals vs. data compliance costs.\n- **Resolution:** Segment queries into critical cached paths vs async sync.\n\n### Action Step\n- Schedule single decider meeting with VP before Friday.',
-        timestamp: Date.now() - 1000 * 60 * 60 * 2.4,
+        content: '### Practical Mock Diagnosis\n- **Identified Gap:** SQLite sanitisation & dynamic linked list insertion from CSV.\n- **Pedagogical Intervention:** Deploy short timed unit-test exercises prior to full paper simulation.\n\n### Next Steps\n- Share standardized marking rubrics and model solutions with departmental colleagues.',
+        timestamp: Date.now() - 1000 * 60 * 48,
         quickActionType: 'structure_notes'
       }
     ]
   },
   {
-    id: 'seed-2',
+    id: 'seed-work-2',
     userId: 'local-user',
-    rawText: 'Spent the evening experimenting with generative visual shaders and recursive fractal algorithms at the local design studio. Found deep state of flow without any commercial deadline pressure.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 28, // yesterday
-    reflectionSummary: 'Unconstrained creative exploration with procedural math fostered immediate flow, serving as a powerful cognitive reset.',
-    adaptiveResponse: 'Unstructured technical play stimulates creative intuition and neural plasticity. Protect dedicated weekly time for exploration—it directly feeds back into your strategic problem-solving.',
+    rawText: 'Led a deep-dive seminar on Dynamic Programming versus Divide-and-Conquer (Merge Sort, Binary Search trees, Memoization). Transitioning students from recursion trees to iterative state tables proved effective for visual learners. A few students who previously scored U-grade showed breakthrough understanding.',
+    createdAt: Date.now() - 1000 * 60 * 60 * 26, // 1 day ago
+    reflectionSummary: 'Visual recursion tree decomposition and step-by-step state tables enabled breakthrough comprehension in complex algorithmic analysis for struggling candidates.',
+    adaptiveResponse: 'Capitalize on this conceptual momentum by having these students explain the memoization step to peers in breakout study circles. Socratic peer-teaching solidifies algorithmic mental models.',
     category: {
-      domain: 'Creative',
-      department: 'Generative Design',
-      projectTags: ['CreativeFlow', 'Fractals', 'Design']
+      domain: 'Work',
+      department: 'Algorithms & Theory',
+      projectTags: ['Algorithms', 'Memoization', 'BinaryTrees', 'TheoryPaper1']
     },
     actionItems: [
       {
-        id: 'act-4',
-        text: 'Package procedural shader generator into an open-source visual sandbox',
+        id: 'act-c3',
+        text: 'Create a visual comparison infographic for Top-Down Memoization vs Bottom-Up Tabulation',
+        completed: true,
+        priority: 'medium',
+        category: 'Next Step'
+      }
+    ],
+    editorialArtPrompt: 'Abstract glowing binary tree recursion visual with indigo background and crystalline gold nodes.',
+    cognitiveMetrics: {
+      clarityScore: 96,
+      sentimentResonance: 'Inspirational Mastery',
+      focusDimension: 'Algorithmic Intuition'
+    }
+  },
+  {
+    id: 'seed-work-3',
+    userId: 'local-user',
+    rawText: 'Reviewed student submissions for Networking and Cybersecurity theory questions. Common misconceptions emerged regarding asymmetric public/private key encryption versus hashing integrity checks in HTTPS handshakes. Prepared custom diagnostic flashcards to reinforce protocol handshakes.',
+    createdAt: Date.now() - 1000 * 60 * 60 * 50, // 2 days ago
+    reflectionSummary: 'Targeted analysis of networking and cybersecurity questions revealed conflation between cryptographic hashing and public-key encryption.',
+    adaptiveResponse: 'Anchor the distinction using a concrete physical analogy (digital signatures as wax seals vs hashing as tamper-evident tape). Use interactive network packet tracing in class to visualize real-time TLS handshakes.',
+    category: {
+      domain: 'Work',
+      department: 'Network & Cyber Security',
+      projectTags: ['Cybersecurity', 'Networking', 'TLS', 'Paper1Theory']
+    },
+    actionItems: [
+      {
+        id: 'act-c4',
+        text: 'Distribute 10-question quick diagnostic quiz on Cryptographic Protocols before Friday',
+        completed: false,
+        priority: 'high',
+        category: 'Next Step'
+      }
+    ],
+    editorialArtPrompt: 'Minimalist geometric network topology with glowing nodes and cryptographic lock symbols in ultramarine.',
+    cognitiveMetrics: {
+      clarityScore: 91,
+      sentimentResonance: 'Diagnostic Insight',
+      focusDimension: 'Conceptual Precision'
+    }
+  },
+  {
+    id: 'seed-work-4',
+    userId: 'local-user',
+    rawText: 'One-on-one consultation sessions with 6 students anxious about their preliminary exam performance. Reframed their revision strategy around high-weightage topics (Data Structures, Socket Programming, and Ethics in Computing). Emphasized time-budgeting: 1.5 minutes per mark on Paper 1.',
+    createdAt: Date.now() - 1000 * 60 * 60 * 74, // 3 days ago
+    reflectionSummary: 'Empathetic consultations helped de-escalate exam anxiety and instilled structured time-management strategies across high-weightage syllabus components.',
+    adaptiveResponse: 'Providing structured exam pacing templates gives students a tangible sense of control. Celebrate their incremental gains in past-year paper scores to sustain high morale into the final sprint.',
+    category: {
+      domain: 'Work',
+      department: 'Student Mentorship & Exam Strategy',
+      projectTags: ['Mentorship', 'TimeManagement', 'RevisionStrategy', 'PastPapers']
+    },
+    actionItems: [
+      {
+        id: 'act-c5',
+        text: 'Collate and share the 2020-2025 A-Level Computing marking trends summary document',
+        completed: true,
+        priority: 'high',
+        category: 'Next Step'
+      }
+    ],
+    editorialArtPrompt: 'Warm sunlit modern classroom desk with organized study plans, hourglass, and focused stationery.',
+    cognitiveMetrics: {
+      clarityScore: 95,
+      sentimentResonance: 'Empathetic Mentorship',
+      focusDimension: 'Student Morale & Strategy'
+    }
+  },
+  {
+    id: 'seed-creative-1',
+    userId: 'local-user',
+    rawText: 'Spent the evening at the National Library building in Bugis designing an interactive gamified web simulation for A-Level sorting algorithms (QuickSort and MergeSort pivots). Envisioned animated particle systems that visualize swap operations in real-time on student iPads.',
+    createdAt: Date.now() - 1000 * 60 * 60 * 18,
+    reflectionSummary: 'Brainstormed an interactive visual sorting simulator with kinetic particle physics to transform abstract algorithm complexity into an intuitive sensory learning experience.',
+    adaptiveResponse: 'Interactive kinetic learning bridges theoretical syntax and algorithmic intuition. Build an initial lightweight Canvas prototype to test with students during tutorial warm-ups.',
+    category: {
+      domain: 'Creative',
+      department: 'EdTech Innovation',
+      projectTags: ['CreativeCoding', 'AlgorithmVisualizer', 'CanvasAPI', 'EdTech']
+    },
+    actionItems: [
+      {
+        id: 'act-cr1',
+        text: 'Build a prototype interactive QuickSort partition animation in HTML5 Canvas',
         completed: false,
         priority: 'low',
         category: 'Creative Spark'
       }
     ],
-    creativeSpark: 'What if you mapped real-time system network telemetry directly into shader vertex deformations?',
+    creativeSpark: 'What if algorithm comparison was gamified as a musical synthesizer where array comparisons produce harmonic chords based on sorting efficiency?',
     location: {
-      name: 'Modernist Design Studio & Coffee Hub',
-      address: '420 Design District, Creative Arts Quarter',
-      lat: 37.7749,
-      lng: -122.4194
+      name: 'National Library Building Singapore',
+      address: '100 Victoria Street, Bugis, Singapore 188064',
+      lat: 1.2976,
+      lng: 103.8543
     },
-    locationContext: 'Modernist Design Studio & Coffee Hub (Creative Arts Quarter)',
-    editorialArtPrompt: 'Minimalist emerald and gold mathematical spirals in deep space void.',
+    locationContext: 'National Library Building Singapore (Bugis Cultural Corridor)',
+    editorialArtPrompt: 'Futuristic architectural interior of Singapore National Library with warm golden lights, glowing algorithm particle flow, and glass bridges.',
     cognitiveMetrics: {
-      clarityScore: 96,
-      sentimentResonance: 'Deep Flow & Exploration',
-      focusDimension: 'Creative Plasticity'
+      clarityScore: 97,
+      sentimentResonance: 'Imaginative Innovation',
+      focusDimension: 'Pedagogical Creativity'
     }
   },
   {
-    id: 'seed-3',
+    id: 'seed-creative-2',
     userId: 'local-user',
-    rawText: 'Completed an early morning 5km jog through the coastal botanical gardens followed by a 15-minute breathwork session. Sleep score improved significantly after switching off screens an hour before bed.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 52, // 2 days ago
-    reflectionSummary: 'Morning aerobic movement combined with breathwork and digital sundown hygiene dramatically restored sleep recovery and focus.',
-    adaptiveResponse: 'Prioritizing somatic recovery is your highest-leverage well-being habit. Natural morning light anchors your circadian rhythm and reduces afternoon energy slumps.',
+    rawText: 'Visited the ArtScience Museum at Marina Bay Sands exploring the digital generative art installations. Conceptualized a collaborative classroom project: having computing students generate generative procedural Singapore cityscapes using recursive L-systems and turtle geometry.',
+    createdAt: Date.now() - 1000 * 60 * 60 * 42,
+    reflectionSummary: 'Exploration of generative digital art installations inspired a creative cross-disciplinary coding assignment applying L-systems to procedural architecture.',
+    adaptiveResponse: 'Connecting formal computing grammar to artistic expression fosters deep joy and shows students that code is an expressive, limitless medium beyond exam rubrics.',
     category: {
-      domain: 'Personal',
-      department: 'Well-being & Recovery',
-      projectTags: ['SleepHygiene', 'Breathwork', 'Recovery']
+      domain: 'Creative',
+      department: 'Generative Design Lab',
+      projectTags: ['GenerativeArt', 'LSystems', 'CreativeComputing', 'ArtScience']
     },
     actionItems: [
       {
-        id: 'act-5',
-        text: 'Maintain the 60-minute pre-bed digital curfew across weekdays',
-        completed: true,
-        priority: 'high',
-        category: 'Healthy Habit'
+        id: 'act-cr2',
+        text: 'Draft sample Python turtle script generating fractal Singapore Supertrees for post-exam coding workshop',
+        completed: false,
+        priority: 'low',
+        category: 'Creative Spark'
       }
     ],
+    creativeSpark: 'Could students map real-time Singapore climate and weather API data into generative digital watercolor shaders?',
     location: {
-      name: 'Coastal Botanical Reserve & Trail',
-      address: '100 Ocean Shore Parkway, Coastal Bluffs',
-      lat: 37.7690,
-      lng: -122.4835
+      name: 'ArtScience Museum Singapore',
+      address: '6 Bayfront Ave, Marina Bay Sands, Singapore 018974',
+      lat: 1.2863,
+      lng: 103.8593
     },
-    locationContext: 'Coastal Botanical Reserve & Trail',
-    editorialArtPrompt: 'Warm morning sunlight through coastal forest pines in soft minimalist tones.',
+    locationContext: 'ArtScience Museum (Marina Bay Waterfront, Singapore)',
+    editorialArtPrompt: 'Lotus-inspired ArtScience Museum building over reflecting Marina Bay waters at twilight with shimmering laser projections.',
     cognitiveMetrics: {
-      clarityScore: 95,
-      sentimentResonance: 'Restorative Grounding',
-      focusDimension: 'Somatic Well-being'
+      clarityScore: 96,
+      sentimentResonance: 'Vibrant Curiosity',
+      focusDimension: 'Aesthetic Computational Design'
     }
   },
   {
-    id: 'seed-4',
+    id: 'seed-creative-3',
     userId: 'local-user',
-    rawText: 'Spent Saturday morning shopping at the artisanal neighborhood market. Picked up a custom split mechanical keyboard, Japanese stationery, and freshly roasted single-origin Ethiopian coffee beans for our morning brewing ritual.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 75, // 3 days ago
-    reflectionSummary: 'Curated shopping and mindful neighborhood exploration provided tactile leisure, intentional living, and elevated the daily workspace ritual.',
-    adaptiveResponse: 'Investing in intentional tools and quality rituals transforms mundane daily routines into moments of craft and presence.',
+    rawText: 'Evening walk along the Henderson Waves bridge at Southern Ridges drafting ideas for an AI computing ethics debate case study: evaluating autonomous public transport algorithms navigating Singapore\'s dense urban environment.',
+    createdAt: Date.now() - 1000 * 60 * 60 * 66,
+    reflectionSummary: 'Architectural immersion at Henderson Waves spurred a real-world case study on autonomous transport ethics and algorithmic fairness calibrated for Singapore urban mobility.',
+    adaptiveResponse: 'Situating computing ethics in familiar local contexts (like MRT scheduling and autonomous shuttles) grounds abstract moral philosophy in tangible engineering trade-offs.',
     category: {
-      domain: 'Personal',
-      department: 'Lifestyle & Leisure',
-      projectTags: ['Shopping', 'Leisure', 'WorkspaceGear']
+      domain: 'Creative',
+      department: 'Computing Ethics & Society',
+      projectTags: ['ComputingEthics', 'AIEthics', 'SmartNation', 'SouthernRidges']
     },
-    actionItems: [],
+    actionItems: [
+      {
+        id: 'act-cr3',
+        text: 'Curate 3 debate prompt cards on algorithmic accountability in Smart Nation infrastructure',
+        completed: true,
+        priority: 'low',
+        category: 'Creative Spark'
+      }
+    ],
+    creativeSpark: 'How would students program an ethical decision-tree simulator when sensor noise introduces 5% ambiguity in pedestrian recognition?',
     location: {
-      name: 'Hayes Valley Market & Roastery',
-      address: '580 Hayes St, Arts District',
-      lat: 37.7766,
-      lng: -122.4241
+      name: 'Henderson Waves & Southern Ridges',
+      address: 'Henderson Road, Southern Ridges, Singapore 109572',
+      lat: 1.2761,
+      lng: 103.8153
     },
-    locationContext: 'Hayes Valley Market & Roastery',
-    editorialArtPrompt: 'Warm terracotta and charcoal minimalist composition with coffee ceramics and geometric stationery lines.',
+    locationContext: 'Henderson Waves (Southern Ridges Canopy Walk, Singapore)',
+    editorialArtPrompt: 'Sweeping undulating wooden architectural waves of Henderson bridge illuminated against lush tropical Singapore canopy at sunset.',
     cognitiveMetrics: {
-      clarityScore: 94,
-      sentimentResonance: 'Mindful Lifestyle',
-      focusDimension: 'Tactile Grounding'
+      clarityScore: 95,
+      sentimentResonance: 'Philosophical Inspiration',
+      focusDimension: 'Sociotechnical Ethics'
     }
   }
 ];

@@ -11,9 +11,9 @@ interface OnboardingModalProps {
 }
 
 const PRESET_INTRODUCTIONS = [
-  "I'm a Staff Software Architect leading distributed systems and platform reliability. I prefer direct, concise, first-principles logic.",
-  "I'm a Head of Product leading consumer AI experiences. I focus on customer empathy, strategic clarity, and high-leverage execution.",
-  "I'm a Creative Director & Founder exploring generative design and brand storytelling. I appreciate conceptual metaphors and visionary thinking."
+  "I'm an A-Level Computing teacher in Singapore preparing JC2 students (age 17-18) for Theory Paper 1 and Python Practical Paper 2. I focus on algorithmic problem solving, structured revision, and de-bugging scaffolding.",
+  "I'm a Junior College Computer Science lecturer mentoring students through OOP, SQLite databases, and dynamic programming algorithms. I prefer structured, pedagogical reflections.",
+  "I'm a Computing educator exploring creative computing, algorithm visualization, and sociotechnical ethics in Singapore's Smart Nation ecosystem."
 ];
 
 export function OnboardingModal({
