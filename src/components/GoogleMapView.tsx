@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
 import { MapPin, Navigation, ExternalLink, Compass, Sparkles } from 'lucide-react';
 import type { LocationPin } from '../types';
@@ -16,8 +16,21 @@ export function GoogleMapView({
   className = 'h-52 w-full rounded-2xl overflow-hidden',
   zoom = 14
 }: GoogleMapViewProps) {
-  const apiKey = ((import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string) || '';
+  const [apiKey, setApiKey] = useState<string>(((import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY as string) || '');
   const [mapError, setMapError] = useState(false);
+
+  useEffect(() => {
+    if (!apiKey) {
+      fetch('/api/firebase-config')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.config?.googleMapsApiKey) {
+            setApiKey(data.config.googleMapsApiKey);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [apiKey]);
 
   const position = {
     lat: location.lat || 37.7749,

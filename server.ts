@@ -368,18 +368,20 @@ app.get('/api/firebase-config', (_req: Request, res: Response) => {
   const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'mirrorsync-journal';
   const appId = process.env.VITE_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID;
   const authDomain = process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`;
+  const googleMapsApiKey = process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
 
-  if (apiKey) {
+  if (apiKey || googleMapsApiKey) {
     return res.json({
       success: true,
       config: {
-        apiKey,
+        apiKey: apiKey || 'AIzaSy_demo_client_key',
         projectId,
         appId: appId || "1:186489794174:web:49203eb08c56614943322f",
         authDomain,
         firestoreDatabaseId: "(default)",
         storageBucket: `${projectId}.firebasestorage.app`,
-        messagingSenderId: "186489794174"
+        messagingSenderId: "186489794174",
+        googleMapsApiKey
       }
     });
   }
