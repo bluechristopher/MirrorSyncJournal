@@ -1240,6 +1240,8 @@ export default function App() {
               onClearAllPosts={() => setIsConfirmingClearAll(true)}
               viewMode={viewMode}
               onToggleViewMode={setViewMode}
+              isGuest={!user}
+              onSignInGoogle={handleSignInGoogle}
             />
           ) : (
             <div className="space-y-5">
@@ -1268,6 +1270,8 @@ export default function App() {
                       entry={entry}
                       persona={persona}
                       isFocused={entry.id === activeEntryId}
+                      isGuest={!user}
+                      onSignInGoogle={handleSignInGoogle}
                       onToggleActionItem={handleToggleActionItem}
                       onToggleBookmark={handleToggleBookmark}
                       onDeleteEntry={handleDeleteEntry}

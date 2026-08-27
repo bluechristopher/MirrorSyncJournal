@@ -28,6 +28,8 @@ interface BookJournalViewProps {
   onClearAllPosts?: () => void;
   viewMode: 'book' | 'feed';
   onToggleViewMode: (mode: 'book' | 'feed') => void;
+  isGuest?: boolean;
+  onSignInGoogle?: () => void;
 }
 
 export function BookJournalView({
@@ -43,7 +45,9 @@ export function BookJournalView({
   onWriteNewJournal,
   onClearAllPosts,
   viewMode,
-  onToggleViewMode
+  onToggleViewMode,
+  isGuest = false,
+  onSignInGoogle
 }: BookJournalViewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<number>(0); // -1 for prev, 1 for next
@@ -370,6 +374,8 @@ export function BookJournalView({
                     entry={currentEntry}
                     persona={persona}
                     isFocused={currentEntry.id === activeEntryId}
+                    isGuest={isGuest}
+                    onSignInGoogle={onSignInGoogle}
                     onToggleActionItem={onToggleActionItem}
                     onToggleBookmark={onToggleBookmark}
                     onDeleteEntry={onDeleteEntry}

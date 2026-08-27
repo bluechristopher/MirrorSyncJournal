@@ -1,166 +1,135 @@
-﻿# MirrorSync 🪞
+# MirrorSync 🪞
 
 > **Persona-Adaptive Cognitive Journal & Executive Reflection Intelligence Engine**  
 > *Built for the **Google Cloud GenAI Academy APAC Edition (Social Challenge / Ideathon)**.*  
-> *Rapidly prototyped in **Google AI Studio**, iteratively architected & hardened with **Google Antigravity**, and continuously deployed to **Google Cloud Run** via **Cloud Build**.*
+> *Prototyped in **Google AI Studio**, iteratively architected & hardened with **Google Antigravity**, and deployed to **Google Cloud Run** with **Cloud Build**.*
 
 ---
 
-## 🌟 Executive Pitch & Project Overview
+## 🌟 The Story & Vision Behind MirrorSync
 
-**MirrorSync** is an intelligent, privacy-hardened cognitive journal and reflection intelligence engine that transforms unstructured daily thoughts into structured personal growth, executive clarity, and actionable execution. 
+Most journaling apps operate like digital scratchpads: you dump your thoughts, and at best, an AI gives back a generic summary. But real growth happens through **meaningful dialogue, inquisitive questions, and personalized perspectives**.
 
-While baseline journal templates merely summarize text, MirrorSync dynamically calibrates its cognitive feedback, tone, and action chips to the user\'s explicit **Executive Persona**, auto-categorizes reflections across dynamic life domains (**Work**, **Personal**, **Creative**, and **Email Drafting**), generates semantic topic clusters, grounds memories in physical space via Google Maps, synthesizes content-aware photorealistic artwork, and reads entries aloud with a natural text-to-speech engine.
+**MirrorSync** is a privacy-first, cognitive journaling companion that adapts dynamically to who you are. Whether you're an educator debugging classroom pedagogy, an engineer navigating sprint deadlines, or someone learning pickleball on the weekend, MirrorSync tailors its tone, reflections, and leading questions to your unique life context.
 
----
-
-## 🛠️ Technology Stack & AI Tooling Journey
-
-### 1. AI Development & Agentic Engineering Journey
-* **Google AI Studio**: 
-  - Used for the **initial prototype**, system instruction design, and few-shot prompt calibration.
-  - Defined the strict JSON schemas for persona extraction, cognitive metrics, multi-turn action chips, and domain routing.
-  - Evaluated prompt resilience across Gemini models (gemini-3.7-flash, gemini-3.6-flash, and gemini-3.1-flash-lite).
-* **Google Antigravity**:
-  - Transitioned the prototype into a production-grade full-stack architecture using Antigravity agentic coding.
-  - Implemented the automated 4-tier model fallback ladder, 5-zone threat modeling defenses, and OWASP LLM security mitigations.
-  - Built full-stack TypeScript interfaces, React 19 UI, Firebase Auth & Firestore multi-tenant subcollections, and containerization.
-
-### 2. Google Cloud Platform (GCP) Services
-* **Google Cloud Run**: Serverless container hosting running the Node.js / Express backend + Vite SPA with auto-scaling and zero-downtime rolling updates.
-* **Google Cloud Build**: Native Continuous Deployment (CD) pipeline automatically listening to GitHub push events on main to build and deploy containers without storing static JSON keys in GitHub.
-* **Google Gemini API (@google/genai SDK)**: Gemini 3.7 Flash powering cognitive reflections, emotional sentiment calibration, and dynamic topic clustering.
-* **Google Secret Manager**: Secure storage for GEMINI_API_KEY, granting access strictly via IAM service account bindings.
-* **Cloud Firestore**: Multi-tenant database with subcollection path isolation (/users/{userId}/**) locked by Firestore Security Rules.
-* **Firebase Authentication**: Google Single Sign-On (SSO) with JWT bearer token verification.
-* **Google Maps Platform (@vis.gl/react-google-maps)**: Spatial memory grounding, interactive dark-mode maps, and place geocoding.
+Instead of generic summaries, MirrorSync:
+1. **Understands Your Persona**: Extracts communication styles, pedagogical/strategic archetypes, and tone preferences.
+2. **Categorizes Across Real Life**: Routes thoughts into **Work**, **Personal**, **Creative**, and **Email Drafting**.
+3. **Asks Hyper-Tailored Inquisitive Questions**: Pushes your thinking with context-specific prompts rather than cliché advice.
+4. **Bridges Physical Space**: Grounds memories in physical locations using Google Maps Platform.
+5. **Generates Context Visuals**: Uses Google's native Gemini Lite image capabilities for 16:9 contextual banner illustrations with graceful standby states.
+6. **Speaks Your Thoughts**: Built-in voice synthesizer and teleprompter for auditory review.
 
 ---
 
-## 🏆 Challenge Compliance & Deliverables Matrix
+## 🛠️ Google Cloud Platform (GCP) Architecture & Services
 
-This project addresses all **Gen AI Academy APAC / Cloud Run AI Challenge** criteria:
+MirrorSync is built from the ground up on Google Cloud Platform, combining serverless compute, AI reasoning, database security, and spatial mapping:
 
-| Requirement / Criterion | Implementation in MirrorSync | Tech / Component Reference |
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                               MIRRORSYNC GCP ARCHITECTURE                               │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+   [ Client Browser ]
+          │  • React 19 + TypeScript + Vite SPA + Tailwind CSS
+          │  • Firebase Google Auth & Interactive Google Maps Platform
+          ▼
+   [ Google Cloud Run ] (Node.js 20 LTS + Express API Gateway)
+          │  • Serverless container auto-scaling (0 to N instances)
+          │  • 1MB payload limits, CORS guards & prompt injection fencing
+          ├─────────────────────────────────────────┬─────────────────────────────────────┐
+          ▼                                         ▼                                     ▼
+   [ Secret Manager ]                     [ Cloud Firestore ]                   [ Google Gemini API ]
+    • GEMINI_API_KEY isolation             • Multi-tenant user subcollections    • gemini-3.7-flash (Primary)
+    • Least-privilege IAM bindings         • Document rules: /users/{uid}/**     • gemini-3.5-flash-lite / 2.5
+                                                                                 • gemini-3.1-flash-lite-image
+```
+
+### Core GCP Services Utilized:
+* **Google Cloud Run**: Hosts the full-stack containerized service (`Dockerfile` + Node.js 20 LTS + Express backend + Vite SPA) with instant auto-scaling and zero-downtime rolling deploys.
+* **Google Cloud Build**: Native CI/CD pipeline triggered automatically on every push to `main` for hands-free continuous delivery.
+* **Google Gemini API (`@google/genai` SDK)**:
+  - **`gemini-3.7-flash`**: Primary multimodal cognitive reflection engine, emotional sentiment calibration, and dynamic topic clustering.
+  - **`gemini-3.5-flash-lite` & `gemini-2.5-flash-lite`**: High-speed, low-latency fallback models in our automated resilience ladder.
+  - **`gemini-3.1-flash-lite-image`**: Native Gemini image generation for 16:9 banner illustrations.
+* **Google Secret Manager**: Secure storage for `GEMINI_API_KEY`, accessed strictly at runtime via IAM service account bindings (never exposed to client-side bundles).
+* **Cloud Firestore**: Multi-tenant database enforcing strict subcollection path isolation (`/users/{userId}/**`) locked by server-authoritative Firestore Security Rules.
+* **Firebase Authentication**: Google Single Sign-On (SSO) with popup auth and JWT session verification.
+* **Google Maps Platform (`@vis.gl/react-google-maps`)**: Spatial memory grounding, place search, and interactive dark-mode map snippet previews.
+
+---
+
+## 🏆 Ideathon & Challenge Criteria Checklist
+
+| Challenge Requirement | How MirrorSync Solves It | Technical Component |
 | :--- | :--- | :--- |
-| **Cloud Run Production Deployment** | Full-stack containerized service (Dockerfile + Node 20 LTS + Express + Vite SPA) on Cloud Run with dev-tutorial=cloud-run-ai-challenge label. | **Cloud Run**, [Dockerfile](file:///c:/Users/User/Desktop/MirrorSyncJournal/Dockerfile), [server.ts](file:///c:/Users/User/Desktop/MirrorSyncJournal/server.ts) |
-| **Continuous Deployment (CD)** | Automated Cloud Build trigger listening to GitHub push events on main for zero-touch deployment. | **Cloud Build**, [deploy-mirrorsync-on-push trigger] |
-| **Firebase Authentication** | Single Sign-On (SSO) with Google Auth popup and session token verification across devices. | **Firebase Auth**, [src/firebase.ts](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/firebase.ts), [Header.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/Header.tsx) |
-| **Firestore Security & Isolation** | Strict document-level ownership rules enforcing isolation under /users/{userId}/** matching equest.auth.uid. | **Cloud Firestore**, [firestore.rules](file:///c:/Users/User/Desktop/MirrorSyncJournal/firestore.rules) |
-| **Google Gemini in AI Studio** | Multi-tier model ladder prioritizing gemini-3.7-flash, gemini-3.6-flash, gemini-3.1-flash-lite, and gemini-flash-latest with structured JSON schemas and zero client key exposure. | **Google AI Studio & GenAI SDK**, [server.ts:L34-L347](file:///c:/Users/User/Desktop/MirrorSyncJournal/server.ts#L34-L347) |
-| **Social Challenge Hashtag** | Prepared for social demo sharing with required hashtag **#AccelerateAIwithCloudRun**. | See [Social Post & Submission Details](#-social-challenge-submission-kit) |
+| **Cloud Run Production Deployment** | Containerized full-stack application deployed on Cloud Run with `dev-tutorial=cloud-run-ai-challenge` labels and auto-scaling. | [Dockerfile](file:///c:/Users/User/Desktop/MirrorSyncJournal/Dockerfile), [server.ts](file:///c:/Users/User/Desktop/MirrorSyncJournal/server.ts) |
+| **Continuous Deployment (CD)** | Cloud Build trigger automatically building and deploying new commits pushed to the `main` branch. | [deploy-mirrorsync-on-push trigger] |
+| **Google Gemini in AI Studio** | Structured prompts, few-shot calibration, and JSON schema outputs designed in AI Studio, invoked via `@google/genai`. | [server.ts](file:///c:/Users/User/Desktop/MirrorSyncJournal/server.ts) |
+| **Firebase Auth & Firestore** | Multi-tenant user login with Google SSO, automatic local-to-cloud sync, and strict subcollection ownership rules. | [src/firebase.ts](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/firebase.ts), [firestore.rules](file:///c:/Users/User/Desktop/MirrorSyncJournal/firestore.rules) |
+| **Multi-Tier Model Resilience** | 4-tier fallback ladder (`gemini-3.7-flash` → `gemini-3.5-flash` → `gemini-3.5-flash-lite` → `gemini-2.5-flash-lite`) handling 429 quota and transient spikes gracefully. | [server.ts](file:///c:/Users/User/Desktop/MirrorSyncJournal/server.ts) |
+| **Social Challenge Hashtag** | Prepared for social demo sharing with **#AccelerateAIwithCloudRun**. | See [Social Post Template](#-social-challenge-submission-kit) |
 
 ---
 
-## 🚀 Baseline vs. Innovative GCP Add-Ons
+## 🚀 Key Features Beyond the Baseline Template
 
-MirrorSync goes far beyond a starter lab template:
-
-`
+```
 ┌──────────────────────────────────────┐     ┌────────────────────────────────────────────────────────┐
-│   Starter / Baseline Gemini Lab      │     │            MirrorSync Innovative System                │
+│     Typical AI Starter Notebook      │     │              MirrorSync Production System              │
 ├──────────────────────────────────────┤     ├────────────────────────────────────────────────────────┤
-│ • Basic raw text input               │     │ • 🧠 AI Persona Extraction & Dynamic Tone Calibration  │
-│ • Generic single-turn summary        │ ──► │ • 💬 Multi-Turn Refinement with Context Memory         │
-│ • No spatial context                 │     │ • 📍 Google Maps Platform Pinning & Spatial Recall     │
-│ • Static categories                  │     │ • 🔮 Dynamic AI Topic Clustering & Unsupervised Tags   │
-│ • Plain text cards                   │     │ • 🎨 AI Editorial Art & Photorealistic Banners         │
-│ • Single model dependency (fails 429)│     │ • 🎧 Natural Voice Audio Reader & Speech Synthesizer   │
-│ • No database rules hardening        │     │ • ⚡ 4-Tier Automated Gemini Model Fallback Ladder     │
-│                                      │     │ • 🛡️ Live 5-Zone Threat Model & Security Inspector     │
+│ • Basic raw text box                 │     │ • 🧠 AI Persona Extraction & Tone Calibration          │
+│ • Generic single-turn summary        │ ──► │ • 📖 Dual-View Mode (Book Flip Journal vs. Feed View) │
+│ • No location or spatial context     │     │ • 📍 Double-Height Google Maps Spatial Grounding       │
+│ • Fragile single-model API calls    │     │ • ⚡ 4-Tier Automated Gemini Fallback Ladder          │
+│ • Open or unauthenticated database   │     │ • 🔒 Strict Document-Level Firestore Security Rules   │
+│ • Plain text readouts                │     │ • 🎧 Natural Voice Audio Reader & Teleprompter         │
+│ • Disconnected from real workflows   │     │ • ✉️ Executive Email Drafting Studio                  │
 └──────────────────────────────────────┘     └────────────────────────────────────────────────────────┘
-`
+```
 
-### 1. 🧠 AI Persona Extraction & Adaptive Onboarding ([OnboardingModal.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/OnboardingModal.tsx))
-- Analyzes natural user check-in reflections via Gemini to extract occupation, department, communication style (*analytical*, *visionary*, *concise*), and coaching archetypes (*Strategic Advisor*, *Socratic Challenger*, *Mindful Mentor*).
-- System prompts dynamically inject this persona to tailor empathy levels, executive takeaways, and action items.
+### 1. 🧠 Dynamic Persona Calibration ([OnboardingModal.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/OnboardingModal.tsx))
+Analyzes check-in reflections to extract occupation, department, communication style (*pedagogical*, *analytical*, *concise*), and coaching archetypes (*Strategic Advisor*, *Socratic Challenger*, *Mindful Mentor*). System instructions adapt empathy and feedback depth to match the persona.
 
-### 2. 💬 Multi-Turn Cognitive Refinement & Context Memory ([ReflectionCard.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/ReflectionCard.tsx))
-- Users can converse with their reflection using structured action chips: Propose Enriched Writeup, Structure Notes (Headers & Bullets), Extract Action Checklist, Draft Executive Email, and Refine Tone.
-- Merges feedback directly into original journal writeups while preserving session history.
+### 2. 📖 Dual-View Journal: Book Flip vs. Card Feed ([BookJournalView.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/BookJournalView.tsx))
+Switch between an immersive **Book Journal Flip View** (with paper textures, corner ribbon bookmarks, and chapter navigation) and a clean **Vertical Feed View**. All cards default to a clean collapsed state with instant expand toggles.
 
-### 3. 📍 Google Maps Presence & Spatial Pinning ([GoogleMapView.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/GoogleMapView.tsx))
-- Integrated with @vis.gl/react-google-maps and Google Maps Platform.
-- Users pin physical places (GPS coords or place names), generating spatial memory cues, dark-mode pins, direction shortcuts, and contextual reflections.
+### 3. 📍 Double-Height Google Maps Spatial Grounding ([ReflectionCard.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/ReflectionCard.tsx))
+Entries can be tagged with physical locations (e.g. *Kallang Tennis Centre, Singapore*). Features a prominent silver-gray location badge and an interactive double-height Google Map preview with dark-mode styling.
 
-### 4. 🔮 Dynamic AI Topic Clustering ([DynamicCategoryCards.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/DynamicCategoryCards.tsx))
-- Automatically clusters journal entries across life domains into human-friendly, high-level topic buckets (e.g. *Sports & Fitness*, *System Architecture*, *Leisure & Downtime*, *Shopping & Gear*).
-- Features instant semantic categorization with background Gemini cluster refinement.
+### 4. 🎨 Gemini Lite Context Illustrations ([EditorialArtCanvas.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/EditorialArtCanvas.tsx))
+Uses `gemini-3.1-flash-lite-image` to generate 16:9 banner visuals capturing the essence of each reflection. Includes a clean standby state and custom prompt editor allowing users to regenerate artwork anytime.
 
-### 5. ✉️ Interactive Email Drafting Studio ([EmailDraftingStudio.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/EmailDraftingStudio.tsx))
-- Dedicated studio to transform unstructured rough thoughts or past correspondence threads into send-ready executive emails.
-- Multi-turn quick length switchers (*Standard*, *Expanded*, *Concise*) and rapid copy to clipboard.
+### 5. ✉️ Executive Email Drafting Studio ([EmailDraftingStudio.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/EmailDraftingStudio.tsx))
+Transforms unstructured draft thoughts or meeting notes into structured, professional emails with length controls (*Standard*, *Expanded*, *Concise*) and 1-click clipboard copying.
 
-### 6. 🎧 Natural Voice Audio Reader & Teleprompter ([JournalVoicePlayer.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/JournalVoicePlayer.tsx))
-- In-browser voice synthesizer with natural voice detection, real-time speed tuning (0.9x to 1.5x), word-by-word teleprompter highlighting, scope filtering (*Full Reflection*, *Journal Only*, *Coaching Only*), and animated soundwave audio visualizers.
+### 6. 🎧 Voice Audio Reader & Teleprompter ([JournalVoicePlayer.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/JournalVoicePlayer.tsx))
+In-browser speech synthesizer with natural voice detection, adjustable playback speed (0.9x to 1.5x), word-by-word teleprompter highlighting, and live audio visualizers.
 
-### 7. 🎨 AI Editorial Art & Photorealistic Banners ([EditorialArtCanvas.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/EditorialArtCanvas.tsx))
-- Generates 16:9 cinematic photorealistic banner prompts and visuals that match the emotional mood and environmental setting of each entry.
-
-### 8. 🛡️ 5-Zone Threat Model & Transparency Inspector ([ThreatModelModal.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/ThreatModelModal.tsx))
-- Built-in live modal inspecting active security defenses across all 5 architectural zones, verifying OWASP LLM Top 10 mitigations.
+### 7. 🛡️ 5-Zone Threat Model & Security Inspector ([ThreatModelModal.tsx](file:///c:/Users/User/Desktop/MirrorSyncJournal/src/components/ThreatModelModal.tsx))
+Built-in security inspector verifying OWASP LLM Top 10 defenses, prompt boundary fencing, and Firestore database path isolation.
 
 ---
 
-## 🛡️ Security Architecture & Threat Model
+## ⚡ Automated Model Fallback Ladder
 
-MirrorSync enforces strict boundary separation across five designated threat zones, ensuring zero client-side credential exposure and guaranteed data isolation.
+To ensure MirrorSync never goes down during high-traffic spikes or quota limits, API calls run through an automated fallback hierarchy:
 
-`
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           MIRRORSYNC 5-ZONE ARCHITECTURE                        │
-└─────────────────────────────────────────────────────────────────────────────────┘
-  [ Client Browser (Zone 1: Client UI) ]
-         │  • Zero client API keys (import.meta.env public config only)
-         │  • HTTPS / Bearer Token auth with Firebase Auth UID
-         ▼
-  [ Cloud Run Edge / Express Backend (Zone 2: Transport & API Gateway) ]
-         │  • 1MB body limit & schema validation
-         │  • Origin verification & prompt injection delimiter boundaries
-         ├──────────────────────────────────────────┐
-         ▼                                          ▼
-  [ Secret Manager / IAM (Zone 3) ]   [ Firestore Multi-Tenant DB (Zone 4) ]
-   - Strict Least-Privilege IAM         - per-user path isolation (/users/{uid})
-   - Server-only GEMINI_API_KEY         - Server-authoritative rules enforcement
-         │
-         ▼
-  [ Google Gemini AI Engine (Zone 5: AI & Reasoning) ]
-   - Prompt Injection Sanitizers
-   - Automated 4-Tier Model Fallback Ladder
-   - Strict JSON Schema Validation
-`
-
-### The 5 Threat Zones
-
-| Threat Zone | Domain | Core Defense & Mitigation |
-| :--- | :--- | :--- |
-| **Zone 1: Client UI** | Browser & DOM | No secret keys in bundle (import.meta.env contains only public config); XSS sanitization; CSP compliance. |
-| **Zone 2: Transport & API Gateway** | Express / Cloud Run API | Origin verification, input boundary limits, request timeouts, and structured error masks. |
-| **Zone 3: Secret Store & IAM** | Google Secret Manager | Zero hardcoded keys; IAM binding grants oles/secretmanager.secretAccessor only to the Cloud Run service account. |
-| **Zone 4: Persistence Store** | Cloud Firestore | Strict subcollection path isolation (/users/{userId}/**); rule-level ownership checks with equest.auth.uid. |
-| **Zone 5: Model & AI Gateway** | Gemini API | System prompt encapsulation, delimiter boundaries preventing prompt injection, output schema validation. |
-
----
-
-## ⚡ Model Resilience Ladder
-
-To guarantee uninterrupted service even during peak traffic, quota limits, or regional outages, MirrorSync utilizes an automated **Adaptive Model Fallback Ladder**:
-
-`
+```
 [ Primary: gemini-3.7-flash ]
-           │ (On 429 Quota / 503 Busy / Timeout > 28s)
+           │ (On 429 Quota / 503 Busy / Timeout)
            ▼
-[ Tier 2 Fallback: gemini-3.6-flash ]
-           │ (On Error / Rate Limit)
+[ Tier 2: gemini-3.5-flash ]
+           │ (On Rate Limit)
            ▼
-[ Tier 3 Fallback: gemini-3.1-flash-lite ]
-           │ (On Error / Rate Limit)
+[ Tier 3: gemini-3.5-flash-lite ]
+           │ (On Rate Limit)
            ▼
-[ Tier 4 Fallback: gemini-flash-latest ]
+[ Tier 4: gemini-2.5-flash-lite ]
            │ (Emergency Continuity)
            ▼
 [ Graceful Deterministic Local Semantic Engine ]
-`
+```
 
 ---
 
@@ -168,7 +137,7 @@ To guarantee uninterrupted service even during peak traffic, quota limits, or re
 
 All user data in Firestore is partitioned under /users/{userId}. Multi-tenant cross-talk is prevented at the database kernel level through the following security rules:
 
-`javascript
+```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -199,7 +168,7 @@ service cloud.firestore {
     }
   }
 }
-`
+```
 
 ---
 
@@ -207,13 +176,13 @@ service cloud.firestore {
 
 ### 1. Enable Required Google Cloud APIs
 
-`ash
+```bash
 # Set your project ID
-export PROJECT_ID= genaiacademy3
+export PROJECT_ID=genaiacademy3
 export REGION=us-central1
 export SERVICE_NAME=mirrorsync
 
-gcloud config set project 
+gcloud config set project $PROJECT_ID
 
 # Enable Cloud Run, Secret Manager, Cloud Build, Artifact Registry, and Firestore
 gcloud services enable \
@@ -222,31 +191,31 @@ gcloud services enable \
   cloudbuild.googleapis.com \
   artifactregistry.googleapis.com \
   firestore.googleapis.com
-`
+```
 
 ### 2. Provision GEMINI_API_KEY in Secret Manager
 
-`ash
+```bash
 # Create secret in Secret Manager
-echo -n YOUR_GEMINI_API_KEY_HERE | gcloud secrets create GEMINI_API_KEY \
+echo -n "YOUR_GEMINI_API_KEY_HERE" | gcloud secrets create GEMINI_API_KEY \
   --data-file=- \
   --replication-policy=automatic
 
 # Grant Cloud Run default compute service account access to Secret Manager
 export PROJECT_NUMBER=217104786977
 gcloud secrets add-iam-policy-binding GEMINI_API_KEY \
-  --member=serviceAccount:-compute@developer.gserviceaccount.com \
+  --member=serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com \
   --role=roles/secretmanager.secretAccessor
-`
+```
 
 ### 3. Continuous Deployment (CD) via Cloud Build Triggers
 
-1. Connect your GitHub repository (MirrorSyncJournal) under **Cloud Build** ➔ **Repositories (1st gen)**.
+1. Connect your GitHub repository (`MirrorSyncJournal`) under **Cloud Build** ➔ **Repositories (1st gen)**.
 2. Create a Cloud Build Trigger:
-   - **Event**: Push to a branch (^main$)
+   - **Event**: Push to a branch (`^main$`)
    - **Configuration**: Inline Cloud Build configuration:
 
-`yaml
+```yaml
 steps:
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
@@ -265,7 +234,7 @@ steps:
 
 options:
   logging: CLOUD_LOGGING_ONLY
-`
+```
 
 ---
 
@@ -274,35 +243,36 @@ options:
 ### Required Submission Fields
 
 - **Project / Service Name**: MirrorSync
-- **Cloud Run Deployed URL**: https://mirrorsync-217104786977.us-central1.run.app (or your live Cloud Run URL)
-- **Public Repository Link**: https://github.com/bluechristopher/MirrorSyncJournal
-- **Demo Social Post Link**: https://www.linkedin.com/posts/<YOUR_POST_ID> (or X / Medium post)
-- **Required Hashtag**: #AccelerateAIwithCloudRun
+- **Cloud Run Deployed URL**: `https://mirrorsync-217104786977.us-central1.run.app` (or your live Cloud Run URL)
+- **Public Repository Link**: `https://github.com/bluechristopher/MirrorSyncJournal`
+- **Demo Social Post Link**: `https://www.linkedin.com/posts/<YOUR_POST_ID>` (or X / Medium post)
+- **Required Hashtag**: `#AccelerateAIwithCloudRun`
 
 ### Ready-to-Use Social Post Template (LinkedIn / X)
 
 > 🚀 Excited to showcase **MirrorSync** built for the Google Cloud GenAI Academy APAC Edition (#AccelerateAIwithCloudRun)!
 >
 > 🪞 **What is MirrorSync?**
-> An executive cognitive reflection intelligence engine that transforms unstructured thoughts into high-leverage clarity, executive actions, and mindful growth.
+> A persona-adaptive cognitive reflection intelligence engine that transforms unstructured thoughts into high-leverage clarity, executive actions, and mindful growth.
 >
 > 🛠️ **GCP Tech Stack & AI Tooling:**
 > • **AI Development Journey**: Initial system prompt & schema design prototyped in **Google AI Studio**, iteratively architected & security-hardened in **Google Antigravity**.
 > • **Google Cloud Run**: Containerized serverless deployment with automated scaling.
 > • **Google Cloud Build**: Native Continuous Deployment (CD) automatically listening to GitHub pushes.
 > • **Google Gemini 3.7 Flash & Google GenAI SDK**: Multi-tier model fallback ladder with structured JSON schema reasoning.
-> • **Cloud Firestore & Firebase Auth**: Strict per-user path isolation (/users/{uid}/**) ensuring multi-tenant privacy.
+> • **Cloud Firestore & Firebase Auth**: Strict per-user path isolation (`/users/{uid}/**`) ensuring multi-tenant privacy.
 > • **Google Maps Platform**: Spatial memory grounding with interactive maps & pins.
 >
 > ✨ **Unique Features Beyond Starter Template:**
 > 1. 🧠 Dynamic Persona Extraction & Tone Calibration
-> 2. 💬 Multi-Turn Cognitive Refinement & Context Memory
-> 3. 🔮 Dynamic AI Topic Clustering & Unsupervised Categorization
-> 4. ✉️ Interactive Email Drafting Studio with Past Correspondence Analysis
-> 5. 🎧 Natural Voice Audio Reader & Teleprompter
-> 6. 🛡️ 5-Zone Threat Model & OWASP LLM Mitigation Inspector
+> 2. 📖 Dual-View Mode (Book Flip Journal vs. Feed View)
+> 3. 📍 Double-Height Google Maps Spatial Grounding
+> 4. 🔮 Dynamic AI Topic Clustering & Unsupervised Categorization
+> 5. ✉️ Interactive Email Drafting Studio
+> 6. 🎧 Natural Voice Audio Reader & Teleprompter
+> 7. 🛡️ 5-Zone Threat Model & OWASP LLM Mitigation Inspector
 >
-> 🔗 Live Cloud Run App: [YOUR_DEPLOYMENT_URL]
+> 🔗 Live Cloud Run App: https://mirrorsync-217104786977.us-central1.run.app
 > 📂 GitHub Repo: https://github.com/bluechristopher/MirrorSyncJournal
 >
 > #AccelerateAIwithCloudRun #GoogleCloud #Gemini #CloudRun #Firebase #GoogleAIStudio #Antigravity #BuildWithAI

@@ -119,6 +119,8 @@ interface ReflectionCardProps {
   onTriggerAiReflection?: (entryId: string) => void;
   onUpdateEntry?: (entryId: string, updates: Partial<JournalEntry>) => Promise<void>;
   isFocused?: boolean;
+  isGuest?: boolean;
+  onSignInGoogle?: () => void;
 }
 
 export function ReflectionCard({
@@ -129,7 +131,9 @@ export function ReflectionCard({
   onDeleteEntry,
   onTriggerAiReflection,
   onUpdateEntry,
-  isFocused = false
+  isFocused = false,
+  isGuest = false,
+  onSignInGoogle
 }: ReflectionCardProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -742,27 +746,42 @@ export function ReflectionCard({
         </div>
       </div>
 
-      {/* 2. Photorealistic AI Banner Image Display (Always shown by default) */}
-      <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
-        <EditorialArtCanvas 
-          prompt={entry.rawText || entry.reflectionSummary} 
-          domain={entry.category?.domain} 
-          imageUrl={entry.bannerImageUrl}
-          rawText={entry.rawText}
-          topicTitle={postTitle}
-          isExpanded={isExpanded}
-          className="w-full shadow-lg border border-white/15"
-          onRegenerate={() => {
-            onUpdateEntry?.(entry.id, { bannerImageUrl: undefined });
-          }}
-          onImageGenerated={(newUrl) => {
-            onUpdateEntry?.(entry.id, { bannerImageUrl: newUrl });
-          }}
-          onClickToggleExpand={() => setIsExpanded(!isExpanded)}
-        />
-      </div>
+      {/* 2. Photorealistic AI Banner Image Display (Logged-In Feature / Locked in Demo) */}
+      {isGuest ? (
+        <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0c1527] via-[#090e1a] to-[#060a12] border border-white/10 p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm select-none">🎨</span>
+              <span className="text-xs font-semibold text-[#f6e7b8] uppercase tracking-wider font-sans">AI Banner Artwork</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-300 border border-white/10 font-mono">Logged-In Feature</span>
+            </div>
+            <p className="text-xs text-slate-400">
+              AI Banner generation is accessible when logged in.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
+          <EditorialArtCanvas 
+            prompt={entry.rawText || entry.reflectionSummary} 
+            domain={entry.category?.domain} 
+            imageUrl={entry.bannerImageUrl}
+            rawText={entry.rawText}
+            topicTitle={postTitle}
+            isExpanded={isExpanded}
+            className="w-full shadow-lg border border-white/15"
+            onRegenerate={() => {
+              onUpdateEntry?.(entry.id, { bannerImageUrl: undefined });
+            }}
+            onImageGenerated={(newUrl) => {
+              onUpdateEntry?.(entry.id, { bannerImageUrl: newUrl });
+            }}
+            onClickToggleExpand={() => setIsExpanded(!isExpanded)}
+          />
+        </div>
+      )}
 
-      {/* 3. Interactive Map Snippet Preview (Double Height & Silver Gray Styling) */}
+      {/* 3. Interactive Map Snippet Preview (Logged-In Feature / Locked in Demo) */}
       {isExpanded && showMap && entry.location && (
         <div className="p-3.5 sm:p-4.5 bg-gradient-to-r from-[#0c1322] via-[#090e1a] to-[#060a12] border-b border-slate-500/30 space-y-3 animate-in fade-in-50 duration-200">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -778,10 +797,24 @@ export function ReflectionCard({
               onClick={() => setShowMap(false)}
               className="text-slate-300 hover:text-white text-xs px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors cursor-pointer border border-white/10 ml-auto font-medium"
             >
-              Close Map
+              Close
             </button>
           </div>
-          <GoogleMapView location={entry.location} className="h-72 sm:h-80 md:h-96 w-full rounded-2xl overflow-hidden border border-slate-400/30 shadow-2xl" />
+          {isGuest ? (
+            <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md p-4 sm:p-5 text-center space-y-1.5">
+              <div className="inline-flex items-center justify-center p-2 rounded-full bg-slate-800/80 border border-white/10 text-slate-300 shadow-sm">
+                <span className="text-base">🗺️</span>
+              </div>
+              <h4 className="text-xs font-semibold text-slate-200 font-sans">
+                Interactive Map Grounding
+              </h4>
+              <p className="text-xs text-slate-400 max-w-md mx-auto">
+                Interactive Google Maps previews with spatial pins are accessible when logged in.
+              </p>
+            </div>
+          ) : (
+            <GoogleMapView location={entry.location} className="h-72 sm:h-80 md:h-96 w-full rounded-2xl overflow-hidden border border-slate-400/30 shadow-2xl" />
+          )}
         </div>
       )}
 
