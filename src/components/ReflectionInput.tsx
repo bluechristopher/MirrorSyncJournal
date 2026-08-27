@@ -464,7 +464,7 @@ export function ReflectionInput({
                   if (localError) setLocalError(null);
                 }}
                 placeholder={`Log your daily stream of consciousness, personal well-being, creative breakthrough, or operational thoughts...\nYour entry is preserved safely first, with friendly & uplifting coaching generated in the background! ✨`}
-                className="w-full metallic-panel text-slate-100 placeholder-slate-400 font-neuton text-base sm:text-lg rounded-xl p-4 sm:p-5 pb-14 sm:pb-12 border border-white/15 focus:outline-none focus:border-[#f6e7b8] focus:ring-2 focus:ring-[#f6e7b8]/30 transition-all resize-y min-h-[130px] shadow-inner leading-relaxed"
+                className="w-full bg-gradient-to-br from-white/[0.08] via-white/[0.03] to-transparent text-[#fef6e4] placeholder-slate-400 font-oregano text-xl sm:text-2xl md:text-[25px] rounded-xl p-4 sm:p-5 pb-14 sm:pb-12 focus:outline-none focus:ring-1 focus:ring-[#f6e7b8]/40 transition-all resize-y min-h-[140px] shadow-inner leading-relaxed tracking-wide"
               />
 
               {/* Action buttons inside textarea area */}

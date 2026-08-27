@@ -42,7 +42,8 @@ import {
   ArrowRight,
   HelpCircle,
   Plus,
-  RefreshCw
+  RefreshCw,
+  PenTool
 } from 'lucide-react';
 import type { JournalEntry, UserPersona, ChatMessage, QuickActionType } from '../types';
 import { EditorialArtCanvas } from './EditorialArtCanvas';
@@ -928,7 +929,7 @@ export function ReflectionCard({
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
                     rows={5}
-                    className="w-full p-4 rounded-xl bg-black/50 border border-white/20 text-[#fef6e4] font-libre-baskerville text-[15px] sm:text-[16px] focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all leading-relaxed"
+                    className="w-full p-4 rounded-xl bg-black/60 text-[#fef6e4] font-oregano text-xl sm:text-2xl focus:outline-none focus:ring-1 focus:ring-amber-400/40 transition-all leading-relaxed shadow-inner"
                     placeholder="Write your journal thoughts here..."
                   />
                 </div>
@@ -939,7 +940,7 @@ export function ReflectionCard({
                     type="text"
                     value={editSummary}
                     onChange={(e) => setEditSummary(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/20 text-[#f6e7b8] text-sm sm:text-base focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 text-[#f6e7b8] text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-blue-400/30 transition-all"
                     placeholder="Core summary takeaway..."
                   />
                 </div>
@@ -979,17 +980,19 @@ export function ReflectionCard({
                 </div>
               </motion.div>
             ) : (
-              /* Original Journal Input Box */
+              /* Original Journal Post (Borderless Metallic Background with Fountain Pen Logo & Oregano Font) */
               <motion.div 
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: 0.04 }}
-                className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#1d120a] via-[#160d07] to-[#0c0603] border border-amber-800/40 space-y-2.5 shadow-md"
+                className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#1a233a]/90 via-[#0e1628]/95 to-[#060b14] shadow-2xl space-y-3.5"
               >
                 <div className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-300">
                   <div className="flex items-center gap-2 text-slate-200">
-                    <BookOpen className="w-4 h-4 text-[#f6e7b8]" />
-                    <span className="uppercase tracking-wider text-[11px] font-semibold text-[#f6e7b8]">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400/20 via-amber-500/10 to-transparent flex items-center justify-center text-[#f6e7b8] shadow-sm">
+                      <PenTool className="w-4 h-4 text-[#f6e7b8] drop-shadow-[0_0_8px_rgba(246,231,184,0.4)]" />
+                    </div>
+                    <span className="uppercase tracking-widest text-xs font-bold bg-gradient-to-r from-[#f6e7b8] via-amber-200 to-[#d4af37] bg-clip-text text-transparent">
                       {isEdited ? 'Edited Journal Post' : 'Journal Post'}
                     </span>
                   </div>
@@ -1004,7 +1007,7 @@ export function ReflectionCard({
                         setEditText(entry.rawText);
                         setEditSummary(entry.reflectionSummary || '');
                       }}
-                      className="text-[11px] text-slate-300 hover:text-[#f6e7b8] flex items-center gap-1 cursor-pointer transition-colors px-2 py-0.5 rounded-lg metallic-panel"
+                      className="text-[11px] text-slate-300 hover:text-[#f6e7b8] flex items-center gap-1 cursor-pointer transition-colors px-2.5 py-1 rounded-lg metallic-panel shadow-sm"
                       title="Edit journal text"
                     >
                       <Pencil className="w-3 h-3" />
@@ -1012,7 +1015,7 @@ export function ReflectionCard({
                     </button>
                   </div>
                 </div>
-                <div className="p-4 rounded-xl metallic-panel font-libre-baskerville text-[15px] sm:text-[16px] text-[#fef6e4] leading-relaxed tracking-normal whitespace-pre-wrap select-text border border-white/10 shadow-inner">
+                <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-br from-white/[0.07] via-white/[0.02] to-transparent font-oregano text-xl sm:text-2xl md:text-[25px] text-[#fef6e4] leading-relaxed tracking-wide whitespace-pre-wrap select-text shadow-inner">
                   {entry.rawText}
                 </div>
               </motion.div>
@@ -1313,153 +1316,12 @@ export function ReflectionCard({
                             }`}>
                               {itemCategory}
                             </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Element 5: Quick Action Chips & Writeup Proposal Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: 0.20 }}
-                  className="pt-3 border-t border-white/10 space-y-2.5"
-                >
-                  <div className="flex items-center justify-between text-xs text-slate-300">
-                    <span className="flex items-center gap-2 font-semibold text-[#f6e7b8]">
-                      <Wand2 className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                      <span>{domain === 'Email Drafting' ? 'Email Actions' : 'Quick AI Actions'}</span>
-                    </span>
-                    <span className="text-[11px] text-slate-400">Click to explore or synthesize</span>
-                  </div>
-
-                  {/* Primary Trigger: Propose Enriched Journal Writeup */}
-                  <button
-                    type="button"
-                    disabled={isChatLoading}
-                    onClick={() => handleTriggerQuickAction('propose_update')}
-                    className="w-full p-2.5 sm:p-3 rounded-xl border border-[#f6e7b8]/40 text-left flex items-center justify-between gap-3 text-xs transition-all cursor-pointer metallic-proposal-card hover:border-[#f6e7b8]/70 text-[#f6e7b8] shadow-lg disabled:opacity-50"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Sparkles className="w-4 h-4 text-[#f6e7b8] shrink-0 animate-pulse" />
-                      <div>
-                        <span className="font-bold text-sm block text-[#f6e7b8]">✨ Propose Enriched Journal Writeup</span>
-                        <span className="text-[11px] text-slate-300">Synthesizes full conversation into an updated writeup for you to edit & merge</span>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
-                    <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#f6e7b8]/15 border border-[#f6e7b8]/35 font-semibold uppercase tracking-wider shrink-0 hidden sm:inline text-[#f6e7b8]">
-                      Generate Update
-                    </span>
-                  </button>
-
-                  {domain === 'Email Drafting' ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        disabled={isChatLoading}
-                        onClick={() => handleTriggerQuickAction('shorten_email')}
-                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                          activeActionChip === 'shorten_email'
-                            ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                            : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                        }`}
-                      >
-                        <Wand2 className="w-4 h-4 text-emerald-300 shrink-0" />
-                        <span className="font-medium">✂️ Make Shorter & Concise</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={isChatLoading}
-                        onClick={() => handleTriggerQuickAction('formalize_email')}
-                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                          activeActionChip === 'formalize_email'
-                            ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                            : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                        }`}
-                      >
-                        <Briefcase className="w-4 h-4 text-blue-300 shrink-0" />
-                        <span className="font-medium">👔 Formalize for Leadership</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={isChatLoading}
-                        onClick={() => handleTriggerQuickAction('add_cta')}
-                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                          activeActionChip === 'add_cta'
-                            ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                            : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                        }`}
-                      >
-                        <CheckSquare className="w-4 h-4 text-[#f6e7b8] shrink-0" />
-                        <span className="font-medium">🎯 Add Call to Action</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={isChatLoading}
-                        onClick={() => handleTriggerQuickAction('refine_email_tone')}
-                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                          activeActionChip === 'refine_email_tone'
-                            ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                            : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                        }`}
-                      >
-                        <Sparkles className="w-4 h-4 text-purple-300 shrink-0" />
-                        <span className="font-medium">✨ Refine Tone & Clarity</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        disabled={isChatLoading}
-                        onClick={() => handleTriggerQuickAction('structure_notes')}
-                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                          activeActionChip === 'structure_notes'
-                            ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                            : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                        }`}
-                      >
-                        <ListOrdered className="w-4 h-4 text-blue-300 shrink-0" />
-                        <span className="font-medium">📋 Structure with Bullets</span>
-                      </button>
-
-                      {domain === 'Work' ? (
-                        <button
-                          type="button"
-                          disabled={isChatLoading}
-                          onClick={() => handleTriggerQuickAction('extract_checklist')}
-                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                            activeActionChip === 'extract_checklist'
-                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                            : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                          }`}
-                        >
-                          <CheckSquare className="w-4 h-4 text-emerald-300 shrink-0" />
-                          <span className="font-medium">✅ Extract Action Items</span>
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={isChatLoading}
-                          onClick={() => handleTriggerQuickAction('brainstorm')}
-                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                            activeActionChip === 'brainstorm'
-                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                            : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                          }`}
-                        >
-                          <Lightbulb className="w-4 h-4 text-purple-300 shrink-0" />
-                          <span className="font-medium">💡 Brainstorm Perspectives</span>
-                        </button>
-                      )}
-                    </div>
+                    </motion.div>
                   )}
-                </motion.div>
 
                 {/* Element 6: Follow-Up Chat Stream with Multi-Turn Conversation & Sentiments Merging */}
                 <motion.div
@@ -1712,14 +1574,14 @@ export function ReflectionCard({
                     </div>
                   )}
 
-                  {/* Chat Input Form (Multi-line Textarea with Auto-Send on Enter) */}
+                  {/* Chat Input Form (Multi-line Textarea: Enter for newline, Ctrl+Enter to send) */}
                   <form onSubmit={handleCustomSubmit} className="space-y-2 pt-1">
                     <div className="relative flex items-end gap-2">
                       <textarea
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
+                          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                             e.preventDefault();
                             if (chatInput.trim() && !isChatLoading) {
                               handleCustomSubmit(e);
@@ -1730,10 +1592,10 @@ export function ReflectionCard({
                         rows={3}
                         placeholder={
                           domain === 'Personal' 
-                            ? "Type your answers or thoughts here to converse & merge into your post (Press Enter to send, Shift+Enter for new line)..." 
-                            : "Ask a question or continue discussing (Press Enter to send, Shift+Enter for new line)..."
+                            ? "Type your answers or thoughts here to converse & merge into your post (Press Ctrl+Enter to send, Enter for next line)..." 
+                            : "Ask a question or continue discussing (Press Ctrl+Enter to send, Enter for next line)..."
                         }
-                        className="w-full p-3.5 pr-20 rounded-xl metallic-panel text-xs sm:text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 disabled:opacity-50 transition-all shadow-inner font-sans leading-relaxed resize-y"
+                        className="w-full p-3.5 pr-24 rounded-xl metallic-panel text-xs sm:text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 disabled:opacity-50 transition-all shadow-inner font-sans leading-relaxed resize-y"
                       />
                       <button
                         type="submit"
@@ -1749,9 +1611,145 @@ export function ReflectionCard({
                       </button>
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-slate-400 font-sans px-1">
-                      <span>💡 <strong>Tip:</strong> Press <strong>Enter</strong> to send automatically, or <strong>Shift + Enter</strong> for a new line.</span>
+                      <span>💡 <strong>Tip:</strong> Press <strong>Ctrl + Enter</strong> to send automatically, or <strong>Enter</strong> for a new line.</span>
                     </div>
                   </form>
+
+                  {/* Quick AI Actions (Placed at the bottom below textarea, clicking sends prompt automatically) */}
+                  <div className="pt-3 border-t border-white/10 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs text-slate-300">
+                      <span className="flex items-center gap-2 font-semibold text-[#f6e7b8]">
+                        <Wand2 className="w-3.5 h-3.5 text-[#f6e7b8]" />
+                        <span>{domain === 'Email Drafting' ? 'Quick Email Actions' : 'Quick AI Actions'}</span>
+                      </span>
+                      <span className="text-[11px] text-slate-400">Click to automatically generate & update</span>
+                    </div>
+
+                    {/* Primary Trigger: Propose Enriched Journal Writeup */}
+                    <button
+                      type="button"
+                      disabled={isChatLoading}
+                      onClick={() => handleTriggerQuickAction('propose_update')}
+                      className="w-full p-2.5 sm:p-3 rounded-xl border border-[#f6e7b8]/40 text-left flex items-center justify-between gap-3 text-xs transition-all cursor-pointer metallic-proposal-card hover:border-[#f6e7b8]/70 text-[#f6e7b8] shadow-lg disabled:opacity-50"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Sparkles className="w-4 h-4 text-[#f6e7b8] shrink-0 animate-pulse" />
+                        <div>
+                          <span className="font-bold text-sm block text-[#f6e7b8]">✨ Propose Enriched Journal Writeup</span>
+                          <span className="text-[11px] text-slate-300">Synthesizes full conversation into an updated writeup for you to edit & merge</span>
+                        </div>
+                      </div>
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#f6e7b8]/15 border border-[#f6e7b8]/35 font-semibold uppercase tracking-wider shrink-0 hidden sm:inline text-[#f6e7b8]">
+                        Generate Update
+                      </span>
+                    </button>
+
+                    {domain === 'Email Drafting' ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('shorten_email')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'shorten_email'
+                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
+                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
+                          }`}
+                        >
+                          <Wand2 className="w-4 h-4 text-emerald-300 shrink-0" />
+                          <span className="font-medium">✂️ Make Shorter & Concise</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('formalize_email')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'formalize_email'
+                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
+                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
+                          }`}
+                        >
+                          <Briefcase className="w-4 h-4 text-blue-300 shrink-0" />
+                          <span className="font-medium">👔 Formalize for Leadership</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('add_cta')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'add_cta'
+                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
+                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
+                          }`}
+                        >
+                          <CheckSquare className="w-4 h-4 text-[#f6e7b8] shrink-0" />
+                          <span className="font-medium">🎯 Add Call to Action</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('refine_email_tone')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'refine_email_tone'
+                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
+                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
+                          }`}
+                        >
+                          <Sparkles className="w-4 h-4 text-purple-300 shrink-0" />
+                          <span className="font-medium">✨ Refine Tone & Clarity</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('structure_notes')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'structure_notes'
+                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
+                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
+                          }`}
+                        >
+                          <ListOrdered className="w-4 h-4 text-blue-300 shrink-0" />
+                          <span className="font-medium">📋 Structure with Bullets</span>
+                        </button>
+
+                        {domain === 'Work' ? (
+                          <button
+                            type="button"
+                            disabled={isChatLoading}
+                            onClick={() => handleTriggerQuickAction('extract_checklist')}
+                            className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                              activeActionChip === 'extract_checklist'
+                                ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
+                                : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
+                            }`}
+                          >
+                            <CheckSquare className="w-4 h-4 text-emerald-300 shrink-0" />
+                            <span className="font-medium">✅ Extract Action Items</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={isChatLoading}
+                            onClick={() => handleTriggerQuickAction('brainstorm')}
+                            className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                              activeActionChip === 'brainstorm'
+                                ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
+                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
+                            }`}
+                          >
+                            <Lightbulb className="w-4 h-4 text-purple-300 shrink-0" />
+                            <span className="font-medium">💡 Brainstorm Perspectives</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
 
                 {/* Element 7: Project Tags & Clarity */}

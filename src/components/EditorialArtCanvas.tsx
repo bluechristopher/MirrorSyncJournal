@@ -152,10 +152,15 @@ export function EditorialArtCanvas({
           <>
             <img
               src={currentImageUrl}
-              alt={`AI Contextual Banner for ${prompt}`}
+              alt=""
               referrerPolicy="no-referrer"
               className={`w-full h-full object-cover transition-transform duration-700 group-hover/canvas:scale-[1.04] ${isLoading ? 'blur-sm brightness-75 scale-105' : 'brightness-90 contrast-105'}`}
-              onError={() => setHasError(true)}
+              onError={() => {
+                // Clear broken image immediately so no broken image/alt renders, and auto-regenerate
+                setCurrentImageUrl(null);
+                setHasError(true);
+                handleGeneratePhotorealisticImage(customPromptInput || prompt, domain, rawText, false);
+              }}
             />
             {/* Metallic Sheen Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#060b18] via-black/30 to-transparent pointer-events-none" />
@@ -227,30 +232,33 @@ export function EditorialArtCanvas({
           </div>
         )}
 
-        {/* Top Badges */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/20 shadow-lg text-[11px] font-medium text-slate-100 pointer-events-none">
-            <Sparkles className="w-3.5 h-3.5 text-[#f6e7b8]" />
-            <span className="text-[#f6e7b8] font-bold">Gemini AI</span>
-            <span className="text-slate-400">•</span>
-            <span className="text-slate-200">Context AI Illustration</span>
+        {/* Top Badges (Only shown when image is loaded) */}
+        {currentImageUrl && (
+          <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/20 shadow-lg text-[11px] font-medium text-slate-100 pointer-events-none">
+              <Sparkles className="w-3.5 h-3.5 text-[#f6e7b8]" />
+              <span className="text-[#f6e7b8] font-bold">Gemini AI</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-slate-200">Context AI Illustration</span>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Sleek bottom info bar */}
-        <div className="absolute bottom-2.5 left-3.5 right-3.5 flex items-center justify-between text-xs text-slate-200 z-10">
-          <div className="flex items-center gap-2 min-w-0 pr-2">
-            <span 
-              className="w-2 h-2 rounded-full shadow-sm flex-shrink-0"
-              style={{ backgroundColor: meta.accent, boxShadow: `0 0 8px ${meta.accent}` }}
-            />
-            <span className="font-semibold text-slate-100 text-xs tracking-wide truncate">
-              {meta.themeName}
-            </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-[#f6e7b8] border border-white/15 flex-shrink-0 font-medium">
-              {domain}
-            </span>
-          </div>
+        {/* Sleek bottom info bar (Only shown when image is loaded) */}
+        {currentImageUrl && (
+          <div className="absolute bottom-2.5 left-3.5 right-3.5 flex items-center justify-between text-xs text-slate-200 z-10">
+            <div className="flex items-center gap-2 min-w-0 pr-2">
+              <span 
+                className="w-2 h-2 rounded-full shadow-sm flex-shrink-0"
+                style={{ backgroundColor: meta.accent, boxShadow: `0 0 8px ${meta.accent}` }}
+              />
+              <span className="font-semibold text-slate-100 text-xs tracking-wide truncate">
+                {meta.themeName}
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-[#f6e7b8] border border-white/15 flex-shrink-0 font-medium">
+                {domain}
+              </span>
+            </div>
 
           <div className="flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity flex-shrink-0">
             <button
@@ -275,6 +283,7 @@ export function EditorialArtCanvas({
             )}
           </div>
         </div>
+      )}
       </div>
 
       {/* Gemini AI Art Prompt Caption Below Image (With Customize Prompt Editor) */}
