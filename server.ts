@@ -362,6 +362,31 @@ function getCuratedPhotorealisticFallback(prompt: string, domain: string = 'Work
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(pollPrompt)}?width=800&height=450&seed=${seed}&nologo=true&model=flux`;
 }
 
+// Public runtime configuration endpoint for client Firebase initialization
+app.get('/api/firebase-config', (_req: Request, res: Response) => {
+  const apiKey = process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY;
+  const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'mirrorsync-journal';
+  const appId = process.env.VITE_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID;
+  const authDomain = process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`;
+
+  if (apiKey) {
+    return res.json({
+      success: true,
+      config: {
+        apiKey,
+        projectId,
+        appId: appId || "1:186489794174:web:49203eb08c56614943322f",
+        authDomain,
+        firestoreDatabaseId: "(default)",
+        storageBucket: `${projectId}.firebasestorage.app`,
+        messagingSenderId: "186489794174"
+      }
+    });
+  }
+
+  res.json({ success: false, message: 'No server-side environment variables configured' });
+});
+
 // Server-side Image Storage Map (Stores image buffers outside Firestore)
 const bannerImageStore = new Map<string, { mimeType: string; data: Buffer }>();
 

@@ -57,8 +57,6 @@ export let app: FirebaseApp = !getApps().length ? initializeApp(currentConfig) :
 export let auth: Auth = getAuth(app);
 export let db = getFirestore(app);
 
-import type { UserPersona, JournalEntry } from './types';
-
 // Subscription manager so App.tsx always receives auth events even if auth instance re-initializes
 type AuthListener = (user: User | null) => void;
 const listeners = new Set<AuthListener>();
@@ -75,6 +73,35 @@ function setupAuthSubscription() {
 
 // Attach initial auth listener immediately
 setupAuthSubscription();
+
+// Dynamic runtime config initialization from Express server
+export async function initializeRuntimeFirebaseConfig(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/firebase-config');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.config?.apiKey && data.config.apiKey !== 'AIzaSy_demo_client_key') {
+        console.info('[Firebase] Loaded dynamic runtime config for project:', data.config.projectId);
+        if (getApps().length) {
+          await deleteApp(getApp());
+        }
+        app = initializeApp(data.config);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        setupAuthSubscription();
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn('[Firebase] Runtime config fetch fallback:', err);
+  }
+  return false;
+}
+
+// Trigger runtime fetch automatically on page load
+if (typeof window !== 'undefined') {
+  initializeRuntimeFirebaseConfig();
+}
 
 // Custom wrapper exported for App.tsx that registers callbacks to the active Auth instance
 export function onAuthStateChanged(_authInstance: Auth, callback: AuthListener): () => void {
