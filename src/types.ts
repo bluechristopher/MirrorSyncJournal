@@ -66,6 +66,7 @@ export interface EmailDraft {
 }
 
 export interface ReflectionResult {
+  title?: string;
   domain?: DomainCategory;
   summary?: string;
   coaching?: string;
@@ -76,6 +77,7 @@ export interface ReflectionResult {
   emailDraft?: EmailDraft | null;
   creativeSpark?: string | null;
   editorialArtPrompt: string;
+  bannerImageUrl?: string | null;
   location?: LocationPin | null;
   locationContext?: string | null;
   cognitiveMetrics?: CognitiveMetrics;
@@ -139,6 +141,7 @@ export interface ChatMessage {
 export interface JournalEntry {
   id: string;
   userId: string;
+  title?: string;
   rawText: string;
   createdAt: number;
   updatedAt?: number;

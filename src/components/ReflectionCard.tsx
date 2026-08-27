@@ -136,12 +136,15 @@ export function ReflectionCard({
   const prevMsgLengthRef = useRef(entry.messages?.length || 0);
   const [isVisible, setIsVisible] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(isFocused);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [showMap, setShowMap] = useState<boolean>(true);
-  
-  // Banner art state - visible in condensed and expanded view
-  const [showBanner, setShowBanner] = useState<boolean>(true);
-  const [bannerSeed, setBannerSeed] = useState(entry.editorialArtPrompt || `${entry.id}-${entry.rawText.slice(0, 40)}`);
+
+  // Always reset to condensed view by default whenever navigating to a new post
+  useEffect(() => {
+    setIsExpanded(false);
+    setIsEditing(false);
+    setShowVoicePlayer(false);
+  }, [entry.id]);
 
   // Voice narration player state
   const [showVoicePlayer, setShowVoicePlayer] = useState(false);
@@ -210,17 +213,7 @@ export function ReflectionCard({
   useEffect(() => {
     setEditText(entry.rawText);
     setEditSummary(entry.reflectionSummary || '');
-    if (entry.bannerImageUrl) {
-      setShowBanner(true);
-    }
-  }, [entry.rawText, entry.reflectionSummary, entry.bannerImageUrl]);
-
-  // Expand card if isFocused is set
-  useEffect(() => {
-    if (isFocused) {
-      setIsExpanded(true);
-    }
-  }, [isFocused]);
+  }, [entry.rawText, entry.reflectionSummary]);
 
   // Fluid Scroll Animation via IntersectionObserver
   useEffect(() => {
@@ -334,19 +327,18 @@ export function ReflectionCard({
   // Derived meta properties for clean collapsed view
   const wordCount = entry.rawText ? entry.rawText.trim().split(/\s+/).filter(Boolean).length : 0;
   const isEdited = Boolean(entry.updatedAt && entry.updatedAt > entry.createdAt);
-  // Compact short title (max ~42 chars with clean word boundary)
-  const rawTitleSource = entry.reflectionSummary
-    ? entry.reflectionSummary.split('\n')[0].replace(/^[#*>\s]+/, '').trim()
-    : entry.rawText.split('\n')[0].trim();
-
-  const truncateCompactTitle = (str: string, maxLen = 42) => {
-    if (!str || str.length <= maxLen) return str || 'Untitled Reflection';
-    const trimmed = str.slice(0, maxLen);
-    const lastSpace = trimmed.lastIndexOf(' ');
-    return (lastSpace > 15 ? trimmed.slice(0, lastSpace) : trimmed).trim() + '...';
+  // Essence-driven title for this journal post (never slices raw highlights)
+  const formatEssenceTitle = () => {
+    if (entry.title) {
+      return entry.title.replace(/^[#*>\-\s"']+|[#*>\-\s"']+$/g, '').trim();
+    }
+    if (isSynthesizing) {
+      return '✨ Synthesizing Reflection...';
+    }
+    return `${domain} Reflection`;
   };
 
-  const postTitle = truncateCompactTitle(rawTitleSource, 42);
+  const postTitle = formatEssenceTitle();
 
   // Show full main journal text in snippet preview
   const postSnippet = entry.rawText || entry.reflectionSummary;
@@ -399,7 +391,7 @@ export function ReflectionCard({
     const now = Date.now();
     let displayPrompt = customPrompt || '';
     if (!displayPrompt) {
-      if (actionType === 'propose_update') displayPrompt = '📝 Propose Enriched Journal Writeup (incorporating our conversation)';
+      if (actionType === 'propose_update') displayPrompt = '📝 Update Journal Post (with conversation insights)';
       else if (actionType === 'structure_notes') displayPrompt = '📋 Structure Notes (Headers & Bullets)';
       else if (actionType === 'extract_checklist') displayPrompt = '✅ Extract Action Checklist';
       else if (actionType === 'refine_tone') displayPrompt = '✨ Refine & Polish Reflection';
@@ -573,63 +565,62 @@ export function ReflectionCard({
       ref={cardRef}
       id={`entry-${entry.id}`}
       style={{
-        transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0px)' : 'translateY(28px)'
+        transition: 'opacity 0.4s ease-out',
+        opacity: isVisible ? 1 : 0
       }}
       className={`relative rounded-2xl ${cardThemeClass} aero-float-card shadow-2xl overflow-hidden ${
         isFocused ? 'ring-2 ring-[#f6e7b8] border-[#f6e7b8]/70 shadow-[0_0_35px_rgba(246,231,184,0.35)]' : ''
       }`}
     >
-      {/* 1. Header Row with Prominent Relative Date Bubble & Exact Date */}
+      {/* 1. Header Row with Prominent Date Time & Unified When | Category Bubble */}
       <div className="p-4 sm:p-5 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-white/[0.02]">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-wrap">
-          {/* Prominent Relative Time Bubble & Actual Date Section */}
-          <div className="flex flex-col items-start gap-1">
-            <div className={`px-3.5 py-1 rounded-full text-xs font-bold tracking-wide flex items-center gap-1.5 shadow-md border ${relativeTimeBadgeStyle}`}>
-              <Clock className="w-3.5 h-3.5 shrink-0" />
-              <span>{timeInfo.relativeLabel}</span>
-            </div>
-            <div className="text-xs sm:text-[13px] font-mono font-medium text-slate-100 tracking-tight pl-0.5 flex items-center gap-1.5">
-              <span>{timeInfo.fullFormattedDate}</span>
-            </div>
+          {/* Prominent Clear Date & Time */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm sm:text-base font-bold text-slate-100 font-sans tracking-tight drop-shadow-xs">
+              {timeInfo.fullFormattedDate}
+            </span>
           </div>
 
-          <div className="h-7 w-[1px] bg-white/15 hidden sm:block" />
-
-          {/* Domain Badge & Context Tags */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Domain Badge */}
-            <span className={`px-3 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${domainConfig.badgeBg}`}>
-              <DomainIcon className="w-3.5 h-3.5" />
-              <span>{domain}</span>
+          {/* Unified Bubble: When | Category */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 metallic-panel shadow-sm bg-black/40">
+            <span className="flex items-center gap-1.5 text-sky-200">
+              <Clock className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <span>{timeInfo.relativeLabel}</span>
             </span>
 
-            {/* Department / Category Tag */}
-            {entry.category?.departmentOrContext && (
-              <span className="text-xs text-slate-300 font-medium px-2.5 py-1 rounded-lg metallic-panel truncate max-w-[200px]">
-                {entry.category.departmentOrContext}
-              </span>
-            )}
+            <span className="text-white/30 font-light select-none">|</span>
 
-            {/* Location Pin Badge */}
-            {entry.location && (
-              <button
-                type="button"
-                onClick={() => setShowMap(!showMap)}
-                className="text-xs text-[#f6e7b8] metallic-gold-panel px-2.5 py-1 rounded-lg flex items-center gap-1.5 hover:brightness-110 transition-all cursor-pointer shadow-sm"
-                title="Toggle Map View"
-              >
-                <MapPin className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                <span className="truncate max-w-[150px] font-medium">{entry.location.name}</span>
-              </button>
-            )}
+            <span className="flex items-center gap-1.5 uppercase tracking-wider text-amber-200 font-bold">
+              <DomainIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>{domain}</span>
+            </span>
           </div>
+
+          {/* Department / Category Tag (if present) */}
+          {entry.category?.departmentOrContext && (
+            <span className="text-xs text-slate-300 font-medium px-2.5 py-1 rounded-lg metallic-panel truncate max-w-[200px] border border-white/10">
+              {entry.category.departmentOrContext}
+            </span>
+          )}
+
+          {/* Location Pin Badge (Silver Gray with 📍 Emoji, full untruncated name) */}
+          {entry.location && (
+            <button
+              type="button"
+              onClick={() => setShowMap(!showMap)}
+              className="text-xs text-slate-200 bg-gradient-to-r from-slate-800/90 via-slate-700/85 to-slate-800/90 hover:from-slate-700 hover:to-slate-750 px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:text-white transition-all cursor-pointer shadow-md border border-slate-400/40 hover:border-slate-300"
+              title="Toggle Map View"
+            >
+              <span className="text-xs select-none">📍</span>
+              <span className="font-semibold whitespace-normal">{entry.location.name}</span>
+            </button>
+          )}
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center flex-wrap gap-1.5 text-slate-300 self-stretch sm:self-auto justify-between sm:justify-end md:self-center">
-          {/* Prominent Expand / Collapse Details Button */}
+          {/* Distinct Expand / Collapse Details Button */}
           <button
             type="button"
             onClick={() => {
@@ -639,10 +630,10 @@ export function ReflectionCard({
                 scrollToCardTop();
               }
             }}
-            className={`px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
+            className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
               isExpanded
-                ? 'metallic-gold-panel text-[#f6e7b8] border-[#f6e7b8]/40 shadow-[0_0_12px_rgba(246,231,184,0.2)]'
-                : 'metallic-titanium-button text-slate-100 hover:text-[#f6e7b8] hover:border-[#f6e7b8]/40'
+                ? 'metallic-gold-panel text-[#f6e7b8] border-[#f6e7b8]/60 shadow-[0_0_14px_rgba(246,231,184,0.3)] hover:brightness-110'
+                : 'bg-sky-500/20 text-sky-200 border-sky-400/50 hover:bg-sky-500/35 hover:text-white shadow-[0_0_14px_rgba(56,189,248,0.3)]'
             }`}
             title={isExpanded ? 'Collapse to sleek overview' : 'Expand full reflection details'}
           >
@@ -653,48 +644,27 @@ export function ReflectionCard({
               </>
             ) : (
               <>
-                <Eye className="w-3.5 h-3.5 text-[#f6e7b8]" />
+                <Eye className="w-3.5 h-3.5 text-sky-300" />
                 <span>View Details</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#f6e7b8]" />
+                <ChevronDown className="w-3.5 h-3.5 text-sky-300" />
               </>
             )}
           </button>
 
           <div className="flex items-center gap-1.5">
-            {/* Voice Narration Audio Player Toggle */}
+            {/* Read Aloud Audio Player Toggle with Distinct Violet Theme */}
             <button
               type="button"
               onClick={() => setShowVoicePlayer(!showVoicePlayer)}
-              className={`px-2 sm:px-2.5 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
                 showVoicePlayer
-                  ? 'metallic-gold-panel text-[#f6e7b8] shadow-[0_0_10px_rgba(246,231,184,0.25)]'
-                  : 'metallic-panel text-slate-300 hover:text-[#f6e7b8]'
+                  ? 'bg-gradient-to-r from-violet-600/40 to-purple-600/40 border-violet-400/70 text-violet-100 shadow-[0_0_12px_rgba(167,139,250,0.35)]'
+                  : 'bg-violet-950/40 hover:bg-violet-900/60 border-violet-500/35 text-violet-300 hover:text-violet-100'
               }`}
               title="Read aloud journal & reflection with natural voice audio narration"
             >
-              <Headphones className="w-3.5 h-3.5 text-[#f6e7b8]" />
-              <span className="hidden sm:inline">{showVoicePlayer ? 'Hide Voice' : 'Listen'}</span>
-            </button>
-
-            {/* Generate / Toggle Banner Artwork Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setShowBanner(!showBanner);
-                if (!showBanner) {
-                  setBannerSeed(`${entry.id}-${Date.now()}`);
-                }
-              }}
-              className={`px-2 sm:px-2.5 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
-                showBanner 
-                  ? 'metallic-gold-panel text-[#f6e7b8] shadow-[0_0_10px_rgba(246,231,184,0.2)]'
-                  : 'metallic-panel text-slate-300 hover:text-white'
-              }`}
-              title="Generate & view matching banner artwork"
-            >
-              <ImageIcon className="w-3.5 h-3.5 text-[#f6e7b8]" />
-              <span className="hidden sm:inline">{showBanner ? 'Hide Banner' : 'Banner Art'}</span>
-              <span className="sm:hidden">{showBanner ? 'Hide' : 'Art'}</span>
+              <Volume2 className="w-3.5 h-3.5 text-violet-300 shrink-0" />
+              <span>{showVoicePlayer ? 'Hide Audio' : 'Read Aloud'}</span>
             </button>
 
             {/* Edit Entry Button */}
@@ -772,47 +742,46 @@ export function ReflectionCard({
         </div>
       </div>
 
-      {/* 2. Photorealistic AI Banner Image Display (Shows in condensed & expanded view) */}
-      {showBanner && (
-        <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
-          <EditorialArtCanvas 
-            prompt={entry.rawText || entry.reflectionSummary} 
-            domain={entry.category?.domain} 
-            imageUrl={entry.bannerImageUrl}
-            rawText={entry.rawText}
-            isExpanded={isExpanded}
-            className="w-full shadow-lg border border-white/15"
-            onRegenerate={() => {
-              onUpdateEntry?.(entry.id, { bannerImageUrl: undefined });
-            }}
-            onClose={() => setShowBanner(false)}
-            onImageGenerated={(newUrl) => {
-              onUpdateEntry?.(entry.id, { bannerImageUrl: newUrl });
-            }}
-            onClickToggleExpand={() => setIsExpanded(!isExpanded)}
-          />
-        </div>
-      )}
+      {/* 2. Photorealistic AI Banner Image Display (Always shown by default) */}
+      <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
+        <EditorialArtCanvas 
+          prompt={entry.rawText || entry.reflectionSummary} 
+          domain={entry.category?.domain} 
+          imageUrl={entry.bannerImageUrl}
+          rawText={entry.rawText}
+          topicTitle={postTitle}
+          isExpanded={isExpanded}
+          className="w-full shadow-lg border border-white/15"
+          onRegenerate={() => {
+            onUpdateEntry?.(entry.id, { bannerImageUrl: undefined });
+          }}
+          onImageGenerated={(newUrl) => {
+            onUpdateEntry?.(entry.id, { bannerImageUrl: newUrl });
+          }}
+          onClickToggleExpand={() => setIsExpanded(!isExpanded)}
+        />
+      </div>
 
-      {/* 3. Interactive Map Snippet Preview (Shows ONLY when expanded) */}
+      {/* 3. Interactive Map Snippet Preview (Double Height & Silver Gray Styling) */}
       {isExpanded && showMap && entry.location && (
-        <div className="p-4 bg-[#070d1e]/90 border-b border-white/10 space-y-3 animate-in fade-in-50 duration-200">
-          <div className="flex items-center justify-between text-xs text-slate-300">
-            <span className="flex items-center gap-2 font-medium text-[#f6e7b8]">
-              <MapPin className="w-4 h-4 text-[#f6e7b8]" />
-              <span>{entry.location.name}</span>
+        <div className="p-3.5 sm:p-4.5 bg-gradient-to-r from-[#0c1322] via-[#090e1a] to-[#060a12] border-b border-slate-500/30 space-y-3 animate-in fade-in-50 duration-200">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="flex items-center gap-2 font-semibold text-slate-200 flex-wrap">
+              <span className="text-sm select-none">📍</span>
+              <span className="text-white font-bold text-sm">{entry.location.name}</span>
               {entry.location.address && (
-                <span className="text-slate-400 font-normal truncate max-w-sm">({entry.location.address})</span>
+                <span className="text-slate-400 font-normal text-xs">({entry.location.address})</span>
               )}
             </span>
             <button
+              type="button"
               onClick={() => setShowMap(false)}
-              className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded bg-white/5 hover:bg-white/10 cursor-pointer"
+              className="text-slate-300 hover:text-white text-xs px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors cursor-pointer border border-white/10 ml-auto font-medium"
             >
               Close Map
             </button>
           </div>
-          <GoogleMapView location={entry.location} className="h-44 w-full rounded-xl overflow-hidden border border-white/15" />
+          <GoogleMapView location={entry.location} className="h-72 sm:h-80 md:h-96 w-full rounded-2xl overflow-hidden border border-slate-400/30 shadow-2xl" />
         </div>
       )}
 
@@ -828,45 +797,139 @@ export function ReflectionCard({
           </div>
         )}
 
-        {/* Collapsed Overview Card View (Default Clean View) */}
-        {!isExpanded && !isEditing ? (
-          <div
-            onClick={() => {
-              setIsExpanded(true);
-              scrollToCardTop();
-            }}
-            className="p-4 sm:p-5 rounded-2xl metallic-card space-y-3.5 cursor-pointer group hover:border-emerald-400/60 hover:bg-white/[0.03] transition-all shadow-md"
-          >
-            {/* Title Row */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-xl metallic-green-panel text-emerald-300 shrink-0 mt-0.5 shadow-sm group-hover:scale-105 transition-transform border border-emerald-400/40">
-                  <Sparkles className="w-4 h-4 text-emerald-300" />
+        {/* Main Content Body: Authentic Paper Journal Memo & Optional Staggered AI Details */}
+        <div className="space-y-4">
+          {/* Element 1: Inline Edit Mode Form OR Original Journal Memo Paper Sheet */}
+          {isEditing ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: 0.04 }}
+              className="p-5 rounded-2xl metallic-card border border-blue-400/40 space-y-4 shadow-xl"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-blue-300">
+                  <Pencil className="w-4 h-4 text-blue-400" />
+                  <span>Edit Journal Entry</span>
                 </div>
-                <div className="space-y-2 flex-1 min-w-0">
-                  <h3 className="text-base font-bold text-slate-100 group-hover:text-emerald-300 transition-colors leading-snug truncate">
-                    {postTitle}
-                  </h3>
-                  <p className="text-sm sm:text-base text-[#fef6e4] font-libre-baskerville line-clamp-6 sm:line-clamp-8 leading-relaxed font-normal whitespace-pre-wrap tracking-wide drop-shadow-sm">
-                    {postSnippet}
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <span className="text-xs px-2.5 py-1 rounded-lg metallic-panel text-emerald-300 font-mono shrink-0 hidden sm:inline-block border border-emerald-400/20">
-                {wordCount} words
-              </span>
-            </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-300">Original Journal Text</label>
+                <textarea
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  rows={5}
+                  className="w-full p-4 rounded-xl bg-[#fdfbf7] text-[#24272c] placeholder-stone-400 font-oregano text-lg sm:text-xl border border-[#e2dcd0] focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all leading-relaxed shadow-inner"
+                  placeholder="Write your journal thoughts here..."
+                />
+              </div>
 
-            {/* Quick Meta Indicators Matrix */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-white/10 text-xs">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-300">Reflection Summary (Optional)</label>
+                <input
+                  type="text"
+                  value={editSummary}
+                  onChange={(e) => setEditSummary(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 text-[#f6e7b8] text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-blue-400/30 transition-all"
+                  placeholder="Core summary takeaway..."
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isSavingEdit || !editText.trim()}
+                    onClick={() => handleSaveEdit(false)}
+                    className="px-4 py-2 rounded-xl metallic-titanium-button text-slate-200 font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Save className="w-3.5 h-3.5 text-blue-300" />
+                    <span>Save Text</span>
+                  </button>
+
+                  {onTriggerAiReflection && (
+                    <button
+                      type="button"
+                      disabled={isSavingEdit || !editText.trim()}
+                      onClick={() => handleSaveEdit(true)}
+                      className="px-4 py-2 rounded-xl metallic-gold-button text-[#070d1e] font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-md disabled:opacity-50"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-[#070d1e]" />
+                      <span>Save & Update AI Coaching</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            /* Original Journal Post (Compact Memo with Tight Textured Dot Grid & Deep Gray Text) */
+            <motion.div 
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: 0.04 }}
+              className="p-3.5 sm:p-4 rounded-xl memo-paper-texture border border-[#c9baa5] shadow-[0_10px_28px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.7)] space-y-2.5 relative overflow-hidden"
+            >
+              {/* Subtle memo top washi tape / paper clip accent */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-1.5 bg-gradient-to-r from-amber-700/30 via-amber-600/50 to-amber-700/30 rounded-b-md shadow-xs" />
+
+              <div className="flex items-center justify-between gap-2 text-xs font-semibold pt-0.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-amber-100/90 border border-amber-300/80 flex items-center justify-center text-amber-900 shadow-xs">
+                    <PenTool className="w-3.5 h-3.5 text-amber-800" />
+                  </div>
+                  <span className="uppercase tracking-widest text-xs font-extrabold text-stone-700">
+                    {isEdited ? 'Edited Journal Memo' : 'Journal Memo'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-stone-500 font-mono font-medium">
+                    {entry.rawText ? `${wordCount} words` : ''}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditing(true);
+                      setEditText(entry.rawText);
+                      setEditSummary(entry.reflectionSummary || '');
+                    }}
+                    className="text-[11px] text-stone-700 hover:text-stone-950 flex items-center gap-1 cursor-pointer transition-colors px-2 py-0.5 rounded-lg bg-stone-200/80 hover:bg-stone-300 border border-stone-300/80 shadow-xs font-medium"
+                    title="Edit journal memo"
+                  >
+                    <Pencil className="w-3 h-3 text-stone-600" />
+                    <span>Edit</span>
+                  </button>
+                </div>
+              </div>
+              <div className="px-3.5 py-3 sm:px-4 sm:py-3.5 rounded-lg memo-inner-sheet border border-[#e8e2d4] font-oregano text-lg sm:text-xl md:text-[21px] text-[#24272c] leading-relaxed tracking-wide whitespace-pre-wrap select-text shadow-xs">
+                {entry.rawText}
+              </div>
+            </motion.div>
+          )}
+
+          {/* CONDENSED VIEW FOOTER (Shown when isExpanded is false) */}
+          {!isExpanded && (
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-white/10 text-xs">
               <div className="flex flex-wrap items-center gap-2">
-                {/* Domain Pill */}
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${domainConfig.badgeBg}`}>
                   {domain}
                 </span>
 
-                {/* Action Items Pill (if any) */}
                 {domain === 'Work' && totalActionCount > 0 && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -874,7 +937,6 @@ export function ReflectionCard({
                   </span>
                 )}
 
-                {/* Chat History Messages Count */}
                 {chatMessageCount > 0 && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-sky-500/15 text-sky-300 border border-sky-400/30">
                     <MessageSquare className="w-3.5 h-3.5 text-sky-400" />
@@ -882,7 +944,6 @@ export function ReflectionCard({
                   </span>
                 )}
 
-                {/* Sentiment Pill */}
                 {entry.sentiment && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs metallic-panel text-[#f6e7b8] border border-white/10 font-medium">
                     <span>{entry.sentiment.emoji || '✨'}</span>
@@ -891,135 +952,24 @@ export function ReflectionCard({
                 )}
               </div>
 
-              {/* Tap to Reveal Prompt */}
-              <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-emerald-300 group-hover:translate-x-1 transition-transform ml-auto">
-                <span>Tap to view details & AI coaching</span>
-                <ArrowRight className="w-4 h-4 text-emerald-300" />
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsExpanded(true);
+                  scrollToCardTop();
+                }}
+                className="px-4 py-2 rounded-xl metallic-gold-button text-[#070d1e] font-bold text-xs flex items-center gap-1.5 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-md ml-auto group"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#070d1e] animate-pulse" />
+                <span>Expand AI Coaching & Insights</span>
+                <ChevronDown className="w-3.5 h-3.5 text-[#070d1e] group-hover:translate-y-0.5 transition-transform" />
+              </button>
             </div>
-          </div>
-        ) : (
-          /* Expanded Full Details View (Staggered Animations) */
-          <div className="space-y-6">
-            {/* Element 1: Inline Edit Mode Form OR Original Journal Input */}
-            {isEditing ? (
-              <motion.div 
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.04 }}
-                className="p-5 rounded-2xl metallic-card border border-blue-400/40 space-y-4 shadow-xl"
-              >
-                <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-blue-300">
-                    <Pencil className="w-4 h-4 text-blue-400" />
-                    <span>Edit Journal Entry</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(false)}
-                    className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+          )}
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-300">Original Journal Text</label>
-                  <textarea
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    rows={5}
-                    className="w-full p-4 rounded-xl bg-black/60 text-[#fef6e4] font-oregano text-xl sm:text-2xl focus:outline-none focus:ring-1 focus:ring-amber-400/40 transition-all leading-relaxed shadow-inner"
-                    placeholder="Write your journal thoughts here..."
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-300">Reflection Summary (Optional)</label>
-                  <input
-                    type="text"
-                    value={editSummary}
-                    onChange={(e) => setEditSummary(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 text-[#f6e7b8] text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-blue-400/30 transition-all"
-                    placeholder="Core summary takeaway..."
-                  />
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={isSavingEdit || !editText.trim()}
-                      onClick={() => handleSaveEdit(false)}
-                      className="px-4 py-2 rounded-xl metallic-titanium-button text-slate-200 font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                      <Save className="w-3.5 h-3.5 text-blue-300" />
-                      <span>Save Text</span>
-                    </button>
-
-                    {onTriggerAiReflection && (
-                      <button
-                        type="button"
-                        disabled={isSavingEdit || !editText.trim()}
-                        onClick={() => handleSaveEdit(true)}
-                        className="px-4 py-2 rounded-xl metallic-gold-button text-[#070d1e] font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-md disabled:opacity-50"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-[#070d1e]" />
-                        <span>Save & Update AI Coaching</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              /* Original Journal Post (Borderless Metallic Background with Fountain Pen Logo & Oregano Font) */
-              <motion.div 
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.04 }}
-                className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#1a233a]/90 via-[#0e1628]/95 to-[#060b14] shadow-2xl space-y-3.5"
-              >
-                <div className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-300">
-                  <div className="flex items-center gap-2 text-slate-200">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400/20 via-amber-500/10 to-transparent flex items-center justify-center text-[#f6e7b8] shadow-sm">
-                      <PenTool className="w-4 h-4 text-[#f6e7b8] drop-shadow-[0_0_8px_rgba(246,231,184,0.4)]" />
-                    </div>
-                    <span className="uppercase tracking-widest text-xs font-bold bg-gradient-to-r from-[#f6e7b8] via-amber-200 to-[#d4af37] bg-clip-text text-transparent">
-                      {isEdited ? 'Edited Journal Post' : 'Journal Post'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {entry.rawText ? `${wordCount} words` : ''}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditing(true);
-                        setEditText(entry.rawText);
-                        setEditSummary(entry.reflectionSummary || '');
-                      }}
-                      className="text-[11px] text-slate-300 hover:text-[#f6e7b8] flex items-center gap-1 cursor-pointer transition-colors px-2.5 py-1 rounded-lg metallic-panel shadow-sm"
-                      title="Edit journal text"
-                    >
-                      <Pencil className="w-3 h-3" />
-                      <span>Edit</span>
-                    </button>
-                  </div>
-                </div>
-                <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-br from-white/[0.07] via-white/[0.02] to-transparent font-oregano text-xl sm:text-2xl md:text-[25px] text-[#fef6e4] leading-relaxed tracking-wide whitespace-pre-wrap select-text shadow-inner">
-                  {entry.rawText}
-                </div>
-              </motion.div>
-            )}
+          {/* EXPANDED VIEW: All AI coaching, analysis, actions, and interactive companion */}
+          {isExpanded && (
+            <div className="space-y-6 pt-2">
 
             {/* Synthesizing Status Banner */}
             {isSynthesizing && (
@@ -1175,8 +1125,7 @@ export function ReflectionCard({
             )}
 
             {/* Role-Specific Cognitive Coaching & Actions (Revealed with staggered motion animations) */}
-            {isExpanded && (
-              <div className="space-y-5 pt-1">
+            <div className="space-y-5 pt-1">
                 {/* Element 3: Dedicated Email Draft & Domain Coaching Guidance */}
                 <motion.div
                   initial={{ opacity: 0, y: 14 }}
@@ -1238,23 +1187,23 @@ export function ReflectionCard({
                     </div>
                   )}
 
-                  {/* Coaching Guidance & Comments (Slanted by domain) */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#f6e7b8]">
-                      <Compass className="w-3.5 h-3.5 text-[#f6e7b8]" />
+                  {/* Coaching Guidance & Comments (Sapphire Blue Background with Gold Text) */}
+                  <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0c2347] via-[#081830] to-[#040e1d] border border-sky-400/35 shadow-[0_10px_32px_rgba(8,24,48,0.55),inset_0_1px_1px_rgba(56,189,248,0.2)] space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#f6e7b8]">
+                      <div className="w-6 h-6 rounded-lg bg-sky-950/80 border border-sky-400/40 flex items-center justify-center text-[#f6e7b8] shadow-xs">
+                        <Compass className="w-3.5 h-3.5 text-[#f6e7b8]" />
+                      </div>
                       <span>
                         {domain === 'Personal' 
                           ? '💖 Friendly Life & Well-Being Notes' 
                           : domain === 'Work'
-                          ? '🚀 Friendly Coaching & Next Steps'
+                          ? '🚀 AI Feedback & Next Steps'
                           : domain === 'Creative'
-                          ? '🎨 Friendly Creative Sparks & Insights'
-                          : '✉️ Friendly Email Insights'}
+                          ? '🎨 Creative Sparks & Insights'
+                          : '✉️ Email Insights & Guidance'}
                       </span>
                     </div>
-                    <div className={`font-ai-response text-xs sm:text-sm text-[#f6e7b8] leading-relaxed space-y-2.5 pl-3.5 border-l-2 ${
-                      domain === 'Personal' ? 'border-[#f6e7b8]' : 'border-[#f6e7b8]/60'
-                    }`}>
+                    <div className="font-ai-response text-xs sm:text-sm text-slate-100 leading-relaxed space-y-2.5 pl-3.5 border-l-2 border-[#f6e7b8]/70 selection:bg-amber-400/30 selection:text-white">
                       <StreamingMarkdown content={entry.adaptiveResponse || ''} />
                     </div>
                   </div>
@@ -1262,66 +1211,66 @@ export function ReflectionCard({
 
                 </motion.div>
 
-                {/* Element 4: Extracted Action Items Checklist - ONLY FOR WORK DOMAIN */}
+                {/* Element 4: Extracted Action Items Checklist (Next Steps) - ONLY FOR WORK DOMAIN */}
                 {domain === 'Work' && entry.actionItems && entry.actionItems.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 14 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25, delay: 0.16 }}
-                    className="space-y-2.5 pt-2"
+                    className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0a1e3f] via-[#07162e] to-[#040e1d] border border-sky-400/35 shadow-[0_10px_32px_rgba(8,24,48,0.55),inset_0_1px_1px_rgba(56,189,248,0.2)] space-y-3"
                   >
-                    <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-300">
+                    <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#f6e7b8]">
                       <span className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>🎯 Action Checklist ({entry.actionItems.filter(a => a.completed).length}/{entry.actionItems.length})</span>
+                        <CheckCircle2 className="w-4 h-4 text-[#f6e7b8]" />
+                        <span>🎯 Action Checklist & Next Steps ({entry.actionItems.filter(a => a.completed).length}/{entry.actionItems.length})</span>
                       </span>
                     </div>
                     <div className="space-y-2">
                       {entry.actionItems.map(item => {
                         const itemCategory = item.category || 'Next Step';
                         const categoryBadge = {
-                          'Next Step': 'bg-blue-500/15 text-blue-200 border-blue-400/30',
-                          'Healthy Habit': 'bg-emerald-500/15 text-emerald-200 border-emerald-400/30',
-                          'Creative Spark': 'bg-purple-500/15 text-purple-200 border-purple-400/30'
-                        }[itemCategory] || 'bg-white/10 text-slate-300 border-white/15';
+                          'Next Step': 'bg-amber-400/20 text-[#f6e7b8] border-[#f6e7b8]/40',
+                          'Healthy Habit': 'bg-emerald-400/20 text-emerald-200 border-emerald-400/40',
+                          'Creative Spark': 'bg-purple-400/20 text-purple-200 border-purple-400/40'
+                        }[itemCategory] || 'bg-amber-400/15 text-[#f6e7b8] border-[#f6e7b8]/30';
 
                         return (
                           <div
                             key={item.id}
                             onClick={() => onToggleActionItem(entry.id, item.id, !item.completed)}
-                            className={`flex items-start gap-3.5 p-3 rounded-xl border transition-all cursor-pointer select-none shadow-sm ${
+                            className={`flex items-start gap-3.5 p-3 rounded-xl border transition-all cursor-pointer select-none shadow-xs ${
                               item.completed
-                                ? 'bg-black/30 border-white/5 shadow-none'
-                                : 'metallic-panel text-[#f6e7b8] hover:border-white/30'
+                                ? 'bg-black/40 border-white/5 opacity-60'
+                                : 'bg-[#0e274e]/70 border-sky-400/30 text-[#f6e7b8] hover:border-sky-300 hover:bg-[#123160]/80'
                             }`}
                           >
                             <button className="mt-0.5 shrink-0 focus:outline-none">
                               {item.completed ? (
                                 <CheckCircle2 className="w-4 h-4 text-[#8a919e]" />
                               ) : (
-                                <Circle className="w-4 h-4 text-slate-400 hover:text-slate-200" />
+                                <Circle className="w-4 h-4 text-[#f6e7b8] hover:text-white" />
                               )}
                             </button>
                             <span className={`text-xs sm:text-sm leading-normal flex-1 transition-colors ${
                               item.completed 
-                                ? 'text-[#7d8594] line-through font-normal' 
-                                : 'text-[#f6e7b8]'
+                                ? 'text-slate-400 line-through font-normal' 
+                                : 'text-[#f6e7b8] font-medium'
                             }`}>
                               {item.text || item.task}
                             </span>
                             <span className={`text-[10px] px-2 py-0.5 rounded-full border font-mono shrink-0 ${
                               item.completed 
-                                ? 'bg-white/5 text-[#7d8594] border-white/10' 
+                                ? 'bg-white/5 text-slate-400 border-white/10' 
                                 : categoryBadge
                             }`}>
                               {itemCategory}
                             </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Element 6: Follow-Up Chat Stream with Multi-Turn Conversation & Sentiments Merging */}
                 <motion.div
@@ -1398,7 +1347,7 @@ export function ReflectionCard({
                                 {msg.content}
                               </div>
                             ) : (
-                              <div className="leading-relaxed font-ai-response text-xs sm:text-sm text-[#f6e7b8]">
+                              <div className="leading-relaxed font-ai-response text-xs sm:text-sm text-slate-100">
                                 <StreamingMarkdown content={msg.content} animate={isLatestAssistant && isChatLoading} />
                               </div>
                             )}
@@ -1409,12 +1358,12 @@ export function ReflectionCard({
                                 <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
                                   <div className="flex items-center gap-2 text-[#f6e7b8] font-bold text-xs">
                                     <Sparkles className="w-4 h-4 text-[#f6e7b8]" />
-                                    <span className="tracking-wide">{msg.suggestedUpdate.mergedRawText ? 'Enriched Journal Writeup Proposal' : 'Suggested Refinement'}</span>
+                                    <span className="tracking-wide">{msg.suggestedUpdate.mergedRawText ? 'Updated Post Proposal' : 'Suggested Refinement'}</span>
                                   </div>
                                   {msg.suggestedUpdate.applied && (
                                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-medium flex items-center gap-1">
                                       <Check className="w-3 h-3 text-emerald-400" />
-                                      <span>{msg.suggestedUpdate.mergedRawText ? 'Merged into Journal' : 'Applied'}</span>
+                                      <span>{msg.suggestedUpdate.mergedRawText ? 'Saved to Journal' : 'Applied'}</span>
                                     </span>
                                   )}
                                 </div>
@@ -1426,7 +1375,7 @@ export function ReflectionCard({
                                         <div className="flex items-center justify-between">
                                           <span className="font-semibold text-[#f6e7b8] text-xs flex items-center gap-1.5">
                                             <Edit3 className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                                            <span>Edit Writeup Before Merging:</span>
+                                            <span>Edit Post Before Saving:</span>
                                           </span>
                                           <button
                                             type="button"
@@ -1441,7 +1390,7 @@ export function ReflectionCard({
                                           onChange={(e) => setEditedProposalWriteup(e.target.value)}
                                           rows={6}
                                           className="w-full p-3 rounded-lg bg-black/70 border border-white/20 text-slate-100 font-neuton text-sm sm:text-base focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 transition-all leading-relaxed"
-                                          placeholder="Edit the proposed journal writeup..."
+                                          placeholder="Edit your updated journal post..."
                                         />
                                         <div className="flex items-center justify-end gap-2 pt-1">
                                           <button
@@ -1463,7 +1412,7 @@ export function ReflectionCard({
                                     ) : (
                                       <div className="text-slate-200 text-[11px] leading-relaxed bg-black/50 p-3.5 rounded-xl space-y-2 border border-white/10">
                                         <div className="flex items-center justify-between">
-                                          <strong className="text-[#f6e7b8] block text-xs">Preview Enriched Journal Writeup:</strong>
+                                          <strong className="text-[#f6e7b8] block text-xs">Preview Updated Post:</strong>
                                           {!msg.suggestedUpdate.applied && (
                                             <button
                                               type="button"
@@ -1475,7 +1424,7 @@ export function ReflectionCard({
                                               className="text-[11px] text-[#f6e7b8] hover:text-white flex items-center gap-1 cursor-pointer font-medium underline"
                                             >
                                               <Pencil className="w-3 h-3" />
-                                              <span>Edit Writeup</span>
+                                              <span>Edit Post</span>
                                             </button>
                                           )}
                                         </div>
@@ -1489,7 +1438,7 @@ export function ReflectionCard({
 
                                 {msg.suggestedUpdate.refinedSummary && (
                                   <div className="text-[#f6e7b8] text-[11px] leading-relaxed bg-black/50 p-3 rounded-xl border border-white/10 font-ai-response">
-                                    <strong className="text-[#f6e7b8]">Refined Key Takeaway:</strong> {msg.suggestedUpdate.refinedSummary}
+                                    <strong className="text-[#f6e7b8]">Key Takeaway:</strong> {msg.suggestedUpdate.refinedSummary}
                                   </div>
                                 )}
 
@@ -1506,7 +1455,7 @@ export function ReflectionCard({
                                         className="px-3 py-2 sm:py-1.5 rounded-xl metallic-titanium-button text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer hover:text-white"
                                       >
                                         <Pencil className="w-3.5 h-3.5 text-blue-300" />
-                                        <span>Edit Before Merge</span>
+                                        <span>Edit Post</span>
                                       </button>
                                     )}
 
@@ -1523,7 +1472,7 @@ export function ReflectionCard({
                                       className="px-3.5 py-2 sm:py-1.5 rounded-xl metallic-gold-button text-[#070d1e] font-bold text-xs hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
                                     >
                                       <Check className="w-3.5 h-3.5 text-[#070d1e]" />
-                                      <span>{msg.suggestedUpdate.mergedRawText ? '✨ Merge with Journal Writeup' : 'Apply to Reflection'}</span>
+                                      <span>{msg.suggestedUpdate.mergedRawText ? '✨ Save to Journal Post' : 'Apply to Reflection'}</span>
                                     </button>
                                   </div>
                                 )}
@@ -1625,7 +1574,7 @@ export function ReflectionCard({
                       <span className="text-[11px] text-slate-400">Click to automatically generate & update</span>
                     </div>
 
-                    {/* Primary Trigger: Propose Enriched Journal Writeup */}
+                    {/* Primary Trigger: Update Post with Conversation */}
                     <button
                       type="button"
                       disabled={isChatLoading}
@@ -1635,12 +1584,12 @@ export function ReflectionCard({
                       <div className="flex items-center gap-2.5">
                         <Sparkles className="w-4 h-4 text-[#f6e7b8] shrink-0 animate-pulse" />
                         <div>
-                          <span className="font-bold text-sm block text-[#f6e7b8]">✨ Propose Enriched Journal Writeup</span>
-                          <span className="text-[11px] text-slate-300">Synthesizes full conversation into an updated writeup for you to edit & merge</span>
+                          <span className="font-bold text-sm block text-[#f6e7b8]">✨ Update Post with Conversation</span>
+                          <span className="text-[11px] text-slate-300">Combines your original post with our chat into an updated entry you can review & save</span>
                         </div>
                       </div>
                       <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#f6e7b8]/15 border border-[#f6e7b8]/35 font-semibold uppercase tracking-wider shrink-0 hidden sm:inline text-[#f6e7b8]">
-                        Generate Update
+                        Update Post
                       </span>
                     </button>
 
@@ -1784,7 +1733,6 @@ export function ReflectionCard({
                   )}
                 </motion.div>
               </div>
-            )}
 
             {/* Toggle Collapse Bar */}
             <motion.button
@@ -1794,21 +1742,13 @@ export function ReflectionCard({
               onClick={() => setIsExpanded(!isExpanded)}
               className="w-full py-2.5 flex items-center justify-center gap-1.5 text-xs text-slate-400 hover:text-[#f6e7b8] transition-colors border-t border-white/10 cursor-pointer metallic-panel rounded-xl mt-2 font-medium"
             >
-              {isExpanded ? (
-                <>
-                  <span>Collapse details</span>
-                  <ChevronUp className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                </>
-              ) : (
-                <>
-                  <span>Expand details & follow-up chat</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                </>
-              )}
+              <span>Collapse to Journal Memo Only</span>
+              <ChevronUp className="w-3.5 h-3.5 text-[#f6e7b8]" />
             </motion.button>
           </div>
         )}
       </div>
     </div>
+  </div>
   );
 }

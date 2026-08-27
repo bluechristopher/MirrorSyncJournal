@@ -31,13 +31,13 @@ function getGenAI(): GoogleGenAI {
   return genAIClient;
 }
 
-// Fallback Model Ladder strictly prioritizing gemini-3.7-flash, then gemini-3.6-flash, then gemini-3.1-flash-lite, then gemini-flash-latest
+// Fallback Model Ladder strictly prioritizing gemini-3.7-flash, then gemini-3.5-flash, then gemini-3.5-flash-lite, then gemini-2.5-flash
 const MODEL_FALLBACK_LADDER = [
+  'gemini-3.7-flash',
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite',
   'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-1.5-flash',
-  'gemini-2.0-flash-lite'
+  'gemini-2.5-flash-lite'
 ];
 
 interface FallbackExecutionResult<T> {
@@ -91,6 +91,39 @@ function generateFallbackReflection(rawText: string, persona: any, location?: an
     ? `Grounding your thoughts from ${location.name}${location.address ? ` (${location.address})` : ''}. The physical setting provides a stabilizing backdrop for mindful reflection.`
     : null;
 
+  // Generate intelligent essence-driven title (capturing mood and theme without slicing raw text)
+  let generatedTitle = '';
+  if (domain === 'Email Drafting') {
+    generatedTitle = 'Executive Communication & Alignment';
+  } else if (domain === 'Work') {
+    if (/deploy|server|database|backend|pr|code|bug|refactor|architecture/i.test(rawText)) {
+      generatedTitle = 'Technical Execution & System Momentum';
+    } else if (/meeting|strategy|okr|kpi|roadmap|team|planning/i.test(rawText)) {
+      generatedTitle = 'Strategic Direction & Team Clarity';
+    } else {
+      generatedTitle = 'Focused Execution & Deep Work';
+    }
+  } else if (domain === 'Creative') {
+    if (/art|drawing|sketch|design|visual|shader|canvas/i.test(rawText)) {
+      generatedTitle = 'Visual Flow & Artistic Explorations';
+    } else if (/story|writing|character|novel|poetry|lyrics/i.test(rawText)) {
+      generatedTitle = 'Narrative Sparks & Imaginative Horizons';
+    } else {
+      generatedTitle = 'Creative Curiosity & Flow State';
+    }
+  } else {
+    // Personal domain
+    if (/walk|nature|coffee|quiet|morning|mindful|breathe|peace|rest/i.test(rawText)) {
+      generatedTitle = 'Mindful Grounding & Morning Peace';
+    } else if (/friend|family|partner|kids|dinner|weekend|together/i.test(rawText)) {
+      generatedTitle = 'Cherished Moments & Connection';
+    } else if (/gym|workout|run|exercise|health|sleep/i.test(rawText)) {
+      generatedTitle = 'Energy, Vitality & Healthy Habits';
+    } else {
+      generatedTitle = 'Reflections on Personal Well-Being';
+    }
+  }
+
   if (domain === 'Email Drafting') {
     const style = persona?.communicationStyle || 'concise & direct';
     const coachingTone = persona?.coachingTone || 'Professional';
@@ -98,6 +131,7 @@ function generateFallbackReflection(rawText: string, persona: any, location?: an
     const emailBody = `Hi team,\n\nI wanted to share a quick update regarding our current focus:\n\n• Context: ${coreTheme}\n• Key Observation: ${(sentences[1] || 'Ensuring alignment and steady momentum across key deliverables.')}\n• Next Step: Let's review during our next sync. Please feel free to reply with any thoughts or adjustments.\n\nBest regards,\n${persona?.name || 'Knowledge Practitioner'}`;
 
     return {
+      title: generatedTitle,
       domain,
       summary: `✉️ Email draft synthesized: Focused on "${coreTheme.slice(0, 75)}...". Calibrated for ${style} communication!`,
       coaching: `🌟 Here is a structured, friendly draft tailored to your ${style} style and ${coachingTone} tone. You can use the multi-turn chat below to adjust the formality, shorten the body, or add urgent calls to action! ✨`,
@@ -154,6 +188,7 @@ function generateFallbackReflection(rawText: string, persona: any, location?: an
     ];
 
     return {
+      title: generatedTitle,
       domain,
       summary,
       coaching,
@@ -194,6 +229,7 @@ function generateFallbackReflection(rawText: string, persona: any, location?: an
     const editorialArtPrompt = "Dynamic abstract Bauhaus geometric collage with floating azure prisms, vibrant saffron spheres, and energetic intersecting diagonals symbolizing creative breakthrough.";
 
     return {
+      title: generatedTitle,
       domain,
       summary,
       coaching,
@@ -237,6 +273,7 @@ function generateFallbackReflection(rawText: string, persona: any, location?: an
   ];
 
   return {
+    title: generatedTitle,
     domain: 'Work' as const,
     summary,
     coaching,
@@ -347,21 +384,6 @@ async function generateContentWithFallback<T>(
   throw new Error(`All models in fallback ladder failed. Last error: ${lastError?.message || 'Unknown error'}`);
 }
 
-/**
- * Curated photorealistic imagery fallback dynamically matched to actual content topic
- */
-function getCuratedPhotorealisticFallback(prompt: string, domain: string = 'Work', rawText: string = ''): string {
-  const words = (rawText || prompt)
-    .replace(/[^a-zA-Z0-9\s]/g, '')
-    .split(/\s+/)
-    .filter(w => w.length > 3)
-    .slice(0, 4);
-  const topic = words.length > 0 ? words.join(' ') : 'journal reflection workspace';
-  const pollPrompt = `photograph of ${topic}, realistic, atmospheric, 16:9, highly detailed`;
-  const seed = Math.floor(Math.random() * 900000) + 100000;
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(pollPrompt)}?width=800&height=450&seed=${seed}&nologo=true&model=flux`;
-}
-
 // Public runtime configuration endpoint for client Firebase initialization
 app.get('/api/firebase-config', (_req: Request, res: Response) => {
   const apiKey = process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY;
@@ -431,39 +453,14 @@ app.get('/api/gemini/banner-image/:imageId', (req: Request, res: Response) => {
 });
 
 /**
- * Generate a photorealistic banner image using Gemini AI with resilient fallbacks
+ * Generate a photorealistic banner image using native Gemini Lite image model
  */
-async function generatePhotorealisticBanner(prompt: string, domain: string = 'Work', rawText: string = ''): Promise<string> {
+async function generatePhotorealisticBanner(prompt: string, _domain: string = 'Work', _rawText: string = ''): Promise<string> {
   const ai = getGenAI();
-  const combinedText = (rawText || prompt || '').replace(/seed-\d+|[0-9a-f-]{10,}/gi, '').trim();
-
-  let concreteTopic = '';
-  try {
-    const geminiRes = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `Analyze this journal entry text: "${combinedText.slice(0, 600)}".
-Extract the single most specific 2-to-4 word English visual topic representing the exact subject matter (e.g., "pickleball court paddle", "classroom computer exam", "singapore skyline").
-Output JSON ONLY: { "concreteTopic": "pickleball court paddle" }`,
-      config: { responseMimeType: 'application/json', temperature: 0.2 }
-    });
-    if (geminiRes.text) {
-      const parsed = JSON.parse(geminiRes.text);
-      concreteTopic = parsed.concreteTopic || '';
-    }
-  } catch (_e) {}
-
-  if (!concreteTopic) {
-    const words = combinedText.split(/\s+/).filter(w => w.length > 3).slice(0, 4);
-    concreteTopic = words.length > 0 ? words.join(' ') : 'journal reflection workspace';
-  }
-
-  const cleanTopic = concreteTopic.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-
-  // Try direct native Gemini image generation & store on server
   try {
     const imgRes = await ai.models.generateContent({
       model: 'gemini-3.1-flash-lite-image',
-      contents: `Generate a 16:9 photo of ${cleanTopic}, natural lighting, realistic`,
+      contents: `Generate a photorealistic 16:9 widescreen photograph representing: ${prompt}. Natural lighting, realistic photography.`,
       config: { responseModalities: ['IMAGE'] }
     });
     const parts = imgRes.candidates?.[0]?.content?.parts || [];
@@ -473,12 +470,10 @@ Output JSON ONLY: { "concreteTopic": "pickleball court paddle" }`,
         return storeBannerImage(mime, part.inlineData.data);
       }
     }
-  } catch (_err) {}
-
-  // Fallback
-  const pollPrompt = `photograph of ${cleanTopic}, realistic, atmospheric, 16:9, highly detailed`;
-  const seed = Math.floor(Math.random() * 900000) + 100000;
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(pollPrompt)}?width=800&height=450&seed=${seed}&nologo=true&model=flux`;
+  } catch (_err: any) {
+    console.warn('[Initial Banner] gemini-3.1-flash-lite-image note:', _err?.message || _err);
+  }
+  return '';
 }
 
 // Dedicated endpoint to generate / regenerate contextual banner art
@@ -509,18 +504,18 @@ app.post('/api/gemini/generate-banner', async (req: Request, res: Response) => {
 
       try {
         const geminiRes = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3.7-flash',
           contents: `Analyze this journal entry:
 "${combinedText.slice(0, 700)}"
 
 Task:
-1. "concreteTopic": The single most specific 2-to-4 word English visual topic representing the exact subject matter (e.g., "classroom computer exam", "singapore skyline marina bay", "running shoes park trail", "coffee cup study notebook", "guitar music studio").
+1. "concreteTopic": The single most specific 2-to-4 word English visual topic representing the exact subject matter (e.g., "pickleball court paddle", "classroom computer exam", "singapore skyline marina bay", "coffee cup study notebook", "quiet study alcove").
 2. "visualPrompt": A clear 1-sentence English visual summary sentence representing this specific scene (12 to 20 words).
 
 Output JSON ONLY format:
 {
-  "concreteTopic": "classroom computer exam",
-  "visualPrompt": "A computer science educator evaluating Python code on laptops during a classroom mock exam"
+  "concreteTopic": "pickleball court paddle",
+  "visualPrompt": "A vibrant outdoor pickleball court with paddle and neon yellow ball under clear skies"
 }`,
           config: {
             responseMimeType: 'application/json',
@@ -550,12 +545,14 @@ Output JSON ONLY format:
     }
 
     let imageUrl = '';
+    let quotaExhausted = false;
 
-    // 1. Direct native Google Gemini AI Image Generation using gemini-3.1-flash-lite-image
+    // 1. Direct native Google Gemini Lite Image Generation using gemini-3.1-flash-lite-image
     try {
+      console.info(`[Generate Banner] Invoking native Gemini Lite Image model (gemini-3.1-flash-lite-image) for: "${targetPrompt}"...`);
       const imgRes = await ai.models.generateContent({
         model: 'gemini-3.1-flash-lite-image',
-        contents: `Generate a 16:9 photo of ${targetPrompt}, natural lighting, realistic`,
+        contents: `Generate a photorealistic 16:9 widescreen photograph of ${targetPrompt}. ${visualPrompt}. Realistic, natural lighting, sharp depth of field.`,
         config: {
           responseModalities: ['IMAGE'],
         }
@@ -566,29 +563,45 @@ Output JSON ONLY format:
         if (part.inlineData?.data) {
           const mime = part.inlineData.mimeType || 'image/jpeg';
           imageUrl = storeBannerImage(mime, part.inlineData.data);
-          console.info(`[Generate Banner] Stored image server-side! URL: ${imageUrl}`);
+          console.info(`[Generate Banner] Generated native Gemini Lite image! Server URL: ${imageUrl}`);
           break;
         }
       }
-    } catch (_geminiImgErr: any) {
-      console.warn('[Generate Banner] gemini-3.1-flash-lite-image note:', _geminiImgErr?.message || _geminiImgErr);
+    } catch (_geminiLiteErr: any) {
+      console.warn('[Generate Banner] gemini-3.1-flash-lite-image notice:', _geminiLiteErr?.message || _geminiLiteErr);
+      
+      // Secondary attempt with gemini-3.1-flash-image
+      try {
+        const imgRes = await ai.models.generateContent({
+          model: 'gemini-3.1-flash-image',
+          contents: `Generate a 16:9 photograph of ${targetPrompt}. Natural lighting.`,
+          config: {
+            responseModalities: ['IMAGE'],
+          }
+        });
+        const parts = imgRes.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            const mime = part.inlineData.mimeType || 'image/jpeg';
+            imageUrl = storeBannerImage(mime, part.inlineData.data);
+            console.info(`[Generate Banner] Generated via gemini-3.1-flash-image! Server URL: ${imageUrl}`);
+            break;
+          }
+        }
+      } catch (_geminiFlashErr: any) {
+        console.warn('[Generate Banner] gemini-3.1-flash-image notice:', _geminiFlashErr?.message || _geminiFlashErr);
+        quotaExhausted = true;
+      }
     }
 
-    // 2. Resilient fallback if native Gemini image key hits quota
-    if (!imageUrl) {
-      const pollPrompt = `photograph of ${targetPrompt}, realistic, atmospheric, 16:9, highly detailed`;
-      const encodedPrompt = encodeURIComponent(pollPrompt);
-      const seed = Math.floor(Math.random() * 900000) + 100000;
-      imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=450&seed=${seed}&nologo=true&model=flux`;
-    }
-
-    console.info(`[Generate Banner] Target Prompt: "${targetPrompt}" | Visual Prompt: "${visualPrompt}"`);
+    console.info(`[Generate Banner] Target Prompt: "${targetPrompt}" | Result URL: "${imageUrl || '(No banner - quota limit)'}"`);
 
     res.json({
       success: true,
-      imageUrl,
+      imageUrl: imageUrl || null,
       generatedArtPrompt: visualPrompt,
-      keywords: targetPrompt
+      keywords: targetPrompt,
+      quotaExhausted
     });
   } catch (error: any) {
     console.error('Error generating banner:', error);
@@ -678,7 +691,7 @@ ${preferredStyle ? `Additional Preferred Style: ${preferredStyle}` : ''}`;
     };
 
     let personaData: any;
-    let modelUsed = 'gemini-3.1-flash-lite';
+    let modelUsed = 'gemini-3.7-flash';
     let attemptedModels = MODEL_FALLBACK_LADDER;
     let latencyMs = 0;
 
@@ -760,6 +773,7 @@ ${hasExplicitDomain ? `The user has explicitly assigned this entry to the "${pre
 - "Work": Professional deliverables, architecture, software engineering, business metrics, meetings, management, workplace strategy.`}
 
 INSTRUCTIONS FOR OUTPUT FIELDS:
+- "title": A thoughtful, creative conceptual title (3 to 6 words) that captures the core essence and theme of this whole entry (like a book chapter or editorial headline, e.g. "Navigating Architectural Tradeoffs", "The Art of Slowing Down", "Igniting Creative Curiosity", "Reclaiming Morning Clarity", "Strategic Stakeholder Alignment"). NEVER copy or slice the opening words of the user's text or summary. Craft an insightful, thematic title.
 - "sentiment":
   - "emotionalTone": e.g. "Joyful & Victorious", "Peaceful & Reflective", "Stressed & Seeking Relief", "Excited & Ambitious".
   - "emoji": A single matching emoji (e.g. "🌟", "🎉", "💛", "🚀", "🌱", "🔥", "💡").
@@ -768,7 +782,7 @@ INSTRUCTIONS FOR OUTPUT FIELDS:
   - "sentimentSummary": A warm, encouraging 1-sentence empathetic reflection on their feelings.
 - "domain": Exactly one of "Work", "Personal", "Creative", or "Email Drafting".
 - "summary": A vibrant, encouraging 2-3 sentence synthesis capturing the essence with enthusiastic emojis.
-- "coaching": 2 concise paragraphs of energetic, uplifting guidance, ending with 2 curious, inquisitive bullet-point questions (starting with "• ") that probe for more details.
+- "coaching": 2 concise paragraphs of energetic, uplifting guidance. CRITICAL: The coaching MUST conclude with exactly 2 hyper-tailored, inquisitive leading questions (each starting with "• ") that deeply probe the specific concepts, instructional challenges, biomechanics, emotional nuances, or real-world details mentioned in THIS specific entry (e.g. asking about specific pedagogical analogies, code invariants, kinetic wrist mechanics, or student engagement patterns). NEVER ask generic questions like "How do you feel?" or "What are your next steps?".
 - "initialConversationalPrompt": An energetic, friendly opening question inviting them to chat, add more feelings, or refine notes with joyful emojis.
 - "category":
   - "primaryTag": Short anchor category.
@@ -799,6 +813,10 @@ ${rawText.replace(/"/g, '\\"')}
     const reflectionSchema = {
       type: Type.OBJECT,
       properties: {
+        title: {
+          type: Type.STRING,
+          description: 'A thoughtful, creative 3-to-6 word conceptual title capturing the core essence and theme of the entire entry (e.g. "The Art of Slowing Down", "Navigating Architectural Tradeoffs").'
+        },
         domain: {
           type: Type.STRING,
           enum: ['Work', 'Personal', 'Creative', 'Email Drafting'],
@@ -808,20 +826,20 @@ ${rawText.replace(/"/g, '\\"')}
           type: Type.OBJECT,
           properties: {
             emotionalTone: { type: Type.STRING, description: 'e.g. Joyful & Victorious, Stressed & Overwhelmed, Inspired & Ambitious' },
-            emoji: { type: Type.STRING, description: 'Matching emoji e.g. 🌟, 🎉, 💛, 🚀, 🌱' },
+            emoji: { type: Type.STRING, description: 'Single matching emoji' },
             energyLevel: { type: Type.STRING, enum: ['High', 'Grounded', 'Calming', 'Inspiring', 'Compassionate'] },
-            sentimentResonance: { type: Type.STRING, description: 'Short resonance tag' },
-            sentimentSummary: { type: Type.STRING, description: 'Empathetic 1-sentence read of feelings' }
+            sentimentResonance: { type: Type.STRING, description: 'e.g. Radiant Joy, Focused Resilience, Mindful Grounding, Creative Flow' },
+            sentimentSummary: { type: Type.STRING, description: '1 warm, encouraging sentence reflecting on emotional state' }
           },
           required: ['emotionalTone', 'emoji', 'energyLevel', 'sentimentResonance', 'sentimentSummary']
         },
         summary: {
           type: Type.STRING,
-          description: 'Energetic, warm synthesis of the entry with suitable emojis.'
+          description: 'A vibrant, encouraging 2-3 sentence synthesis capturing the essence with enthusiastic emojis.'
         },
         coaching: {
           type: Type.STRING,
-          description: 'Uplifting, energetic guidance and positive reinforcement packed with emojis.'
+          description: '2 paragraphs of energetic, uplifting guidance, concluding with 2 hyper-specific inquisitive questions starting with "• " tailored to the exact context.'
         },
         initialConversationalPrompt: {
           type: Type.STRING,
@@ -886,7 +904,7 @@ ${rawText.replace(/"/g, '\\"')}
           description: 'Contextual reflection if a location pin is attached.'
         }
       },
-      required: ['domain', 'summary', 'coaching', 'category', 'editorialArtPrompt']
+      required: ['title', 'domain', 'summary', 'coaching', 'category', 'editorialArtPrompt']
     };
 
     let result: any;
@@ -924,7 +942,11 @@ ${rawText.replace(/"/g, '\\"')}
     const bannerPrompt = rawData.editorialArtPrompt || rawText;
     const bannerImageUrl = await generatePhotorealisticBanner(bannerPrompt, rawData.domain || 'Work', rawText);
 
+    const rawFirstLine = rawText.split('\n')[0].replace(/^[#*>\s]+/, '').trim();
+    const fallbackTitle = rawFirstLine.length > 55 ? rawFirstLine.slice(0, 55).trim() + '...' : rawFirstLine || 'Journal Reflection';
+
     const enrichedReflection = {
+      title: rawData.title || fallbackTitle,
       domain: rawData.domain || 'Work',
       summary: rawData.summary || rawData.reflectionSummary || '',
       coaching: rawData.coaching || rawData.adaptiveResponse || '',
@@ -1068,11 +1090,13 @@ Communication Style: ${persona?.communicationStyle || 'encouraging & clear'}
 
 ACTION CHIP & MERGING SPECIFICS:
 - Always use energetic, positive, and friendly phrasing with appropriate emojis!
-- When actionType is "propose_update": Synthesize all discussion so far with the original journal text into a comprehensive "suggestedUpdate":
-  * "mergedRawText": An enriched, beautifully written updated journal writeup weaving together the original entry and all new details/sentiments shared in the conversation.
-  * "refinedSummary": An updated, clear summary of their complete reflection.
-  * "refinedAdaptiveResponse": Uplifting, calibrated coaching celebrating their progress and clarity.
-  * "promptFollowUp": "✨ Here is your enriched journal writeup proposal! Review, make any edits, and click Merge when ready."
+- When actionType is "propose_update":
+  You are enriching the user's journal entry by meaningfully integrating all thoughts, sentiments, emotions, context, and ideas from the conversation into the original post:
+  * "mergedRawText": Write a rich, immersive, expanded first-person journal entry (2 to 4 detailed paragraphs). Seamlessly weave together the original text with the new sentiments, feelings, and details shared in the conversation. Write it completely from the user's first-person perspective ("I", "my") as an authentic, expressive reflective journal entry. NEVER output raw button titles (such as "Propose Enriched Journal Writeup") or robotic labels like "*Refined Reflection & Insights:*". Instead, write genuine, insightful narrative paragraphs that capture their complete journey!
+  * "refinedSummary": An updated, clear 1-2 sentence takeaway summarizing the full expanded reflection.
+  * "refinedAdaptiveResponse": Uplifting, motivating AI coaching celebrating their progress and offering next-stage clarity.
+  * "replyContent": A brief, cheerful message presenting the newly enriched journal proposal and highlighting what was integrated.
+  * "promptFollowUp": "✨ Here is your enriched journal writeup proposal! You can review, edit, and click Merge when ready."
 - When actionType is "custom" (general conversation): Do NOT attach an unprompted mergedRawText. Continue the conversation thoughtfully and warmly.
 - If actionType is "draft_email" or domain is "Email Drafting": Help draft, polish, or rework an email based on the user's notes and feedback. Populate the emailDraft and suggestedUpdate objects with the updated subject, recipient, body, and tone.
 - If actionType is "refine_email_tone" or "shorten_email" or "formalize_email" or "add_cta": Rework the email accordingly. Provide the refined draft in replyContent, and set suggestedUpdate { emailSubject, emailBody, recipient, refinedSummary }.
@@ -1239,16 +1263,27 @@ Respond warmly according to your tone instructions and output valid JSON.`;
         fallbackText = `💡 **Brainstorming Angles & Next Steps**:\n\n1. **Inversion Strategy**: What if you approached this from the exact opposite perspective?\n2. **Micro-Experiment**: What is a 15-minute test you can run with zero risk to validate the core assumption?\n3. **Sensory Reset**: Step away for a brief walk to let subconscious connections form before committing to a plan.`;
         fallbackFollowUp = 'Shall we incorporate any of these brainstorming angles into your reflection?';
       } else if (actionType === 'propose_update') {
-        const addedDetail = (userMessage || 'Synthesizing all conversation reflections and sentiments.').trim();
-        const mergedWriteup = `${(rawText || '').trim()}\n\n*Refined Reflection & Insights:* ${addedDetail}`;
-        fallbackText = `✨ **Proposed Journal Writeup Update**:\n\nI have prepared an enriched writeup merging your original journal entry with the sentiments, ideas, and reflections shared during our discussion!\n\nYou can review, make any edits, and click **Merge** whenever you are ready.`;
+        const validUserNotes = messages
+          .filter((m: any) => m.role === 'user' && m.content && !m.content.includes('Propose Enriched') && !m.content.includes('Generate Proposed Update'))
+          .map((m: any) => m.content.trim())
+          .filter(Boolean);
+
+        let enrichedAddition = '';
+        if (validUserNotes.length > 0) {
+          enrichedAddition = `\n\nReflecting further on our discussion, I've realized how important it is to embrace these feelings and maintain my momentum. ${validUserNotes.join('. ')}. Moving forward, I want to stay intentional, celebrate small wins, and keep building on these insights.`;
+        } else {
+          enrichedAddition = `\n\nTaking time to reflect deeper on this experience has brought a real sense of clarity and perspective. It's rewarding to capture these thoughts as they unfold, helping me stay grounded, energized, and focused on what comes next.`;
+        }
+
+        const mergedWriteup = `${(rawText || '').trim()}${enrichedAddition}`;
+        fallbackText = `✨ **Updated Journal Post Proposal**:\n\nI have combined your original journal post with the sentiments and reflections shared during our conversation into an updated post!\n\nYou can review it below, make any custom edits, and click **Save to Journal Post** whenever you're ready.`;
         fallbackSuggestedUpdate = {
           mergedRawText: mergedWriteup,
-          refinedSummary: `Enriched Reflection: ${(rawText || '').slice(0, 80)}... expanded with discussion insights.`,
-          refinedAdaptiveResponse: `You've synthesized your thoughts with greater nuance and clarity. Carrying this forward strengthens your intentional momentum.`
+          refinedSummary: `Updated Reflection: ${(rawText || '').slice(0, 80)}... expanded with conversational clarity and personal insights.`,
+          refinedAdaptiveResponse: `You're developing wonderful clarity through mindful reflection. Integrating these insights anchors your momentum and helps you move forward with confidence! ✨`
         };
-        fallbackSuggestions = ['✨ Merge into writeup', 'Adjust summary', 'Continue chat'];
-        fallbackFollowUp = '✨ Would you like to review and merge this updated writeup into your journal entry?';
+        fallbackSuggestions = ['✨ Save to Journal Post', 'Adjust summary', 'Continue chat'];
+        fallbackFollowUp = '✨ Would you like to review and save this updated post into your journal?';
       } else if (domainName === 'Personal') {
         const addedDetail = (userMessage || 'Sharing these new feelings and reflections').trim();
         fallbackText = `🎉 **I love that you shared this!** Celebrating your feelings and adding these authentic details brings so much richness to your personal journey.\n\n*"${addedDetail}"*\n\nFeel free to keep sharing how you feel, or click **Generate Proposed Update** when you want to merge everything into an enriched writeup! ✨`;

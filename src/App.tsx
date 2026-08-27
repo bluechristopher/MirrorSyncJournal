@@ -24,6 +24,9 @@ import {
   CognitiveInsightsModal 
 } from './components/CognitiveInsightsModal';
 import { 
+  WelcomeModal 
+} from './components/WelcomeModal';
+import { 
   DynamicCategoryCards 
 } from './components/DynamicCategoryCards';
 import { 
@@ -49,16 +52,16 @@ import {
 import { reflectEntryAPI, clusterTopicsAPI } from './services/api';
 import { generateLocalSemanticTopics, classifyContentDomain } from './utils/topicClustering';
 import type { UserPersona, JournalEntry, DomainCategory, LocationPin, DynamicTopicCategory } from './types';
-import { Sparkles, Shield, Compass, BrainCircuit, AlertCircle, CheckCircle2, RotateCw, Copy, Check, X, BookOpen, Cloud, UserCheck, Trash2 } from 'lucide-react';
+import { Sparkles, Shield, Compass, BrainCircuit, AlertCircle, CheckCircle2, RotateCw, Copy, Check, X, BookOpen, Cloud, UserCheck, Trash2, PenTool } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const DEFAULT_PERSONA: UserPersona = {
   userId: 'local-user',
-  occupation: 'A-Level Computing Educator (JC)',
-  department: 'Computer Science & Educational Technology',
-  communicationStyle: 'Pedagogical, Structured & Encouraging',
-  coachingTone: 'Academic Mentor & Strategic Coach',
-  customGoals: 'Prepare JC2 students (age 17-18) for A-Level Computing Theory and Python Practical examinations with deep conceptual mastery.',
+  occupation: 'Junior College Computing Educator (Singapore)',
+  department: 'Computer Science & EdTech Department',
+  communicationStyle: 'Energetic, Relatable & Pedagogical (Young Computing Teacher)',
+  coachingTone: 'Empathetic Peer, Supportive Mentor & Strategic Coach',
+  customGoals: 'Scaffold A-Level Computing (Python, SQL, Algorithms) with deep conceptual intuition, sustain teaching & consultation energy, and pursue personal athletic growth in sports like pickleball.',
   updatedAt: Date.now()
 };
 
@@ -66,245 +69,209 @@ const SEED_ENTRIES: JournalEntry[] = [
   {
     id: 'seed-work-1',
     userId: 'local-user',
-    rawText: 'Conducted a 2-hour timed Paper 2 Practical mock exam focusing on OOP and SQLite database connectivity with Python. Noticed several JC2 students struggled with parameterised queries and exception handling when reading CSV datasets into linked lists. Need to design targeted scaffolding for edge-case debugging before next week\'s review.',
+    title: 'Bridging Algorithm Mechanics and Conceptual Intuition',
+    rawText: `Spent the afternoon tutorial going through QuickSort, MergeSort, and Binary Search with my JC2 computing students. I noticed a frustrating pattern during whiteboard discussions—when asked to explain why QuickSort degrades on already-sorted arrays or why MergeSort requires extra auxiliary memory, students freeze and start reciting rote definitions line-by-line.
+
+They can write the standard partition code from memory, but the moment I change a single variable or ask them to trace the pointers verbally, they crumble. It is clear they are treating algorithms as static syntax to be memorized for the exam rather than dynamic, problem-solving abstractions. I need a way to break this rote habit and get them to actually internalize the underlying loop invariants.`,
     createdAt: Date.now() - 1000 * 60 * 60 * 2, // 2 hours ago
-    reflectionSummary: 'Timed Paper 2 mock exam highlighted key conceptual gaps in SQLite database integration and defensive exception handling among JC2 candidates.',
-    adaptiveResponse: 'Focus subsequent practical clinics on live code refactoring and step-through debugging. Encourage students to write test assertions before assembling full SQL queries to build automatic verification habits under exam time constraints.',
+    reflectionSummary: 'Classroom whiteboard analysis revealed students relying heavily on rote-memorized algorithm syntax, struggling to verbally articulate mechanics or reason about pointer invariants under modified conditions.',
+    adaptiveResponse: `When students resort to memorization, it usually signals that abstract mechanics haven't been translated into physical or visual models. Introducing kinetic sorting activities (like physical playing card sorting or volunteer role-play) forces students to state the loop invariant before writing code.
+
+Encouraging peer-teaching where students explain the algorithm in plain English to a peer helps break the illusion of explanatory depth.
+
+• What physical or visual analogy (like balancing scales or playing cards) could make the pivot selection in QuickSort tangible for your visual learners?
+• How might you structure peer verbalization sessions where students must explain an algorithm without referencing code syntax?`,
     category: {
       domain: 'Work',
-      department: 'A-Level Practical Prep',
-      projectTags: ['PythonPractical', 'OOP', 'SQLite', 'ExamTechnique']
+      department: 'Algorithms & Pedagogy',
+      projectTags: ['Algorithms', 'Sorting', 'Searching', 'Pedagogy']
     },
     actionItems: [
       {
-        id: 'act-c1',
-        text: 'Prepare 5 targeted CSV-to-SQLite edge case debugging worksheets for tomorrow\'s lab clinic',
+        id: 'act-w1-1',
+        text: 'Design a hands-on card-sorting classroom exercise for QuickSort and Binary Search',
         completed: false,
         priority: 'high',
         category: 'Next Step'
       },
       {
-        id: 'act-c2',
-        text: 'Record a 10-minute walkthrough on parameterised query best practices and error handling',
-        completed: true,
-        priority: 'high',
-        category: 'Next Step'
-      }
-    ],
-    editorialArtPrompt: 'Clean minimalist chalkboard with elegant Python syntax diagrams, relational database schemas, and warm golden lighting.',
-    cognitiveMetrics: {
-      clarityScore: 94,
-      sentimentResonance: 'Pedagogical Precision',
-      focusDimension: 'Curriculum Scaffolding'
-    },
-    bookmarked: true,
-    messages: [
-      {
-        id: 'msg-w1-1',
-        role: 'user',
-        content: '📋 Structure this reflection with clear headers and bullet points for departmental sync.',
-        timestamp: Date.now() - 1000 * 60 * 50,
-        quickActionType: 'structure_notes'
-      },
-      {
-        id: 'msg-w1-2',
-        role: 'assistant',
-        content: '### Practical Mock Diagnosis\n- **Identified Gap:** SQLite sanitisation & dynamic linked list insertion from CSV.\n- **Pedagogical Intervention:** Deploy short timed unit-test exercises prior to full paper simulation.\n\n### Next Steps\n- Share standardized marking rubrics and model solutions with departmental colleagues.',
-        timestamp: Date.now() - 1000 * 60 * 48,
-        quickActionType: 'structure_notes'
-      }
-    ]
-  },
-  {
-    id: 'seed-work-2',
-    userId: 'local-user',
-    rawText: 'Led a deep-dive seminar on Dynamic Programming versus Divide-and-Conquer (Merge Sort, Binary Search trees, Memoization). Transitioning students from recursion trees to iterative state tables proved effective for visual learners. A few students who previously scored U-grade showed breakthrough understanding.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 26, // 1 day ago
-    reflectionSummary: 'Visual recursion tree decomposition and step-by-step state tables enabled breakthrough comprehension in complex algorithmic analysis for struggling candidates.',
-    adaptiveResponse: 'Capitalize on this conceptual momentum by having these students explain the memoization step to peers in breakout study circles. Socratic peer-teaching solidifies algorithmic mental models.',
-    category: {
-      domain: 'Work',
-      department: 'Algorithms & Theory',
-      projectTags: ['Algorithms', 'Memoization', 'BinaryTrees', 'TheoryPaper1']
-    },
-    actionItems: [
-      {
-        id: 'act-c3',
-        text: 'Create a visual comparison infographic for Top-Down Memoization vs Bottom-Up Tabulation',
+        id: 'act-w1-2',
+        text: 'Create a peer-explanation rubric assessing conceptual articulation over code memorization',
         completed: true,
         priority: 'medium',
         category: 'Next Step'
       }
     ],
-    editorialArtPrompt: 'Abstract glowing binary tree recursion visual with indigo background and crystalline gold nodes.',
+    editorialArtPrompt: 'A photorealistic warm wooden classroom desk with tactile numbered wooden blocks, organized index cards, soft afternoon sun, 35mm photography.',
     cognitiveMetrics: {
-      clarityScore: 96,
-      sentimentResonance: 'Inspirational Mastery',
-      focusDimension: 'Algorithmic Intuition'
+      clarityScore: 94,
+      sentimentResonance: 'Pedagogical Inquiry',
+      focusDimension: 'Conceptual Scaffolding'
+    },
+    sentiment: {
+      emotionalTone: 'Frustrated & Seeking Clarity',
+      emoji: '💡',
+      energyLevel: 'Grounded',
+      sentimentResonance: 'Pedagogical Inquiry',
+      sentimentSummary: 'Navigating the delicate gap between memorizing syntax and deep algorithmic intuition.'
+    },
+    bookmarked: true
+  },
+  {
+    id: 'seed-work-2',
+    userId: 'local-user',
+    title: 'Designing Real-World Contexts for Python & SQL',
+    rawText: `Sitting down at my desk trying to author Section B for the upcoming Paper 2 Preliminary Exam. The syllabus guidelines mandate that questions must be contextualized in authentic real-world systems, seamlessly interweaving SQLite relational schemas with Python data structures and file I/O.
+
+I've been staring at a blank document for the past two hours. It's so easy to create contrived, artificial examples, but setting a scenario that feels genuinely realistic without burying students in unnecessary domain jargon is excruciatingly difficult. I need an engaging context—perhaps an automated MRT fare ticketing gate, a hospital triage appointment dispatch system, or a smart library locker network—that naturally demands multi-table joins, sanitization, and data validation.`,
+    createdAt: Date.now() - 1000 * 60 * 60 * 24, // 1 day ago
+    reflectionSummary: 'Experiencing creative friction while brainstorming cohesive, authentic real-world contexts that naturally integrate both Python data manipulation and relational SQLite database tasks for upcoming exam papers.',
+    adaptiveResponse: `Crafting authentic examination contexts is challenging because scenarios must feel naturally grounded without introducing unnecessary domain jargon. Anchor questions in relatable public utility systems—such as an automated MRT transit tap-in system, a smart library IoT sensor network, or a food delivery logistics dispatcher.
+
+These domains naturally combine relational SQL tables (e.g., stations, trips, commuter fares) with Python data processing routines (calculating peak-hour surcharges or sanitizing CSV transaction logs).
+
+• Which everyday public system in Singapore (like MRT transit cards, National Library checkouts, or hospital clinic queues) would resonate most intuitively with your students?
+• What core SQL query patterns (joins, aggregations, group by) do you most want this paper's scenario to test?`,
+    category: {
+      domain: 'Work',
+      department: 'Assessment & Curriculum',
+      projectTags: ['ExamSetting', 'Python', 'SQL', 'ContextualDesign']
+    },
+    actionItems: [
+      {
+        id: 'act-w2-1',
+        text: 'Draft a 3-table SQLite schema based on an automated transit tap-in system',
+        completed: false,
+        priority: 'high',
+        category: 'Next Step'
+      },
+      {
+        id: 'act-w2-2',
+        text: 'Outline 4 progressive Python tasks that process and sanitize commuter transaction logs',
+        completed: true,
+        priority: 'high',
+        category: 'Next Step'
+      }
+    ],
+    editorialArtPrompt: 'A modern architect desk with blueprints of urban transit maps, open laptop showing database schemas, warm coffee cup, soft golden studio lighting, 8k photography.',
+    cognitiveMetrics: {
+      clarityScore: 92,
+      sentimentResonance: 'Curriculum Design',
+      focusDimension: 'Contextual Assessment'
+    },
+    sentiment: {
+      emotionalTone: 'Thoughtful & Seeking Inspiration',
+      emoji: '🌱',
+      energyLevel: 'Inspiring',
+      sentimentResonance: 'Curriculum Design',
+      sentimentSummary: 'Seeking fresh, authentic narrative anchors for technical exam questions.'
     }
   },
   {
     id: 'seed-work-3',
     userId: 'local-user',
-    rawText: 'Reviewed student submissions for Networking and Cybersecurity theory questions. Common misconceptions emerged regarding asymmetric public/private key encryption versus hashing integrity checks in HTTPS handshakes. Prepared custom diagnostic flashcards to reinforce protocol handshakes.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 50, // 2 days ago
-    reflectionSummary: 'Targeted analysis of networking and cybersecurity questions revealed conflation between cryptographic hashing and public-key encryption.',
-    adaptiveResponse: 'Anchor the distinction using a concrete physical analogy (digital signatures as wax seals vs hashing as tamper-evident tape). Use interactive network packet tracing in class to visualize real-time TLS handshakes.',
+    title: 'Automated Diagnostic Scaffolding & Educator Energy',
+    rawText: `Wrapped up back-to-back 1-on-1 consultations from 2pm to 6:30pm today with six different students. By the end of it, my voice was hoarse and my mental energy completely drained. What makes it so exhausting is that I found myself repeating the exact same explanations five times over—debugging off-by-one errors in while loops, clarifying the difference between parameter passing by reference vs value, and fixing SQL injection vulnerabilities in string concatenations.
+
+I love mentoring students through complex architectural thinking, but spending hours on basic syntax checks is draining. How I wish we had an intelligent diagnostic system that could automatically generate scaffolded practice questions, assess their code line-by-line, and provide immediate contextual feedback before they come for consultations.`,
+    createdAt: Date.now() - 1000 * 60 * 60 * 48, // 2 days ago
+    reflectionSummary: 'Exhaustion from repetitive 1-on-1 consultations on fundamental computing concepts sparked a strong desire for automated question generation, instant grading, and personalized student feedback loops.',
+    adaptiveResponse: `One-on-one consultations are emotionally and intellectually demanding, especially when repeatedly addressing the same foundational misconceptions. Your instinct to offload repetitive diagnostic feedback to an automated system is the right strategy for protecting your teaching energy for high-impact mentorship.
+
+A tiered consultation framework—where students first complete self-checking automated code exercises and submit their diagnostic logs before booking a 1-on-1 slot—ensures that in-person time is reserved for deep architectural reasoning rather than basic syntax debugging.
+
+• What are the top 3 recurring misconceptions that consume 80% of your consultation time?
+• How could you pilot a lightweight automated quiz system that students must complete prior to booking individual consultation slots?`,
     category: {
       domain: 'Work',
-      department: 'Network & Cyber Security',
-      projectTags: ['Cybersecurity', 'Networking', 'TLS', 'Paper1Theory']
+      department: 'Student Consultations & EdTech',
+      projectTags: ['Consultations', 'EdTech', 'AutomatedGrading', 'TeacherWellbeing']
     },
     actionItems: [
       {
-        id: 'act-c4',
-        text: 'Distribute 10-question quick diagnostic quiz on Cryptographic Protocols before Friday',
+        id: 'act-w3-1',
+        text: 'Collate the 5 most frequent consultation questions into a self-service interactive FAQ with runnable code snippets',
         completed: false,
         priority: 'high',
         category: 'Next Step'
-      }
-    ],
-    editorialArtPrompt: 'Minimalist geometric network topology with glowing nodes and cryptographic lock symbols in ultramarine.',
-    cognitiveMetrics: {
-      clarityScore: 91,
-      sentimentResonance: 'Diagnostic Insight',
-      focusDimension: 'Conceptual Precision'
-    }
-  },
-  {
-    id: 'seed-work-4',
-    userId: 'local-user',
-    rawText: 'One-on-one consultation sessions with 6 students anxious about their preliminary exam performance. Reframed their revision strategy around high-weightage topics (Data Structures, Socket Programming, and Ethics in Computing). Emphasized time-budgeting: 1.5 minutes per mark on Paper 1.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 74, // 3 days ago
-    reflectionSummary: 'Empathetic consultations helped de-escalate exam anxiety and instilled structured time-management strategies across high-weightage syllabus components.',
-    adaptiveResponse: 'Providing structured exam pacing templates gives students a tangible sense of control. Celebrate their incremental gains in past-year paper scores to sustain high morale into the final sprint.',
-    category: {
-      domain: 'Work',
-      department: 'Student Mentorship & Exam Strategy',
-      projectTags: ['Mentorship', 'TimeManagement', 'RevisionStrategy', 'PastPapers']
-    },
-    actionItems: [
+      },
       {
-        id: 'act-c5',
-        text: 'Collate and share the 2020-2025 A-Level Computing marking trends summary document',
-        completed: true,
-        priority: 'high',
+        id: 'act-w3-2',
+        text: 'Establish prerequisite diagnostic checkpoints students must submit before booking 1-on-1 consultations',
+        completed: false,
+        priority: 'medium',
         category: 'Next Step'
       }
     ],
-    editorialArtPrompt: 'Warm sunlit modern classroom desk with organized study plans, hourglass, and focused stationery.',
+    editorialArtPrompt: 'A quiet modern university study alcove in the evening, illuminated laptop screen showing code diagnostics, notebook with neat handwritten notes, cinematic depth of field.',
     cognitiveMetrics: {
       clarityScore: 95,
-      sentimentResonance: 'Empathetic Mentorship',
-      focusDimension: 'Student Morale & Strategy'
+      sentimentResonance: 'Sustainable Teaching',
+      focusDimension: 'Educator Resilience'
+    },
+    sentiment: {
+      emotionalTone: 'Exhausted & Seeking Leverage',
+      emoji: '⚡',
+      energyLevel: 'Compassionate',
+      sentimentResonance: 'Sustainable Teaching',
+      sentimentSummary: 'Acknowledging consultation fatigue while exploring automated leverage to protect your energy.'
     }
   },
   {
-    id: 'seed-creative-1',
+    id: 'seed-personal-1',
     userId: 'local-user',
-    rawText: 'Spent the evening at the National Library building in Bugis designing an interactive gamified web simulation for A-Level sorting algorithms (QuickSort and MergeSort pivots). Envisioned animated particle systems that visualize swap operations in real-time on student iPads.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 18,
-    reflectionSummary: 'Brainstormed an interactive visual sorting simulator with kinetic particle physics to transform abstract algorithm complexity into an intuitive sensory learning experience.',
-    adaptiveResponse: 'Interactive kinetic learning bridges theoretical syntax and algorithmic intuition. Build an initial lightweight Canvas prototype to test with students during tutorial warm-ups.',
+    title: 'Embracing the Learning Curve in Pickleball',
+    rawText: `Attended my third pickleball coaching clinic this morning at Kallang Tennis Centre. The sport is undeniably fun and addictive, but reprogramming my motor reflexes during groundstrokes is proving to be a humbling challenge. Coming from years of casual badminton and tennis, my instinct is always to whip and snap the wrist upon contact to generate topspin.
+
+My coach kept reminding me throughout the drills: 'Lock your wrist! The paddle face must remain stable; drive the ball using your legs and shoulder torso rotation.' Every time a fast ball comes over the kitchen line, my wrist instinctively wants to bend. It feels awkward and robotic right now, but I can slowly feel the ball trajectory stabilizing when I trust the shoulder follow-through.`,
+    createdAt: Date.now() - 1000 * 60 * 60 * 72, // 3 days ago
+    reflectionSummary: 'Enjoying the playful energy of learning pickleball at Kallang Tennis Centre, while navigating the physical adaptation of locking the wrist during groundstrokes as instructed by the coach.',
+    adaptiveResponse: `Taking up a new sport is a wonderful way to reconnect with the sensation of being a beginner. In pickleball, the instinct to flick or bend the wrist is natural (especially if you have background in tennis, badminton, or table tennis), but keeping a firm, stable wrist and initiating power from the shoulder and core creates consistency and paddle-face control.
+
+Be patient with muscle memory reprogramming. The awkwardness you feel during groundstrokes is proof of neural rewiring in progress, and celebrating small improvements in paddle angle will make each session rewarding.
+
+• What racquet sport habits (from badminton, tennis, or squash) find themselves creeping into your pickleball swing?
+• How does the experience of being a novice player on the court give you fresh empathy for your students learning difficult concepts?`,
     category: {
-      domain: 'Creative',
-      department: 'EdTech Innovation',
-      projectTags: ['CreativeCoding', 'AlgorithmVisualizer', 'CanvasAPI', 'EdTech']
+      domain: 'Personal',
+      department: 'Physical Well-Being & Sports',
+      projectTags: ['Pickleball', 'Sports', 'MotorSkills', 'BeginnerMindset']
     },
     actionItems: [
       {
-        id: 'act-cr1',
-        text: 'Build a prototype interactive QuickSort partition animation in HTML5 Canvas',
+        id: 'act-p1-1',
+        text: 'Practice 15 minutes of slow against-the-wall dinking focusing exclusively on a locked, neutral wrist',
         completed: false,
-        priority: 'low',
-        category: 'Creative Spark'
-      }
-    ],
-    creativeSpark: 'What if algorithm comparison was gamified as a musical synthesizer where array comparisons produce harmonic chords based on sorting efficiency?',
-    location: {
-      name: 'National Library Building Singapore',
-      address: '100 Victoria Street, Bugis, Singapore 188064',
-      lat: 1.2976,
-      lng: 103.8543
-    },
-    locationContext: 'National Library Building Singapore (Bugis Cultural Corridor)',
-    editorialArtPrompt: 'Futuristic architectural interior of Singapore National Library with warm golden lights, glowing algorithm particle flow, and glass bridges.',
-    cognitiveMetrics: {
-      clarityScore: 97,
-      sentimentResonance: 'Imaginative Innovation',
-      focusDimension: 'Pedagogical Creativity'
-    }
-  },
-  {
-    id: 'seed-creative-2',
-    userId: 'local-user',
-    rawText: 'Visited the ArtScience Museum at Marina Bay Sands exploring the digital generative art installations. Conceptualized a collaborative classroom project: having computing students generate generative procedural Singapore cityscapes using recursive L-systems and turtle geometry.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 42,
-    reflectionSummary: 'Exploration of generative digital art installations inspired a creative cross-disciplinary coding assignment applying L-systems to procedural architecture.',
-    adaptiveResponse: 'Connecting formal computing grammar to artistic expression fosters deep joy and shows students that code is an expressive, limitless medium beyond exam rubrics.',
-    category: {
-      domain: 'Creative',
-      department: 'Generative Design Lab',
-      projectTags: ['GenerativeArt', 'LSystems', 'CreativeComputing', 'ArtScience']
-    },
-    actionItems: [
+        priority: 'medium',
+        category: 'Next Step'
+      },
       {
-        id: 'act-cr2',
-        text: 'Draft sample Python turtle script generating fractal Singapore Supertrees for post-exam coding workshop',
+        id: 'act-p1-2',
+        text: 'Schedule the next weekend doubles friendly match to build relaxed court confidence',
         completed: false,
         priority: 'low',
-        category: 'Creative Spark'
+        category: 'Next Step'
       }
     ],
-    creativeSpark: 'Could students map real-time Singapore climate and weather API data into generative digital watercolor shaders?',
     location: {
-      name: 'ArtScience Museum Singapore',
-      address: '6 Bayfront Ave, Marina Bay Sands, Singapore 018974',
-      lat: 1.2863,
-      lng: 103.8593
+      name: 'Kallang Tennis Centre',
+      address: '8 Stadium Blvd, Singapore 397804',
+      lat: 1.3064,
+      lng: 103.8786
     },
-    locationContext: 'ArtScience Museum (Marina Bay Waterfront, Singapore)',
-    editorialArtPrompt: 'Lotus-inspired ArtScience Museum building over reflecting Marina Bay waters at twilight with shimmering laser projections.',
+    locationContext: 'Kallang Tennis Centre (Singapore Sports Hub)',
+    editorialArtPrompt: 'A vibrant outdoor pickleball court under clear blue skies, paddle and neon yellow perforated ball resting on clean green court surface, bright sunny morning light, crisp photography.',
     cognitiveMetrics: {
       clarityScore: 96,
-      sentimentResonance: 'Vibrant Curiosity',
-      focusDimension: 'Aesthetic Computational Design'
-    }
-  },
-  {
-    id: 'seed-creative-3',
-    userId: 'local-user',
-    rawText: 'Evening walk along the Henderson Waves bridge at Southern Ridges drafting ideas for an AI computing ethics debate case study: evaluating autonomous public transport algorithms navigating Singapore\'s dense urban environment.',
-    createdAt: Date.now() - 1000 * 60 * 60 * 66,
-    reflectionSummary: 'Architectural immersion at Henderson Waves spurred a real-world case study on autonomous transport ethics and algorithmic fairness calibrated for Singapore urban mobility.',
-    adaptiveResponse: 'Situating computing ethics in familiar local contexts (like MRT scheduling and autonomous shuttles) grounds abstract moral philosophy in tangible engineering trade-offs.',
-    category: {
-      domain: 'Creative',
-      department: 'Computing Ethics & Society',
-      projectTags: ['ComputingEthics', 'AIEthics', 'SmartNation', 'SouthernRidges']
+      sentimentResonance: 'Mindful Somatics',
+      focusDimension: 'Motor Skill Acquisition'
     },
-    actionItems: [
-      {
-        id: 'act-cr3',
-        text: 'Curate 3 debate prompt cards on algorithmic accountability in Smart Nation infrastructure',
-        completed: true,
-        priority: 'low',
-        category: 'Creative Spark'
-      }
-    ],
-    creativeSpark: 'How would students program an ethical decision-tree simulator when sensor noise introduces 5% ambiguity in pedestrian recognition?',
-    location: {
-      name: 'Henderson Waves & Southern Ridges',
-      address: 'Henderson Road, Southern Ridges, Singapore 109572',
-      lat: 1.2761,
-      lng: 103.8153
-    },
-    locationContext: 'Henderson Waves (Southern Ridges Canopy Walk, Singapore)',
-    editorialArtPrompt: 'Sweeping undulating wooden architectural waves of Henderson bridge illuminated against lush tropical Singapore canopy at sunset.',
-    cognitiveMetrics: {
-      clarityScore: 95,
-      sentimentResonance: 'Philosophical Inspiration',
-      focusDimension: 'Sociotechnical Ethics'
+    sentiment: {
+      emotionalTone: 'Playful & Mindfully Learning',
+      emoji: '🎾',
+      energyLevel: 'Grounded',
+      sentimentResonance: 'Mindful Somatics',
+      sentimentSummary: 'Experiencing the humility and excitement of building brand new motor habits on the court.'
     }
   }
 ];
@@ -320,7 +287,17 @@ export default function App() {
       const saved = localStorage.getItem(GUEST_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasOldSeed = parsed.some((e: JournalEntry) => e.id === 'seed-work-4' || e.id === 'seed-creative-1' || e.id === 'seed-creative-2');
+          const isShortSeed = parsed.some((e: JournalEntry) => e.id === 'seed-work-1' && e.rawText.length < 240);
+          const hasLocation = parsed.some((e: JournalEntry) => e.id === 'seed-personal-1' && e.location);
+          if (!hasOldSeed && !isShortSeed && hasLocation) {
+            return parsed.map((e: JournalEntry) => ({
+              ...e,
+              bannerImageUrl: e.bannerImageUrl?.includes('pollinations.ai') ? undefined : e.bannerImageUrl
+            }));
+          }
+        }
       }
     } catch (e) {
       console.warn('Could not read guest vault:', e);
@@ -368,6 +345,30 @@ export default function App() {
   const [isThreatModalOpen, setIsThreatModalOpen] = useState(false);
   const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false);
   const [isConfirmingClearAll, setIsConfirmingClearAll] = useState(false);
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState<boolean>(() => {
+    try {
+      const hasChosen = localStorage.getItem('mirrorsync_welcome_chosen');
+      return !hasChosen;
+    } catch {
+      return true;
+    }
+  });
+
+  const handleWelcomeContinueGuest = () => {
+    try {
+      localStorage.setItem('mirrorsync_welcome_chosen', 'true');
+    } catch {}
+    setIsWelcomeModalOpen(false);
+    showToast('✨ Welcome to MirrorSync! Exploring in Demo Mode.');
+  };
+
+  const handleWelcomeSignInGoogle = async () => {
+    try {
+      localStorage.setItem('mirrorsync_welcome_chosen', 'true');
+    } catch {}
+    setIsWelcomeModalOpen(false);
+    await handleSignInGoogle();
+  };
 
   const handleClearAllPosts = async () => {
     setIsConfirmingClearAll(false);
@@ -502,11 +503,8 @@ export default function App() {
       await signInWithGoogle();
     } catch (err: any) {
       console.error('Google sign-in error:', err);
-      const isPopupBlocked = err?.code === 'auth/popup-blocked' || err?.message?.includes('popup');
       setErrorBanner({
-        message: isPopupBlocked 
-          ? 'Google Sign-In popup was blocked by browser settings. Please allow popups or open in a new tab.'
-          : err?.message || 'Google Sign-In encountered an error.',
+        message: "Google login wasn't completed. Please try logging in again.",
         details: err?.code || String(err),
         action: 'auth'
       });
@@ -563,6 +561,7 @@ export default function App() {
       const { reflection } = await reflectEntryAPI(rawText, currentPersona, location || undefined, preferredDomain);
 
       const updates: Partial<JournalEntry> = {
+        title: reflection.title,
         reflectionSummary: reflection.reflectionSummary,
         adaptiveResponse: reflection.adaptiveResponse,
         category: reflection.category,
@@ -571,7 +570,9 @@ export default function App() {
         locationContext: reflection.locationContext,
         location: reflection.location || location || undefined,
         editorialArtPrompt: reflection.editorialArtPrompt,
+        bannerImageUrl: reflection.bannerImageUrl,
         cognitiveMetrics: reflection.cognitiveMetrics,
+        sentiment: reflection.sentiment,
         aiStatus: 'ready',
         aiError: undefined
       };
@@ -634,9 +635,13 @@ export default function App() {
       return;
     }
 
-    // 1. Generate local semantic clusters immediately & save
+    if (selectedCategory === targetCategory && showNotification) {
+      setIsLoadingTopics(true);
+    }
+
+    // 1. Generate local semantic clusters
     const localTopics = generateLocalSemanticTopics(domainEntries, targetCategory);
-    if (selectedCategory === targetCategory) {
+    if (selectedCategory === targetCategory && !showNotification) {
       setDynamicTopics(localTopics);
     }
 
@@ -650,7 +655,7 @@ export default function App() {
       return updated;
     });
 
-    // 2. Run AI topic clustering asynchronously in background
+    // 2. Run AI topic clustering asynchronously
     try {
       if (selectedCategory === targetCategory) {
         setIsLoadingTopics(true);
@@ -721,6 +726,7 @@ export default function App() {
     const newEntry: JournalEntry = {
       id: newEntryId,
       userId: user ? user.uid : 'local-user',
+      title: preGeneratedEntry?.title,
       rawText: preGeneratedEntry?.rawText || rawText,
       createdAt: Date.now(),
       reflectionSummary: preGeneratedEntry?.reflectionSummary || '',
@@ -886,11 +892,18 @@ export default function App() {
 
   const handleScrollToComposer = () => {
     setIsHistorySidebarOpen(false);
-    composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    const textarea = document.querySelector('textarea');
-    if (textarea) {
-      textarea.focus();
+    const composerSection = document.getElementById('reflection-composer-section');
+    if (composerSection) {
+      composerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (composerRef.current) {
+      composerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    setTimeout(() => {
+      const textarea = document.getElementById('reflection-textarea') as HTMLTextAreaElement | null;
+      if (textarea) {
+        textarea.focus({ preventScroll: true });
+      }
+    }, 280);
   };
 
   const handleSelectCategory = (cat: 'All' | DomainCategory) => {
@@ -1095,20 +1108,25 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
-        {/* Global Toast Notification */}
+        {/* Global Toast Notification (Dark Bronze Background for Clear Contrast) */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl metallic-gold-panel text-[#f6e7b8] text-xs shadow-2xl flex items-center gap-2.5 backdrop-blur-xl animate-in fade-in-50 slide-in-from-bottom-3 duration-200">
+          <div className="fixed bottom-20 right-6 z-50 px-4 py-3 rounded-2xl bg-gradient-to-br from-[#2a1a0a] via-[#1a1006] to-[#0f0a04] border border-[#d4a373]/50 text-[#fef6e4] text-xs shadow-[0_12px_36px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,230,190,0.25)] flex items-center gap-2.5 backdrop-blur-xl animate-in fade-in-50 slide-in-from-bottom-3 duration-200">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="font-semibold">{toastMessage}</span>
+            <span className="font-semibold text-slate-100">{toastMessage}</span>
           </div>
         )}
 
-        {/* Global Error Banner */}
+        {/* Elegant Compact Metallic Red Authentication & System Notice */}
         {errorBanner && (
-          <div className="p-4 rounded-2xl bg-[#0b152d]/95 border border-rose-500/50 text-xs space-y-2.5 shadow-2xl backdrop-blur-xl animate-in fade-in-50 duration-200">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2a0b14]/95 via-[#18050b]/98 to-[#220810]/95 border border-rose-500/40 p-4 sm:p-4.5 space-y-3 shadow-[0_12px_40px_rgba(225,29,72,0.25),0_0_24px_rgba(244,63,94,0.12)] backdrop-blur-2xl animate-in fade-in-50 duration-250">
+            {/* Top Ruby Specular Line */}
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-rose-400/50 to-transparent pointer-events-none" />
+
             <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2 text-rose-400 font-semibold text-sm">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="flex items-center gap-2.5 text-rose-200 font-bold text-sm">
+                <div className="p-1.5 rounded-xl bg-rose-500/20 border border-rose-400/30 text-rose-300 shadow-sm">
+                  <AlertCircle className="w-4 h-4 text-rose-300" />
+                </div>
                 <span>
                   {errorBanner.action === 'auth'
                     ? 'Authentication Notice'
@@ -1117,25 +1135,25 @@ export default function App() {
               </div>
               <button
                 onClick={() => setErrorBanner(null)}
-                className="text-slate-400 hover:text-white p-1 cursor-pointer"
+                className="text-rose-300/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 title="Dismiss"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-rose-950/40 border border-rose-900/60 text-rose-200 font-mono text-[11px] break-words">
+            <p className="text-xs sm:text-sm text-rose-100/90 leading-relaxed font-sans pl-1">
               {errorBanner.message}
-            </div>
+            </p>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-rose-500/20">
               <button
                 type="button"
                 onClick={handleCopyErrorBanner}
-                className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                className="text-[11px] text-rose-300/70 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
               >
                 {copiedError ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedError ? 'Copied Error Info' : 'Copy Diagnostics'}</span>
+                <span>{copiedError ? 'Copied Details' : 'Copy Diagnostics'}</span>
               </button>
 
               <div className="flex items-center gap-2">
@@ -1143,15 +1161,15 @@ export default function App() {
                   <button
                     onClick={handleSignInGoogle}
                     disabled={isSigningIn}
-                    className="px-3.5 py-1.5 rounded-xl metallic-gold-button text-[#070d1e] font-semibold text-xs flex items-center gap-1 cursor-pointer"
+                    className="px-4 py-2 rounded-xl metallic-gold-button text-[#070d1e] font-extrabold text-xs flex items-center gap-1.5 shadow-[0_0_16px_rgba(246,231,184,0.35)] hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
                   >
-                    <RotateCw className="w-3.5 h-3.5" />
-                    <span>Retry Sign-In</span>
+                    <RotateCw className="w-3.5 h-3.5 text-[#070d1e] stroke-[2.5]" />
+                    <span>Try Logging In Again</span>
                   </button>
                 )}
                 <button
                   onClick={() => setErrorBanner(null)}
-                  className="px-3.5 py-1.5 rounded-xl text-slate-400 hover:text-white text-xs cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl text-rose-300/80 hover:text-white text-xs hover:bg-white/5 transition-colors cursor-pointer"
                 >
                   Dismiss
                 </button>
@@ -1241,10 +1259,10 @@ export default function App() {
                 {filteredEntries.map((entry, idx) => (
                   <motion.div
                     key={entry.id}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-30px" }}
-                    transition={{ duration: 0.45, delay: Math.min(idx * 0.05, 0.25), ease: [0.21, 0.47, 0.32, 0.98] }}
+                    initial={{ opacity: 0, y: 36, scale: 0.97 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, margin: "-20px" }}
+                    transition={{ duration: 0.8, delay: Math.min(idx * 0.08, 0.3), ease: [0.16, 1, 0.3, 1] }}
                   >
                     <ReflectionCard
                       entry={entry}
@@ -1271,16 +1289,17 @@ export default function App() {
         {/* 2. New Journal Entry Composer */}
         <motion.section 
           ref={composerRef} 
+          id="reflection-composer-section"
           aria-label="Journal Input" 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="pt-6 border-t border-white/10 space-y-3"
+          className="pt-6 border-t border-white/10 space-y-3 scroll-mt-6"
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 pb-1">
             <div className="flex items-center gap-2.5">
-              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 animate-pulse" />
+              <span className="animate-star-emoji text-xl sm:text-2xl leading-none">✨</span>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#fae8a8] via-[#38bdf8] via-[#c084fc] to-[#34d399] bg-clip-text text-transparent animate-gradient-text drop-shadow-md">
                 Create New Journal Post
               </h2>
@@ -1303,6 +1322,20 @@ export default function App() {
           />
         </motion.section>
       </main>
+
+      {/* Floating Quick Compose Action Button (Compact Vertical Layout: Emoji on Top, Text Below) */}
+      <motion.button
+        type="button"
+        onClick={handleScrollToComposer}
+        whileHover={{ scale: 1.08, y: -2 }}
+        whileTap={{ scale: 0.94 }}
+        className="fixed bottom-6 right-6 z-40 p-2.5 px-3 rounded-2xl metallic-sapphire-button text-white font-bold flex flex-col items-center justify-center gap-1 shadow-[0_12px_32px_rgba(0,0,0,0.65),0_0_20px_rgba(59,130,246,0.45)] border border-sky-400/60 backdrop-blur-md cursor-pointer group"
+        title="Quick Write New Journal Post"
+        aria-label="Quick Write New Journal Post"
+      >
+        <span className="animate-star-emoji text-lg leading-none group-hover:scale-115 transition-transform">✨</span>
+        <span className="text-[11px] font-extrabold tracking-tight leading-none text-white whitespace-nowrap">New Post</span>
+      </motion.button>
 
       {/* Footer */}
       <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-8 border-t border-white/10 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -1355,6 +1388,14 @@ export default function App() {
         onClose={() => setIsInsightsModalOpen(false)}
         entries={entries}
         persona={persona}
+      />
+
+      <WelcomeModal
+        isOpen={isWelcomeModalOpen && !user}
+        onClose={() => setIsWelcomeModalOpen(false)}
+        onSignInGoogle={handleWelcomeSignInGoogle}
+        onContinueGuest={handleWelcomeContinueGuest}
+        isSigningIn={isSigningIn}
       />
 
       {/* Clear All Posts Confirmation Modal */}

@@ -149,8 +149,8 @@ export function Header({
                   )}
                 </div>
 
-                <span className={`text-[9px] sm:text-[10px] font-mono tracking-wider uppercase hidden sm:block ${
-                  user ? 'text-emerald-300/80 font-semibold' : 'text-[#f6e7b8]/70'
+                <span className={`text-[10px] sm:text-[11px] font-montserrat tracking-[0.15em] uppercase font-semibold mt-0.5 hidden sm:block ${
+                  user ? 'text-emerald-300/90 drop-shadow-[0_1px_4px_rgba(52,211,153,0.3)]' : 'text-[#f6e7b8]/85 drop-shadow-[0_1px_4px_rgba(246,231,184,0.3)]'
                 }`}>
                   {user ? 'Cloud Reflection Vault' : 'AI Reflection Workspace'}
                 </span>
@@ -165,12 +165,13 @@ export function Header({
                 id="header-history-toggle-btn"
                 type="button"
                 onClick={onToggleHistorySidebar}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md bg-gradient-to-r from-[#022116] via-[#093a2a] to-[#021a11] text-emerald-200 hover:text-white border border-emerald-400/40 hover:border-emerald-300/80 shadow-[0_0_16px_rgba(52,211,153,0.3)] hover:shadow-[0_0_24px_rgba(52,211,153,0.55)] active:scale-95"
+                className="px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shadow-md bg-gradient-to-r from-[#022116] via-[#093a2a] to-[#021a11] text-emerald-200 hover:text-white border border-emerald-400/40 hover:border-emerald-300/80 shadow-[0_0_16px_rgba(52,211,153,0.3)] hover:shadow-[0_0_24px_rgba(52,211,153,0.55)] active:scale-95"
                 title="View Journal Posts"
               >
                 <Undo2 className="w-4 h-4 text-emerald-400 stroke-[2.5]" />
-                <span className="font-extrabold tracking-tight text-xs text-emerald-100">View Journal Posts</span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full font-mono font-bold bg-[#01140d] text-emerald-300 border border-emerald-400/50">
+                <span className="font-extrabold tracking-tight text-xs text-emerald-100 hidden sm:inline">View Journal Posts</span>
+                <span className="font-extrabold tracking-tight text-xs text-emerald-100 sm:hidden inline">Posts</span>
+                <span className="text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-mono font-bold bg-[#01140d] text-emerald-300 border border-emerald-400/50">
                   {totalEntriesCount}
                 </span>
               </button>

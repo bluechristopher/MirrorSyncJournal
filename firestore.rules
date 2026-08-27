@@ -9,11 +9,6 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Health check and connection ping
-    match /test/{docId} {
-      allow read, write: if true;
-    }
-
     // Authenticated user profile and isolated data subcollections
     match /users/{userId} {
       allow read, write: if isOwner(userId);

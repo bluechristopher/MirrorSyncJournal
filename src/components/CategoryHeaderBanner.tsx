@@ -68,7 +68,7 @@ export function CategoryHeaderBanner({ category, totalCount }: CategoryHeaderBan
               </div>
 
               <p className="text-sm sm:text-base text-slate-200 max-w-2xl leading-relaxed font-normal drop-shadow-sm">
-                Your unified timeline of executive reflections, personal breakthroughs, creative sparks, and email drafts.
+                Your personal and work reflections
               </p>
             </div>
           </div>

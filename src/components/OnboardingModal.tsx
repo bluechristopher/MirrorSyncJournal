@@ -265,13 +265,13 @@ export function OnboardingModal({
                 <select
                   value={editedStyle}
                   onChange={(e) => setEditedStyle(e.target.value)}
-                  className="w-full metallic-panel rounded-xl p-2.5 border border-white/15 text-slate-100 focus:outline-none focus:border-[#f6e7b8]"
+                  className="w-full bg-[#070d1e] rounded-xl p-2.5 border border-white/20 text-slate-100 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 shadow-inner cursor-pointer"
                 >
-                  <option value="analytical & structured">Analytical & Structured</option>
-                  <option value="concise & direct">Concise & Direct</option>
-                  <option value="visionary & strategic">Visionary & Strategic</option>
-                  <option value="empathetic & reflective">Empathetic & Reflective</option>
-                  <option value="pragmatic & action-oriented">Pragmatic & Action-Oriented</option>
+                  <option value="analytical & structured" className="bg-[#0b1428] text-slate-100 py-2">Analytical & Structured</option>
+                  <option value="concise & direct" className="bg-[#0b1428] text-slate-100 py-2">Concise & Direct</option>
+                  <option value="visionary & strategic" className="bg-[#0b1428] text-slate-100 py-2">Visionary & Strategic</option>
+                  <option value="empathetic & reflective" className="bg-[#0b1428] text-slate-100 py-2">Empathetic & Reflective</option>
+                  <option value="pragmatic & action-oriented" className="bg-[#0b1428] text-slate-100 py-2">Pragmatic & Action-Oriented</option>
                 </select>
               </div>
 
@@ -280,12 +280,12 @@ export function OnboardingModal({
                 <select
                   value={editedTone}
                   onChange={(e) => setEditedTone(e.target.value)}
-                  className="w-full metallic-panel rounded-xl p-2.5 border border-white/15 text-slate-100 focus:outline-none focus:border-[#f6e7b8]"
+                  className="w-full bg-[#070d1e] rounded-xl p-2.5 border border-white/20 text-slate-100 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 shadow-inner cursor-pointer"
                 >
-                  <option value="Strategic Advisor">Strategic Advisor (High-altitude roadmap)</option>
-                  <option value="Socratic Challenger">Socratic Challenger (Pushes assumptions)</option>
-                  <option value="Operational Optimizer">Operational Optimizer (Friction remover)</option>
-                  <option value="Mindful Mentor">Mindful Mentor (Cognitive balance)</option>
+                  <option value="Strategic Advisor" className="bg-[#0b1428] text-slate-100 py-2">Strategic Advisor (High-altitude roadmap)</option>
+                  <option value="Socratic Challenger" className="bg-[#0b1428] text-slate-100 py-2">Socratic Challenger (Pushes assumptions)</option>
+                  <option value="Operational Optimizer" className="bg-[#0b1428] text-slate-100 py-2">Operational Optimizer (Friction remover)</option>
+                  <option value="Mindful Mentor" className="bg-[#0b1428] text-slate-100 py-2">Mindful Mentor (Cognitive balance)</option>
                 </select>
               </div>
             </div>

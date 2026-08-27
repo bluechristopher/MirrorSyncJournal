@@ -20,6 +20,7 @@ import {
   deleteDoc, 
   updateDoc 
 } from 'firebase/firestore';
+import type { UserPersona, JournalEntry } from './types';
 
 const defaultFallbackConfig = {
   projectId: "genaiacademy3",
@@ -65,10 +66,15 @@ let currentUnsubscribe: (() => void) | null = null;
 function setupAuthSubscription() {
   if (currentUnsubscribe) {
     currentUnsubscribe();
+    currentUnsubscribe = null;
   }
-  currentUnsubscribe = firebaseOnAuthStateChanged(auth, (user) => {
-    listeners.forEach(listener => listener(user));
-  });
+  try {
+    currentUnsubscribe = firebaseOnAuthStateChanged(auth, (user) => {
+      listeners.forEach(listener => listener(user));
+    });
+  } catch (e) {
+    console.warn('[Firebase] Auth listener subscription note:', e);
+  }
 }
 
 // Attach initial auth listener immediately
@@ -81,10 +87,29 @@ export async function initializeRuntimeFirebaseConfig(): Promise<boolean> {
     if (res.ok) {
       const data = await res.json();
       if (data.success && data.config?.apiKey && data.config.apiKey !== 'AIzaSy_demo_client_key') {
-        console.info('[Firebase] Loaded dynamic runtime config for project:', data.config.projectId);
-        if (getApps().length) {
-          await deleteApp(getApp());
+        // Skip re-initialization if config is already active
+        if (currentConfig.apiKey === data.config.apiKey && currentConfig.projectId === data.config.projectId) {
+          return true;
         }
+
+        console.info('[Firebase] Updating to runtime config for project:', data.config.projectId);
+        
+        // Detach active listener prior to deleting previous app instance
+        if (currentUnsubscribe) {
+          currentUnsubscribe();
+          currentUnsubscribe = null;
+        }
+
+        const existingApps = getApps();
+        if (existingApps.length > 0) {
+          try {
+            await deleteApp(existingApps[0]);
+          } catch (_delErr) {
+            // Silence background heartbeat race warnings
+          }
+        }
+
+        currentConfig = data.config;
         app = initializeApp(data.config);
         auth = getAuth(app);
         db = getFirestore(app);

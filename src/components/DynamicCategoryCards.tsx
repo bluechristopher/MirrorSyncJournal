@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { motion, AnimatePresence, type Variants } from 'motion/react';
 import { 
   Sparkles, 
   Dumbbell, 
@@ -142,6 +143,50 @@ const ACCENT_STYLES: Record<string, {
   }
 };
 
+const CONTAINER_VARIANTS: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.07,
+      delayChildren: 0.04,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      duration: 0.18,
+      ease: 'easeOut',
+    },
+  },
+};
+
+const CARD_VARIANTS: Variants = {
+  hidden: {
+    opacity: 0,
+    x: -36,
+    filter: 'blur(3px)',
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    filter: 'blur(0px)',
+    transition: {
+      duration: 0.42,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: -20,
+    filter: 'blur(3px)',
+    transition: {
+      duration: 0.18,
+      ease: 'easeIn',
+    },
+  },
+};
+
 export function DynamicCategoryCards({
   topics,
   selectedTopicId,
@@ -213,95 +258,130 @@ export function DynamicCategoryCards({
         </div>
       </div>
 
-      {/* Dynamic Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {topics.map((topic) => {
-          const isSelected = selectedTopicId === topic.id;
-          const colorKey = topic.accentColor || 'amber';
-          const style = ACCENT_STYLES[colorKey] || ACCENT_STYLES.amber;
-          const IconComponent = ICON_MAP[topic.iconName || 'Sparkles'] || Sparkles;
-
-          const panelClass = {
-            emerald: 'metallic-green-panel ring-1 ring-emerald-400/70 shadow-[0_0_22px_rgba(52,211,153,0.3)]',
-            blue: 'metallic-blue-panel ring-1 ring-sky-400/70 shadow-[0_0_22px_rgba(56,189,248,0.3)]',
-            purple: 'metallic-purple-panel ring-1 ring-purple-400/70 shadow-[0_0_22px_rgba(192,132,252,0.3)]',
-            amber: 'metallic-gold-panel ring-1 ring-[#f6e7b8]/70 shadow-[0_0_22px_rgba(246,231,184,0.3)]',
-            rose: 'metallic-panel border-rose-400/60 ring-1 ring-rose-400/60 shadow-[0_0_22px_rgba(244,63,94,0.3)]',
-            indigo: 'metallic-blue-panel ring-1 ring-indigo-400/70 shadow-[0_0_22px_rgba(99,102,241,0.3)]',
-            cyan: 'metallic-blue-panel ring-1 ring-cyan-400/70 shadow-[0_0_22px_rgba(6,182,212,0.3)]'
-          }[colorKey] || 'metallic-gold-panel ring-1 ring-[#f6e7b8]/70 shadow-[0_0_22px_rgba(246,231,184,0.3)]';
-
-          const titleColorClass = {
-            emerald: 'text-emerald-200 group-hover:text-emerald-100',
-            blue: 'text-sky-200 group-hover:text-sky-100',
-            purple: 'text-purple-200 group-hover:text-purple-100',
-            amber: 'text-[#f6e7b8] group-hover:text-white',
-            rose: 'text-rose-200 group-hover:text-rose-100',
-            indigo: 'text-indigo-200 group-hover:text-indigo-100',
-            cyan: 'text-cyan-200 group-hover:text-cyan-100'
-          }[colorKey] || 'text-[#f6e7b8] group-hover:text-white';
-
-          return (
-            <button
-              key={topic.id}
-              id={`topic-card-${topic.id}`}
-              type="button"
-              onClick={() => {
-                onSelectTopic(isSelected ? null : topic.id);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer relative group flex flex-col justify-between gap-2.5 ${
-                isSelected
-                  ? panelClass
-                  : `metallic-card ${style.border} hover:brightness-105`
-              }`}
+      {/* Dynamic Cards Grid with fade-off and staggered float-in animation */}
+      <div className="relative min-h-[100px]">
+        <AnimatePresence mode="wait">
+          {isLoadingTopics ? (
+            <motion.div
+              key="loading-skeleton"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className="py-8 px-4 rounded-2xl metallic-card border border-white/10 flex flex-col items-center justify-center gap-2.5 text-center"
             >
-              {/* Top Row: Icon, Emoji, Entry Count */}
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl select-none" aria-hidden="true">
-                    {topic.emoji}
-                  </span>
-                  <div className={`p-1.5 rounded-lg ${style.iconBg} ${style.iconText} border border-white/10`}>
-                    <IconComponent className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${style.badgeBg} ${style.badgeText} border border-white/10`}>
-                    {topic.count} {topic.count === 1 ? 'entry' : 'entries'}
-                  </span>
-                  {isSelected && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
-                  )}
-                </div>
+              <div className="w-9 h-9 rounded-xl metallic-gold-panel flex items-center justify-center border border-[#f6e7b8]/30 shadow-md">
+                <Loader2 className="w-4 h-4 text-[#f6e7b8] animate-spin" />
               </div>
+              <p className="text-xs font-bold text-[#f6e7b8] tracking-wide">
+                Re-clustering topic categories with AI...
+              </p>
+              <p className="text-[11px] text-slate-400 max-w-sm">
+                Distilling semantic clusters and executive themes across journal entries
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`topics-grid-${selectedCategory}-${topics.map((t) => t.id).join('-')}`}
+              variants={CONTAINER_VARIANTS}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+            >
+              {topics.map((topic) => {
+                const isSelected = selectedTopicId === topic.id;
+                const colorKey = topic.accentColor || 'amber';
+                const style = ACCENT_STYLES[colorKey] || ACCENT_STYLES.amber;
+                const IconComponent = ICON_MAP[topic.iconName || 'Sparkles'] || Sparkles;
 
-              {/* Title & Description */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <h4 className={`text-sm font-bold transition-colors ${titleColorClass}`}>
-                    {topic.name}
-                  </h4>
-                  <ChevronRight className={`w-3.5 h-3.5 transition-transform ${isSelected ? 'rotate-90 text-white' : 'text-slate-500 group-hover:text-slate-300 group-hover:translate-x-0.5'}`} />
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed line-clamp-2 font-light">
-                  {topic.description}
-                </p>
-              </div>
+                const panelClass = {
+                  emerald: 'metallic-green-panel ring-1 ring-emerald-400/70 shadow-[0_0_22px_rgba(52,211,153,0.3)]',
+                  blue: 'metallic-blue-panel ring-1 ring-sky-400/70 shadow-[0_0_22px_rgba(56,189,248,0.3)]',
+                  purple: 'metallic-purple-panel ring-1 ring-purple-400/70 shadow-[0_0_22px_rgba(192,132,252,0.3)]',
+                  amber: 'metallic-gold-panel ring-1 ring-[#f6e7b8]/70 shadow-[0_0_22px_rgba(246,231,184,0.3)]',
+                  rose: 'metallic-panel border-rose-400/60 ring-1 ring-rose-400/60 shadow-[0_0_22px_rgba(244,63,94,0.3)]',
+                  indigo: 'metallic-blue-panel ring-1 ring-indigo-400/70 shadow-[0_0_22px_rgba(99,102,241,0.3)]',
+                  cyan: 'metallic-blue-panel ring-1 ring-cyan-400/70 shadow-[0_0_22px_rgba(6,182,212,0.3)]'
+                }[colorKey] || 'metallic-gold-panel ring-1 ring-[#f6e7b8]/70 shadow-[0_0_22px_rgba(246,231,184,0.3)]';
 
-              {/* Action Hint */}
-              <div className="pt-1 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
-                <span className="font-medium text-slate-400 group-hover:text-slate-200">
-                  {isSelected ? '✓ Showing entries' : 'Tap to reveal entries'}
-                </span>
-                <span className="text-slate-400 group-hover:text-white transition-colors font-medium">
-                  View & Edit →
-                </span>
-              </div>
-            </button>
-          );
-        })}
+                const titleColorClass = {
+                  emerald: 'text-emerald-200 group-hover:text-emerald-100',
+                  blue: 'text-sky-200 group-hover:text-sky-100',
+                  purple: 'text-purple-200 group-hover:text-purple-100',
+                  amber: 'text-[#f6e7b8] group-hover:text-white',
+                  rose: 'text-rose-200 group-hover:text-rose-100',
+                  indigo: 'text-indigo-200 group-hover:text-indigo-100',
+                  cyan: 'text-cyan-200 group-hover:text-cyan-100'
+                }[colorKey] || 'text-[#f6e7b8] group-hover:text-white';
+
+                return (
+                  <motion.button
+                    key={topic.id}
+                    id={`topic-card-${topic.id}`}
+                    type="button"
+                    variants={CARD_VARIANTS}
+                    whileHover={{ scale: 1.015 }}
+                    whileTap={{ scale: 0.985 }}
+                    onClick={() => {
+                      onSelectTopic(isSelected ? null : topic.id);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer relative group flex flex-col justify-between gap-2.5 ${
+                      isSelected
+                        ? panelClass
+                        : `metallic-card ${style.border} hover:brightness-105`
+                    }`}
+                  >
+                    {/* Top Row: Icon, Emoji, Entry Count */}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl select-none" aria-hidden="true">
+                          {topic.emoji}
+                        </span>
+                        <div className={`p-1.5 rounded-lg ${style.iconBg} ${style.iconText} border border-white/10`}>
+                          <IconComponent className="w-3.5 h-3.5" />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${style.badgeBg} ${style.badgeText} border border-white/10`}>
+                          {topic.count} {topic.count === 1 ? 'entry' : 'entries'}
+                        </span>
+                        {isSelected && (
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Title & Description */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className={`text-sm font-bold transition-colors ${titleColorClass}`}>
+                          {topic.name}
+                        </h4>
+                        <ChevronRight className={`w-3.5 h-3.5 transition-transform ${isSelected ? 'rotate-90 text-white' : 'text-slate-500 group-hover:text-slate-300 group-hover:translate-x-0.5'}`} />
+                      </div>
+                      <p className="text-xs text-slate-300 leading-relaxed line-clamp-2 font-light">
+                        {topic.description}
+                      </p>
+                    </div>
+
+                    {/* Action Hint */}
+                    <div className="pt-1 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
+                      <span className="font-medium text-slate-400 group-hover:text-slate-200">
+                        {isSelected ? '✓ Showing entries' : 'Tap to reveal entries'}
+                      </span>
+                      <span className="text-slate-400 group-hover:text-white transition-colors font-medium">
+                        View & Edit →
+                      </span>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Active Filter Banner */}

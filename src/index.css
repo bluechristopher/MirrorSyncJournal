@@ -67,6 +67,17 @@
     font-family: "Libre Baskerville", Georgia, Cambria, serif;
     letter-spacing: 0.005em;
   }
+
+  /* Global Select & Option Dropdown Palette */
+  select {
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: #0c1527 !important;
+    color: #f1f5f9 !important;
+    padding: 8px 12px;
+  }
 }
 
 /* ========================================================
@@ -211,15 +222,17 @@
 }
 
 /* ========================================================
-   AERO FLOAT UP & FLOAT RIGHT INTERACTION EFFECT
+   AERO FLOAT HOVER & SHARP TEXT RENDERING
    ======================================================== */
 .aero-float-card {
-  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.32s ease, filter 0.32s ease;
-  will-change: transform, box-shadow;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .aero-float-card:hover {
-  transform: translate3d(5px, -5px, 0) !important;
+  transform: none !important;
 }
 
 /* ========================================================
@@ -340,6 +353,50 @@
   box-shadow: 
     inset 0 2px 4px rgba(0, 0, 0, 0.4),
     0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Sapphire Blue Metallic Button (White Text) */
+.metallic-sapphire-button {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 45%, #0f172a 100%);
+  border: 1px solid rgba(147, 197, 253, 0.65);
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1.5px 0 rgba(10, 25, 70, 0.8),
+    0 8px 24px rgba(29, 78, 216, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-sapphire-button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 45%, #172554 100%);
+  border-color: rgba(191, 219, 254, 0.9);
+  color: #ffffff !important;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1.5px 0 rgba(10, 25, 70, 0.9),
+    0 10px 30px rgba(37, 99, 235, 0.6),
+    0 0 24px rgba(96, 165, 250, 0.45);
+  transform: translateY(-1px);
+}
+
+.metallic-sapphire-button:active {
+  transform: translateY(1px);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes star-twinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+  50% { transform: scale(1.22) rotate(12deg); opacity: 1; }
+}
+
+.animate-star-emoji {
+  display: inline-block;
+  animation: star-twinkle 2.2s ease-in-out infinite;
+  transform-origin: center;
 }
 
 /* --- 3. METALLIC GREEN / EMERALD (Personal & Recovery) --- */
@@ -490,23 +547,27 @@
 /* Markdown typography styling */
 .markdown-body {
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.65;
+  color: #f1f5f9;
 }
 
 .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
-  color: #fae8b0;
+  color: #fde047;
   font-weight: 700;
-  margin-top: 0.75rem;
-  margin-bottom: 0.35rem;
+  margin-top: 0.85rem;
+  margin-bottom: 0.4rem;
   line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 
-.markdown-body h1 { font-size: 1.05rem; }
-.markdown-body h2 { font-size: 0.95rem; }
-.markdown-body h3 { font-size: 0.875rem; }
+.markdown-body h1 { font-size: 1.1rem; color: #fef08a; border-bottom: 1px solid rgba(246, 231, 184, 0.2); padding-bottom: 0.25rem; }
+.markdown-body h2 { font-size: 1.0rem; color: #fde047; }
+.markdown-body h3 { font-size: 0.925rem; color: #fcd34d; }
+.markdown-body h4 { font-size: 0.875rem; color: #fbbf24; }
 
 .markdown-body p {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
+  color: #f1f5f9;
 }
 
 .markdown-body p:last-child {
@@ -516,60 +577,90 @@
 .markdown-body ul {
   list-style-type: disc;
   padding-left: 1.25rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
 .markdown-body ol {
   list-style-type: decimal;
   padding-left: 1.25rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.markdown-body ul > li::marker {
+  color: #f59e0b;
+}
+
+.markdown-body ol > li::marker {
+  color: #f59e0b;
+  font-weight: 600;
 }
 
 .markdown-body li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.3rem;
+  color: #f1f5f9;
 }
 
-.markdown-body strong {
-  color: #fae8b0;
+.markdown-body strong, .markdown-body b {
+  color: #fde047;
   font-weight: 700;
 }
 
-.markdown-body em {
+.markdown-body em, .markdown-body i {
   font-style: italic;
-  color: #f6e7b8;
+  color: #e2e8f0;
 }
 
 .markdown-body blockquote {
-  border-left: 3px solid rgba(246, 231, 184, 0.6);
-  padding-left: 0.85rem;
+  border-left: 3px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  padding: 0.6rem 0.85rem;
+  border-radius: 0 0.5rem 0.5rem 0;
   margin: 0.75rem 0;
-  color: #e6d396;
-  font-style: italic;
+  color: #fef3c7;
+  font-style: normal;
 }
 
 .markdown-body code {
   font-family: "JetBrains Mono", monospace;
   font-size: 0.85em;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 0.15rem 0.35rem;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.15rem 0.4rem;
   border-radius: 0.35rem;
-  color: #f6e7b8;
+  color: #38bdf8;
 }
 
 .markdown-body pre {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(4, 12, 28, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   padding: 0.85rem;
   border-radius: 0.65rem;
   overflow-x: auto;
   margin: 0.75rem 0;
+  color: #f8fafc;
 }
 
 .markdown-body pre code {
   background: transparent;
   border: none;
   padding: 0;
+  color: #38bdf8;
+}
+
+.markdown-body hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(246, 231, 184, 0.35), transparent);
+  margin: 0.85rem 0;
+}
+
+.markdown-body a {
+  color: #38bdf8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown-body a:hover {
+  color: #7dd3fc;
 }
 
 .metallic-input {
@@ -586,6 +677,31 @@
     inset 0 2px 4px rgba(0, 0, 0, 0.6),
     0 0 0 2px rgba(212, 175, 55, 0.25),
     0 0 14px rgba(212, 175, 55, 0.2);
+}
+
+/* ========================================================
+   SILVER-GRAY METALLIC JOURNAL TEXTAREA
+   ======================================================== */
+.metallic-silver-textarea {
+  background: linear-gradient(145deg, #242a35 0%, #191f28 45%, #10141b 100%);
+  border: 1px solid rgba(160, 175, 200, 0.45);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -2px 4px 0 rgba(0, 0, 0, 0.75),
+    0 12px 36px rgba(0, 0, 0, 0.65),
+    0 0 20px rgba(160, 175, 200, 0.1);
+  color: #f1f5f9;
+}
+
+.metallic-silver-textarea:focus {
+  border-color: rgba(226, 232, 240, 0.85);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.8),
+    0 0 0 2px rgba(203, 213, 225, 0.3),
+    0 16px 40px rgba(0, 0, 0, 0.75),
+    0 0 24px rgba(226, 232, 240, 0.25);
+  outline: none;
 }
 
 /* Apple-inspired Metallic Glass Panels (compatibility) */
@@ -654,5 +770,119 @@
 .animate-gradient-text {
   background-size: 250% auto;
   animation: gradient-shimmer 5s ease infinite;
+}
+
+/* ========================================================
+   AUTHENTIC TEXTURED MEMO PAPER EFFECT (TIGHT DOT PATTERN)
+   ======================================================== */
+.memo-paper-texture {
+  background-color: #ede5d5;
+  background-image: 
+    radial-gradient(#c2b39b 0.65px, transparent 0.65px),
+    radial-gradient(#cebfab 0.65px, #ede5d5 0.65px);
+  background-size: 6px 6px;
+  background-position: 0 0, 3px 3px;
+  border-color: #c9baa5;
+}
+
+.memo-inner-sheet {
+  background-color: #faf6ed;
+  background-image: 
+    radial-gradient(#ded2be 0.55px, transparent 0.55px),
+    linear-gradient(rgba(215, 204, 188, 0.28) 1px, transparent 1px);
+  background-size: 7px 7px, 100% 30px;
+  background-position: 0 0, 0 8px;
+  border-color: #dfd4c0;
+}
+
+/* ========================================================
+   AUTHENTIC RICH LEATHER JOURNAL TEXTURE & EMBOSSED STITCHING
+   ======================================================== */
+.leather-journal-exterior {
+  background-color: #241308;
+  background-image: 
+    linear-gradient(125deg, rgba(255, 230, 180, 0.06) 0%, rgba(210, 140, 70, 0.02) 35%, rgba(0, 0, 0, 0.6) 100%),
+    radial-gradient(ellipse at 40% 30%, rgba(68, 38, 18, 0.95) 0%, rgba(24, 13, 6, 0.98) 100%),
+    radial-gradient(circle at 1.5px 1.5px, rgba(195, 135, 75, 0.22) 0.8px, transparent 1.2px),
+    radial-gradient(circle at 5.5px 6.5px, rgba(160, 100, 50, 0.18) 0.8px, transparent 1.2px),
+    radial-gradient(circle at 8.5px 2.5px, rgba(0, 0, 0, 0.45) 1.2px, transparent 1.6px),
+    radial-gradient(circle at 3.5px 9.5px, rgba(0, 0, 0, 0.4) 1.2px, transparent 1.6px);
+  background-size: 100% 100%, 100% 100%, 10px 10px, 10px 10px, 10px 10px, 10px 10px;
+  box-shadow: 
+    inset 0 2px 4px 0 rgba(255, 220, 160, 0.2),
+    inset 0 -3px 5px 0 rgba(0, 0, 0, 0.85),
+    inset 2px 0 4px 0 rgba(255, 220, 160, 0.15),
+    inset -2px 0 5px 0 rgba(0, 0, 0, 0.85),
+    0 24px 64px -8px rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(217, 155, 85, 0.35);
+}
+
+.leather-spine-ribs {
+  background: linear-gradient(
+    90deg, 
+    #140a04 0%, 
+    #2c170a 25%, 
+    #4a2712 50%, 
+    #241308 75%, 
+    #120803 100%
+  );
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 230, 180, 0.25),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.8),
+    2px 0 8px rgba(0, 0, 0, 0.7);
+  border-right: 1px solid rgba(217, 155, 85, 0.3);
+}
+
+.leather-saddle-stitch {
+  border: 1.5px dashed rgba(220, 165, 95, 0.4);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.35);
+}
+
+/* ========================================================
+   ANIMATED TRANSLUCENT AURORA EFFECT
+   ======================================================== */
+@keyframes aurora-flow-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translate(50px, -40px) scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+@keyframes aurora-flow-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1.1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(-60px, 45px) scale(0.95);
+    opacity: 0.85;
+  }
+}
+
+@keyframes aurora-flow-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(45px, 60px) scale(1.25);
+    opacity: 0.8;
+  }
+}
+
+.aurora-orb-1 {
+  animation: aurora-flow-1 8s ease-in-out infinite;
+}
+
+.aurora-orb-2 {
+  animation: aurora-flow-2 10s ease-in-out infinite;
+}
+
+.aurora-orb-3 {
+  animation: aurora-flow-3 9s ease-in-out infinite;
 }
 

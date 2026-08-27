@@ -464,7 +464,7 @@ export function ReflectionInput({
                   if (localError) setLocalError(null);
                 }}
                 placeholder={`Log your daily stream of consciousness, personal well-being, creative breakthrough, or operational thoughts...\nYour entry is preserved safely first, with friendly & uplifting coaching generated in the background! ✨`}
-                className="w-full bg-gradient-to-br from-white/[0.08] via-white/[0.03] to-transparent text-[#fef6e4] placeholder-slate-400 font-oregano text-xl sm:text-2xl md:text-[25px] rounded-xl p-4 sm:p-5 pb-14 sm:pb-12 focus:outline-none focus:ring-1 focus:ring-[#f6e7b8]/40 transition-all resize-y min-h-[140px] shadow-inner leading-relaxed tracking-wide"
+                className="w-full metallic-silver-textarea text-slate-100 placeholder-slate-400/75 font-sans text-sm sm:text-base rounded-xl p-4 sm:p-5 pb-14 sm:pb-12 transition-all resize-y min-h-[130px] leading-relaxed"
               />
 
               {/* Action buttons inside textarea area */}
@@ -505,27 +505,23 @@ export function ReflectionInput({
               </div>
             </div>
 
-            {/* Attached Location Pill */}
+            {/* Attached Location Pill (Narrow, Compact Dark Blue) */}
             {locationPin && (
-              <div className="flex items-center justify-between p-3 rounded-xl metallic-gold-panel text-xs text-[#f6e7b8] animate-in fade-in-50">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-black/40 border border-[#f6e7b8]/40 flex items-center justify-center text-[#f6e7b8] shrink-0">
-                    <MapPin className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="font-semibold text-slate-100">{locationPin.name}</span>
-                    {locationPin.address && (
-                      <span className="text-slate-400 text-[11px] ml-2 truncate">({locationPin.address})</span>
-                    )}
-                  </div>
+              <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#0a1b38] via-[#07152c] to-[#040e1d] border border-sky-500/35 text-xs text-sky-200 shadow-sm animate-in fade-in-50">
+                <div className="flex items-center gap-2 min-w-0">
+                  <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <span className="font-semibold text-slate-100 text-xs truncate">{locationPin.name}</span>
+                  {locationPin.address && (
+                    <span className="text-slate-400 text-[11px] truncate max-w-[200px] sm:max-w-xs">({locationPin.address})</span>
+                  )}
                 </div>
                 <button
                   type="button"
                   onClick={() => setLocationPin(null)}
-                  className="p-1 rounded-md text-slate-400 hover:text-rose-300 hover:bg-white/5 transition-colors cursor-pointer"
+                  className="p-1 rounded-md text-slate-400 hover:text-rose-300 hover:bg-white/5 transition-colors cursor-pointer shrink-0 ml-2"
                   title="Remove Location"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
