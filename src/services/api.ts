@@ -1,6 +1,16 @@
 import type { UserPersona, ReflectionResult, OnboardingExtractionResult, ModelLadderLog, LocationPin, ChatMessage, QuickActionType, DomainCategory, DynamicTopicCategory } from '../types';
 import { auth } from '../firebase';
 
+/**
+ * Detect Chrome Built-in AI / Gemini Nano (window.ai)
+ */
+export function checkGeminiNanoSupport(): boolean {
+  if (typeof window !== 'undefined' && ('ai' in window || 'model' in window)) {
+    return true;
+  }
+  return false;
+}
+
 async function safeParseJson(response: Response): Promise<any> {
   const rawText = await response.text();
   try {

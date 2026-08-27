@@ -141,6 +141,7 @@ export interface JournalEntry {
   userId: string;
   rawText: string;
   createdAt: number;
+  updatedAt?: number;
   reflectionSummary: string;
   adaptiveResponse: string;
   category: ReflectionCategory;
@@ -150,6 +151,7 @@ export interface JournalEntry {
   editorialArtPrompt: string;
   bannerImageUrl?: string | null;
   bannerImageLoading?: boolean;
+  imageHistory?: string[];
   location?: LocationPin | null;
   locationContext?: string | null;
   cognitiveMetrics?: CognitiveMetrics;

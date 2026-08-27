@@ -640,3 +640,14 @@
   background: rgba(246, 231, 184, 0.5);
 }
 
+@keyframes gradient-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-text {
+  background-size: 250% auto;
+  animation: gradient-shimmer 5s ease infinite;
+}
+

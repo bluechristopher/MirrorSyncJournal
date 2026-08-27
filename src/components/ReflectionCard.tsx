@@ -39,7 +39,10 @@ import {
   Headphones,
   Volume2,
   Eye,
-  ArrowRight
+  ArrowRight,
+  HelpCircle,
+  Plus,
+  RefreshCw
 } from 'lucide-react';
 import type { JournalEntry, UserPersona, ChatMessage, QuickActionType } from '../types';
 import { EditorialArtCanvas } from './EditorialArtCanvas';
@@ -48,6 +51,62 @@ import { StreamingMarkdown } from './StreamingMarkdown';
 import { sendChatMessageAPI } from '../services/api';
 import { JournalVoicePlayer } from './JournalVoicePlayer';
 import { getRelativeTimeInfo } from '../utils/dateUtils';
+
+function extractInquisitiveQuestions(adaptiveResponse: string, rawText: string = ''): string {
+  if (!adaptiveResponse) {
+    return `• What specific moment during this activity stood out to you the most?\n• What is one detail or technique you'd like to explore further?\n• How did this experience shift your perspective or energy for the day?`;
+  }
+
+  // 1. Search for bullet point lines or questions containing '?'
+  const lines = adaptiveResponse.split('\n').map(l => l.trim()).filter(Boolean);
+  const explicitQuestionLines = lines.filter(l => l.includes('?') || l.startsWith('•') || l.startsWith('-') || /^\d+[\.\)]/.test(l));
+
+  if (explicitQuestionLines.length >= 1) {
+    return explicitQuestionLines
+      .slice(0, 3)
+      .map(l => {
+        const clean = l.replace(/^[\d\.\)\-\*•\s]+/, '').trim();
+        return `• ${clean}`;
+      })
+      .join('\n');
+  }
+
+  // 2. Extract question sentences from prose
+  const sentences = adaptiveResponse
+    .replace(/([.?!])\s+/g, '$1|')
+    .split('|')
+    .map(s => s.trim())
+    .filter(s => s.includes('?'));
+
+  if (sentences.length >= 1) {
+    return sentences
+      .slice(0, 3)
+      .map(s => `• ${s.replace(/^[\d\.\)\-\*•\s]+/, '').trim()}`)
+      .join('\n');
+  }
+
+  // 3. Contextual inquisitive questions grounded in entry domain
+  const lower = (rawText + ' ' + adaptiveResponse).toLowerCase();
+  if (/pickleball|tennis|court|racket|paddle|sport|game|play|workout|gym|run/i.test(lower)) {
+    return `• What specific shot or wrist movement felt most challenging during your game?\n• How did your paddle angle or stance affect control on the court?\n• What key technique adjustment do you want to test in your next match?`;
+  } else if (/code|python|exam|student|class|teaching|lecture|project|work|meeting/i.test(lower)) {
+    return `• What was the primary takeaway or breakthrough from this work milestone?\n• What underlying factor contributed most to the outcome?\n• What is the single most critical next action item to maintain momentum?`;
+  } else if (/paint|art|design|music|song|writing|creative|idea|book|story/i.test(lower)) {
+    return `• What unexpected perspective sparked your curiosity during this process?\n• What detail would make this creation even more unique or meaningful?\n• What wild or surprising angle could you explore next?`;
+  }
+
+  return `• What specific detail or emotion from this moment would add clarity to your post?\n• What was the most memorable part of this experience?\n• What is one actionable insight or lesson you want to carry forward?`;
+}
+
+function getCleanCreativeSpark(spark?: string | null): string | null {
+  if (!spark || typeof spark !== 'string') return null;
+  const trimmed = spark.trim();
+  const lower = trimmed.toLowerCase().replace(/^["']|["']$/g, '');
+  if (!trimmed || lower === 'null' || lower === 'undefined' || lower === 'none' || lower === 'n/a') {
+    return null;
+  }
+  return trimmed.replace(/^["']|["']$/g, '').trim();
+}
 
 interface ReflectionCardProps {
   key?: string;
@@ -79,8 +138,8 @@ export function ReflectionCard({
   const [isExpanded, setIsExpanded] = useState(isFocused);
   const [showMap, setShowMap] = useState<boolean>(true);
   
-  // Banner art state - only visible if already exists or explicitly toggled/generated
-  const [showBanner, setShowBanner] = useState<boolean>(Boolean(entry.bannerImageUrl));
+  // Banner art state - visible in condensed and expanded view
+  const [showBanner, setShowBanner] = useState<boolean>(true);
   const [bannerSeed, setBannerSeed] = useState(entry.editorialArtPrompt || `${entry.id}-${entry.rawText.slice(0, 40)}`);
 
   // Voice narration player state
@@ -106,6 +165,31 @@ export function ReflectionCard({
   const [activeActionChip, setActiveActionChip] = useState<QuickActionType | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
 
+  // Inquisitive questions follow-up textarea state
+  const [followUpAnswerText, setFollowUpAnswerText] = useState('');
+  const [isAppendingFollowUp, setIsAppendingFollowUp] = useState(false);
+
+  const handleAppendFollowUpToPost = async () => {
+    if (!followUpAnswerText.trim() || !onUpdateEntry) return;
+    setIsAppendingFollowUp(true);
+    try {
+      const appendedText = `${entry.rawText.trim()}\n\n[Follow-up Details Added]:\n${followUpAnswerText.trim()}`;
+      await onUpdateEntry(entry.id, {
+        rawText: appendedText,
+        updatedAt: Date.now()
+      });
+      setFollowUpAnswerText('');
+      setEditText(appendedText);
+      if (onTriggerAiReflection) {
+        onTriggerAiReflection(entry.id);
+      }
+    } catch (err) {
+      console.error('Failed to append follow-up details:', err);
+    } finally {
+      setIsAppendingFollowUp(false);
+    }
+  };
+
   // Smoothly scroll this card's top into focus just beneath the fixed top navbar
   const scrollToCardTop = () => {
     setTimeout(() => {
@@ -130,11 +214,10 @@ export function ReflectionCard({
     }
   }, [entry.rawText, entry.reflectionSummary, entry.bannerImageUrl]);
 
-  // Expand and focus card if isFocused is set
+  // Expand card if isFocused is set
   useEffect(() => {
     if (isFocused) {
       setIsExpanded(true);
-      scrollToCardTop();
     }
   }, [isFocused]);
 
@@ -249,12 +332,23 @@ export function ReflectionCard({
 
   // Derived meta properties for clean collapsed view
   const wordCount = entry.rawText ? entry.rawText.trim().split(/\s+/).filter(Boolean).length : 0;
-  const postTitle = entry.reflectionSummary
-    ? entry.reflectionSummary.split('\n')[0].replace(/^[#*>\s]+/, '').slice(0, 75)
-    : entry.rawText.split('\n')[0].slice(0, 60) || 'Untitled Reflection';
-  const postSnippet = entry.reflectionSummary
-    ? entry.reflectionSummary.slice(0, 160)
-    : entry.rawText.slice(0, 160);
+  const isEdited = Boolean(entry.updatedAt && entry.updatedAt > entry.createdAt);
+  // Compact short title (max ~42 chars with clean word boundary)
+  const rawTitleSource = entry.reflectionSummary
+    ? entry.reflectionSummary.split('\n')[0].replace(/^[#*>\s]+/, '').trim()
+    : entry.rawText.split('\n')[0].trim();
+
+  const truncateCompactTitle = (str: string, maxLen = 42) => {
+    if (!str || str.length <= maxLen) return str || 'Untitled Reflection';
+    const trimmed = str.slice(0, maxLen);
+    const lastSpace = trimmed.lastIndexOf(' ');
+    return (lastSpace > 15 ? trimmed.slice(0, lastSpace) : trimmed).trim() + '...';
+  };
+
+  const postTitle = truncateCompactTitle(rawTitleSource, 42);
+
+  // Show full main journal text in snippet preview
+  const postSnippet = entry.rawText || entry.reflectionSummary;
   const totalActionCount = entry.actionItems?.length || 0;
   const completedActionCount = entry.actionItems?.filter(a => a.completed).length || 0;
   const chatMessageCount = entry.messages?.length || 0;
@@ -266,7 +360,8 @@ export function ReflectionCard({
     try {
       const updates: Partial<JournalEntry> = {
         rawText: editText.trim(),
-        reflectionSummary: editSummary.trim() || entry.reflectionSummary
+        reflectionSummary: editSummary.trim() || entry.reflectionSummary,
+        updatedAt: Date.now()
       };
 
       if (onUpdateEntry) {
@@ -676,25 +771,29 @@ export function ReflectionCard({
         </div>
       </div>
 
-      {/* 2. Photorealistic AI Banner Image Display (Shows First When Expanded) */}
-      {isExpanded && showBanner && (
+      {/* 2. Photorealistic AI Banner Image Display (Shows in condensed & expanded view) */}
+      {showBanner && (
         <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
           <EditorialArtCanvas 
-            prompt={bannerSeed} 
+            prompt={entry.rawText || entry.reflectionSummary} 
             domain={entry.category?.domain} 
             imageUrl={entry.bannerImageUrl}
             rawText={entry.rawText}
+            isExpanded={isExpanded}
             className="w-full shadow-lg border border-white/15"
-            onRegenerate={() => setBannerSeed(`${entry.id}-${Date.now()}`)}
+            onRegenerate={() => {
+              onUpdateEntry?.(entry.id, { bannerImageUrl: undefined });
+            }}
             onClose={() => setShowBanner(false)}
             onImageGenerated={(newUrl) => {
               onUpdateEntry?.(entry.id, { bannerImageUrl: newUrl });
             }}
+            onClickToggleExpand={() => setIsExpanded(!isExpanded)}
           />
         </div>
       )}
 
-      {/* 3. Interactive Map Snippet Preview (Shows Second When Expanded) */}
+      {/* 3. Interactive Map Snippet Preview (Shows ONLY when expanded) */}
       {isExpanded && showMap && entry.location && (
         <div className="p-4 bg-[#070d1e]/90 border-b border-white/10 space-y-3 animate-in fade-in-50 duration-200">
           <div className="flex items-center justify-between text-xs text-slate-300">
@@ -743,11 +842,11 @@ export function ReflectionCard({
                 <div className="p-2.5 rounded-xl metallic-green-panel text-emerald-300 shrink-0 mt-0.5 shadow-sm group-hover:scale-105 transition-transform border border-emerald-400/40">
                   <Sparkles className="w-4 h-4 text-emerald-300" />
                 </div>
-                <div className="space-y-1.5">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-100 group-hover:text-emerald-300 transition-colors leading-snug">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <h3 className="text-base font-bold text-slate-100 group-hover:text-emerald-300 transition-colors leading-snug truncate">
                     {postTitle}
                   </h3>
-                  <p className="text-sm sm:text-[15px] text-[#86efac] font-libre-baskerville line-clamp-3 leading-relaxed font-normal">
+                  <p className="text-sm sm:text-base text-[#fef6e4] font-libre-baskerville line-clamp-6 sm:line-clamp-8 leading-relaxed font-normal whitespace-pre-wrap tracking-wide drop-shadow-sm">
                     {postSnippet}
                   </p>
                 </div>
@@ -829,7 +928,7 @@ export function ReflectionCard({
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
                     rows={5}
-                    className="w-full p-3.5 rounded-xl bg-black/50 border border-white/20 text-slate-100 font-neuton text-base sm:text-lg focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all leading-relaxed"
+                    className="w-full p-4 rounded-xl bg-black/50 border border-white/20 text-[#fef6e4] font-libre-baskerville text-[15px] sm:text-[16px] focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all leading-relaxed"
                     placeholder="Write your journal thoughts here..."
                   />
                 </div>
@@ -885,12 +984,14 @@ export function ReflectionCard({
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: 0.04 }}
-                className="p-4 sm:p-5 rounded-2xl metallic-card space-y-2.5 shadow-sm"
+                className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#1d120a] via-[#160d07] to-[#0c0603] border border-amber-800/40 space-y-2.5 shadow-md"
               >
                 <div className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-300">
                   <div className="flex items-center gap-2 text-slate-200">
                     <BookOpen className="w-4 h-4 text-[#f6e7b8]" />
-                    <span className="uppercase tracking-wider text-[11px] font-semibold text-[#f6e7b8]">Original Journal Input</span>
+                    <span className="uppercase tracking-wider text-[11px] font-semibold text-[#f6e7b8]">
+                      {isEdited ? 'Edited Journal Post' : 'Journal Post'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] text-slate-400 font-mono">
@@ -911,7 +1012,7 @@ export function ReflectionCard({
                     </button>
                   </div>
                 </div>
-                <div className="p-3.5 rounded-xl metallic-panel font-neuton text-base sm:text-lg text-slate-100 leading-relaxed whitespace-pre-wrap select-text">
+                <div className="p-4 rounded-xl metallic-panel font-libre-baskerville text-[15px] sm:text-[16px] text-[#fef6e4] leading-relaxed tracking-normal whitespace-pre-wrap select-text border border-white/10 shadow-inner">
                   {entry.rawText}
                 </div>
               </motion.div>
@@ -996,49 +1097,61 @@ export function ReflectionCard({
                     </div>
                   )}
 
-                  {/* Tailored Summary & Slanted Commentary */}
-                  <div className="p-4 sm:p-5 rounded-xl metallic-card space-y-2 shadow-sm">
-                    <div className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wider text-[#f6e7b8]">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                        <span>
-                          {domain === 'Personal' 
-                            ? '🎉 Friendly Personal Highlights' 
-                            : domain === 'Work' 
-                            ? '🚀 Friendly Focus Summary' 
-                            : domain === 'Creative'
-                            ? '💡 Creative Spark Summary'
-                            : '✉️ Friendly Email Summary'}
-                        </span>
+                  {/* Side-by-Side Grid for Highlights & Creative Spark Cards */}
+                  {(() => {
+                    const cleanSpark = getCleanCreativeSpark(entry.creativeSpark);
+                    return (
+                      <div className={`grid grid-cols-1 ${cleanSpark ? 'md:grid-cols-2' : ''} gap-3.5`}>
+                        {/* Card 1: Friendly Highlights Card (Cyan/Emerald Theme) */}
+                        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#06241b] via-[#041a13] to-[#020e0b] border border-emerald-500/40 space-y-2 shadow-md flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-emerald-300">
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-emerald-400" />
+                                <span>
+                                  {domain === 'Personal' 
+                                    ? 'Personal Highlights' 
+                                    : domain === 'Work' 
+                                    ? 'Focus Summary' 
+                                    : domain === 'Creative'
+                                    ? 'Creative Highlights'
+                                    : 'Email Summary'}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setIsEditing(true)}
+                                className="text-[11px] text-emerald-400/70 hover:text-emerald-200 flex items-center gap-1 font-normal lowercase tracking-normal cursor-pointer transition-colors"
+                              >
+                                <Pencil className="w-3 h-3" />
+                                <span>edit</span>
+                              </button>
+                            </div>
+                            <div className="text-xs sm:text-sm text-emerald-100 font-sans leading-relaxed">
+                              <StreamingMarkdown content={entry.reflectionSummary || ''} />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card 2: Creative Spark Card (Amethyst/Purple Theme) - ONLY RENDERED WHEN VALID! */}
+                        {cleanSpark && (
+                          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#241133] via-[#1a0a26] to-[#0d0414] border border-purple-500/40 space-y-2 shadow-md flex flex-col justify-between">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-300">
+                                <Lightbulb className="w-4 h-4 text-purple-400" />
+                                <span>✨ Creative Spark</span>
+                              </div>
+                              <div className="text-xs sm:text-sm text-purple-100 font-sans leading-relaxed italic">
+                                "{cleanSpark}"
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsEditing(true)}
-                        className="text-[11px] text-slate-400 hover:text-[#f6e7b8] flex items-center gap-1 font-normal lowercase tracking-normal cursor-pointer"
-                      >
-                        <Pencil className="w-3 h-3" />
-                        <span>edit text</span>
-                      </button>
-                    </div>
-                    <div className="text-xs sm:text-sm text-[#f6e7b8] font-ai-response leading-relaxed">
-                      <StreamingMarkdown content={entry.reflectionSummary || ''} />
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </motion.div>
               </>
-            )}
-
-            {/* Creative Spark Block (if present) */}
-            {entry.creativeSpark && (
-              <div className="p-3 sm:p-3.5 rounded-xl metallic-panel space-y-1 shadow-sm">
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#f6e7b8]">
-                  <Lightbulb className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                  <span>✨ Friendly Creative Spark</span>
-                </div>
-                <div className="text-xs text-[#f6e7b8] font-ai-response leading-relaxed italic">
-                  "{entry.creativeSpark}"
-                </div>
-              </div>
             )}
 
             {/* Location Context Grounding */}
@@ -1142,6 +1255,8 @@ export function ReflectionCard({
                       <StreamingMarkdown content={entry.adaptiveResponse || ''} />
                     </div>
                   </div>
+
+
                 </motion.div>
 
                 {/* Element 4: Extracted Action Items Checklist - ONLY FOR WORK DOMAIN */}
@@ -1356,8 +1471,27 @@ export function ReflectionCard({
                   <div className="flex items-center justify-between text-xs text-slate-300">
                     <span className="flex items-center gap-2 font-semibold text-[#f6e7b8]">
                       <MessageSquare className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                      <span>{domain === 'Personal' ? '💬 Friendly Sentiment & Detail Chat' : '💬 Friendly Follow-up Chat'}</span>
+                      <span>
+                        {domain === 'Personal' 
+                          ? '💬 Reflection & Sentiment Assistant' 
+                          : domain === 'Work' 
+                          ? '💬 Coaching & Action Assistant'
+                          : domain === 'Creative'
+                          ? '💬 Creative Spark & Ideas Assistant'
+                          : '💬 Email Refinement Assistant'}
+                      </span>
                     </span>
+                  </div>
+
+                  {/* Integrated Inquisitive Leading Questions Banner */}
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-[#0c1a2e] via-[#081220] to-[#040812] border border-sky-500/35 space-y-2 shadow-md">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-300">
+                      <HelpCircle className="w-4 h-4 text-sky-400" />
+                      <span>🤔 Inquisitive Leading Questions</span>
+                    </div>
+                    <div className="text-xs sm:text-sm text-sky-100 font-sans leading-relaxed">
+                      <StreamingMarkdown content={extractInquisitiveQuestions(entry.adaptiveResponse || '', entry.rawText || '')} />
+                    </div>
                   </div>
 
                   {/* Messages Feed */}
@@ -1578,28 +1712,45 @@ export function ReflectionCard({
                     </div>
                   )}
 
-                  {/* Chat Input Form */}
-                  <form onSubmit={handleCustomSubmit} className="flex items-center gap-2 pt-1">
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      disabled={isChatLoading}
-                      placeholder={domain === 'Personal' ? "Share more feelings or details to merge into your journal..." : "Ask a question or continue discussing..."}
-                      className="w-full pl-3.5 pr-4 py-2.5 rounded-xl metallic-panel text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 disabled:opacity-50 transition-all shadow-inner"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!chatInput.trim() || isChatLoading}
-                      className="px-3.5 py-2.5 rounded-xl metallic-gold-button text-[#070d1e] font-semibold text-xs flex items-center gap-1 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-md"
-                    >
-                      {isChatLoading ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Send className="w-3.5 h-3.5" />
-                      )}
-                      <span>Send</span>
-                    </button>
+                  {/* Chat Input Form (Multi-line Textarea with Auto-Send on Enter) */}
+                  <form onSubmit={handleCustomSubmit} className="space-y-2 pt-1">
+                    <div className="relative flex items-end gap-2">
+                      <textarea
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            if (chatInput.trim() && !isChatLoading) {
+                              handleCustomSubmit(e);
+                            }
+                          }
+                        }}
+                        disabled={isChatLoading}
+                        rows={3}
+                        placeholder={
+                          domain === 'Personal' 
+                            ? "Type your answers or thoughts here to converse & merge into your post (Press Enter to send, Shift+Enter for new line)..." 
+                            : "Ask a question or continue discussing (Press Enter to send, Shift+Enter for new line)..."
+                        }
+                        className="w-full p-3.5 pr-20 rounded-xl metallic-panel text-xs sm:text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 disabled:opacity-50 transition-all shadow-inner font-sans leading-relaxed resize-y"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!chatInput.trim() || isChatLoading}
+                        className="absolute right-2.5 bottom-3 px-3.5 py-2 rounded-xl metallic-gold-button text-[#070d1e] font-semibold text-xs flex items-center gap-1 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-md"
+                      >
+                        {isChatLoading ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Send className="w-3.5 h-3.5" />
+                        )}
+                        <span>Send</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 font-sans px-1">
+                      <span>💡 <strong>Tip:</strong> Press <strong>Enter</strong> to send automatically, or <strong>Shift + Enter</strong> for a new line.</span>
+                    </div>
                   </form>
                 </motion.div>
 

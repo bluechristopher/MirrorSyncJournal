@@ -22,75 +22,55 @@ export function CategoryHeaderBanner({ category, totalCount }: CategoryHeaderBan
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="relative overflow-hidden rounded-2xl border border-white/20 p-5 sm:p-6 shadow-2xl bg-gradient-to-br from-[#0a1226] via-[#0f1d3d] to-[#150e2a]"
+        className="relative overflow-hidden rounded-3xl border border-white/20 p-6 sm:p-8 md:p-10 shadow-2xl bg-gradient-to-br from-[#081226] via-[#0e1d3e] to-[#150d2b]"
       >
         {/* Cool Metallic Aero Multi-Spectrum Ambient Mesh */}
-        <div className="absolute -top-16 -left-16 w-56 h-56 bg-sky-500/20 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
-        <div className="absolute top-0 right-1/4 w-48 h-48 bg-[#f6e7b8]/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -right-16 w-56 h-56 bg-purple-600/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-40 h-40 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -top-20 -left-20 w-72 h-72 bg-sky-500/25 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
+        <div className="absolute top-0 right-1/4 w-64 h-64 bg-[#f6e7b8]/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -right-20 w-72 h-72 bg-purple-600/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-56 h-56 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none" />
 
         {/* Specular Aero Glass Top Reflection Line */}
-        <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#f6e7b8]/70 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#f6e7b8]/80 to-transparent pointer-events-none" />
         
         {/* Subtle Cyber-Metallic Geometric Grid Overlay */}
         <div 
-          className="absolute inset-0 opacity-[0.04] pointer-events-none" 
+          className="absolute inset-0 opacity-[0.05] pointer-events-none" 
           style={{
             backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.9) 1px, transparent 1px)`,
             backgroundSize: '24px 24px'
           }}
         />
 
-        <div className="relative flex flex-col sm:flex-row items-center justify-between gap-5">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+        <div className="relative flex flex-col sm:flex-row items-center justify-between gap-6 md:gap-8">
+          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-5 sm:gap-6 text-center sm:text-left">
+            {/* Prominent Larger Logo with Glowing Halo */}
             <div className="relative shrink-0 group">
-              {/* Outer Golden Halo Ring */}
-              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#fae8a8] via-[#38bdf8] to-[#c084fc] opacity-60 blur-sm group-hover:opacity-100 transition duration-500" />
-              
+              <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-[#fae8a8] via-[#38bdf8] to-[#c084fc] opacity-75 blur-md group-hover:opacity-100 transition duration-500" />
               <img
                 src={logoImg}
                 alt="MirrorSync Logo"
                 referrerPolicy="no-referrer"
-                className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border border-[#f6e7b8]/70 shadow-2xl shadow-black/80"
+                className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl object-cover border-2 border-[#f6e7b8] shadow-2xl shadow-black/90 group-hover:scale-105 transition-transform"
               />
             </div>
 
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2 drop-shadow-md">
-                  <Home className="w-5 h-5 text-[#f6e7b8]" />
+            <div className="space-y-2.5">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2.5 drop-shadow-md">
+                  <Home className="w-7 h-7 sm:w-8 sm:h-8 text-[#f6e7b8]" />
                   <span>All Journal Entries</span>
                 </h1>
-                <span className="px-3 py-0.5 rounded-full metallic-gold-panel text-[#f6e7b8] text-xs font-bold shadow-[0_0_12px_rgba(246,231,184,0.35)] flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-[#f6e7b8]" />
+                <span className="px-3.5 py-1 rounded-full metallic-gold-panel text-[#f6e7b8] text-xs sm:text-sm font-bold shadow-[0_0_16px_rgba(246,231,184,0.4)] flex items-center gap-1.5 border border-[#f6e7b8]/40">
+                  <Sparkles className="w-4 h-4 text-[#f6e7b8]" />
                   <span>{totalCount} {totalCount === 1 ? 'entry' : 'entries'}</span>
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-200 max-w-xl leading-relaxed font-light drop-shadow-sm">
+
+              <p className="text-sm sm:text-base text-slate-200 max-w-2xl leading-relaxed font-normal drop-shadow-sm">
                 Your unified timeline of executive reflections, personal breakthroughs, creative sparks, and email drafts.
               </p>
             </div>
-          </div>
-
-          {/* Quick Domain Matrix Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
-            <span className="px-2.5 py-1 rounded-lg metallic-blue-panel text-sky-200 text-[11px] font-semibold flex items-center gap-1 border border-sky-400/40 shadow-sm">
-              <Briefcase className="w-3 h-3" />
-              <span>Work</span>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg metallic-green-panel text-emerald-200 text-[11px] font-semibold flex items-center gap-1 border border-emerald-400/40 shadow-sm">
-              <Heart className="w-3 h-3" />
-              <span>Personal</span>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg metallic-purple-panel text-purple-200 text-[11px] font-semibold flex items-center gap-1 border border-purple-400/40 shadow-sm">
-              <Palette className="w-3 h-3" />
-              <span>Creative</span>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg metallic-blue-panel text-sky-200 text-[11px] font-semibold flex items-center gap-1 border border-sky-400/40 shadow-sm">
-              <Mail className="w-3 h-3" />
-              <span>Email</span>
-            </span>
           </div>
         </div>
       </motion.div>

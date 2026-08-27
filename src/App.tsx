@@ -30,6 +30,9 @@ import {
   CategoryHeaderBanner 
 } from './components/CategoryHeaderBanner';
 import { 
+  BookJournalView 
+} from './components/BookJournalView';
+import { 
   auth, 
   onAuthStateChanged, 
   signInWithGoogle, 
@@ -40,12 +43,13 @@ import {
   saveJournalEntry, 
   updateJournalEntry, 
   deleteJournalEntry,
+  deleteAllJournalEntries,
   type User 
 } from './firebase';
 import { reflectEntryAPI, clusterTopicsAPI } from './services/api';
 import { generateLocalSemanticTopics, classifyContentDomain } from './utils/topicClustering';
 import type { UserPersona, JournalEntry, DomainCategory, LocationPin, DynamicTopicCategory } from './types';
-import { Sparkles, Shield, Compass, BrainCircuit, AlertCircle, CheckCircle2, RotateCw, Copy, Check, X, BookOpen, Cloud, UserCheck } from 'lucide-react';
+import { Sparkles, Shield, Compass, BrainCircuit, AlertCircle, CheckCircle2, RotateCw, Copy, Check, X, BookOpen, Cloud, UserCheck, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const DEFAULT_PERSONA: UserPersona = {
@@ -345,6 +349,7 @@ export default function App() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
   const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'book' | 'feed'>('book');
 
   const [errorBanner, setErrorBanner] = useState<{
     message: string;
@@ -362,6 +367,29 @@ export default function App() {
   const [isPersonaSettingsOpen, setIsPersonaSettingsOpen] = useState(false);
   const [isThreatModalOpen, setIsThreatModalOpen] = useState(false);
   const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false);
+  const [isConfirmingClearAll, setIsConfirmingClearAll] = useState(false);
+
+  const handleClearAllPosts = async () => {
+    setIsConfirmingClearAll(false);
+    if (user) {
+      try {
+        await deleteAllJournalEntries(user.uid);
+      } catch (dbErr) {
+        console.warn('Firestore wipe warning:', dbErr);
+      }
+    }
+    try {
+      await fetch('/api/gemini/clear-all-images', { method: 'POST' });
+    } catch (_imgErr) {
+      console.warn('Server image cache clear note:', _imgErr);
+    }
+    setEntries([]);
+    setActiveEntryId(null);
+    try {
+      localStorage.removeItem(GUEST_STORAGE_KEY);
+    } catch (_e) {}
+    showToast('All journal posts & stored banner images deleted!');
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -408,23 +436,35 @@ export default function App() {
           }
 
           // 2. Fetch user-specific isolated entries from Firestore
-          const userEntries = await getJournalEntries(currentUser.uid);
+          const rawUserEntries = (await getJournalEntries(currentUser.uid)) || [];
+          // Filter out seed demo entries so logged-in users ONLY see their own personal posts!
+          const userEntries = rawUserEntries.filter(e => !e.id.startsWith('seed-'));
 
-          if (userEntries && userEntries.length > 0) {
-            setEntries(userEntries);
-            showToast(`Loaded ${userEntries.length} journals from your cloud vault.`);
-          } else {
-            // Check if there are local guest entries created by this user to migrate!
-            const guestEntries = entries.filter(e => !e.id.startsWith('seed-'));
-            const entriesToSeed = guestEntries.length > 0 
-              ? guestEntries.map(e => ({ ...e, userId: currentUser.uid }))
-              : SEED_ENTRIES.map(e => ({ ...e, userId: currentUser.uid }));
-
-            setEntries(entriesToSeed);
-            for (const item of entriesToSeed) {
-              await saveJournalEntry(currentUser.uid, item);
+          // Clean up legacy seed entries from Firestore if any were saved previously
+          const legacySeedEntries = rawUserEntries.filter(e => e.id.startsWith('seed-'));
+          if (legacySeedEntries.length > 0) {
+            for (const legacyItem of legacySeedEntries) {
+              deleteJournalEntry(currentUser.uid, legacyItem.id).catch(() => {});
             }
-            showToast(`Synchronized initial journals to your account.`);
+          }
+
+          if (userEntries.length > 0) {
+            setEntries(userEntries);
+            showToast(`Loaded ${userEntries.length} personal journals from your cloud vault.`);
+          } else {
+            // Migrate custom user-created guest entries if any exist
+            const customGuestEntries = entries.filter(e => !e.id.startsWith('seed-'));
+            if (customGuestEntries.length > 0) {
+              const entriesToSeed = customGuestEntries.map(e => ({ ...e, userId: currentUser.uid }));
+              setEntries(entriesToSeed);
+              for (const item of entriesToSeed) {
+                await saveJournalEntry(currentUser.uid, item);
+              }
+              showToast(`Migrated ${customGuestEntries.length} local entries to your cloud vault.`);
+            } else {
+              setEntries([]);
+              showToast(`Welcome! Your private cloud vault is ready.`);
+            }
           }
         } catch (error: any) {
           console.error('Error synchronizing Firestore user data:', error);
@@ -712,6 +752,15 @@ export default function App() {
     // Prepend immediately to user timeline
     setEntries(updatedEntries);
     setActiveEntryId(newEntryId);
+    setViewMode('book');
+
+    // Smoothly scroll down to the expanded new post in the book reader
+    setTimeout(() => {
+      const readerEl = document.getElementById('journal-reader-section');
+      if (readerEl) {
+        readerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 120);
 
     // Recluster ONLY when a new post is added!
     const targetDomain = newEntry.category?.domain || selectedCategory;
@@ -1027,6 +1076,7 @@ export default function App() {
         onOpenInsightsModal={() => setIsInsightsModalOpen(true)}
         onSignInGoogle={handleSignInGoogle}
         onSignOut={handleSignOut}
+        onClearAllPosts={() => setIsConfirmingClearAll(true)}
         totalEntriesCount={entries.length}
         isSigningIn={isSigningIn}
         isHistoryOpen={isHistorySidebarOpen}
@@ -1129,28 +1179,8 @@ export default function App() {
           />
         )}
 
-        {/* 1. Timeline Feed of Past Reflections */}
-        <section aria-label="Journal Feed" className="space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 px-1 pb-1 border-b border-white/10">
-            <div className="flex items-center gap-2">
-              <Compass className="w-4 h-4 text-[#f6e7b8]" />
-              <span className="font-semibold text-[#f6e7b8] uppercase tracking-wider text-xs">
-                📖 Your Thought Feed ({filteredEntries.length})
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleScrollToComposer}
-                className="px-3.5 py-1.5 rounded-xl metallic-gold-button text-[#070d1e] font-semibold text-xs flex items-center gap-1.5 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-md"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>+ Write New Journal</span>
-              </button>
-            </div>
-          </div>
-
+        {/* 1. Single Page Book Journal View (Or Timeline Feed Mode) */}
+        <section aria-label="Journal Reader" className="space-y-5">
           {filteredEntries.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0, y: 16 }}
@@ -1172,33 +1202,68 @@ export default function App() {
                 <span>Compose Entry Below</span>
               </button>
             </motion.div>
+          ) : viewMode === 'book' ? (
+            <BookJournalView
+              entries={filteredEntries}
+              persona={persona}
+              activeEntryId={activeEntryId}
+              onSelectEntry={(id) => setActiveEntryId(id)}
+              onToggleActionItem={handleToggleActionItem}
+              onToggleBookmark={handleToggleBookmark}
+              onDeleteEntry={handleDeleteEntry}
+              onUpdateEntry={handleUpdateEntry}
+              onTriggerAiReflection={(entryId) => {
+                const target = entries.find((e) => e.id === entryId);
+                if (target) {
+                  triggerAiSynthesis(target.id, target.rawText, persona, target.location);
+                }
+              }}
+              onWriteNewJournal={handleScrollToComposer}
+              onClearAllPosts={() => setIsConfirmingClearAll(true)}
+              viewMode={viewMode}
+              onToggleViewMode={setViewMode}
+            />
           ) : (
-            <div className="space-y-6">
-              {filteredEntries.map((entry, idx) => (
-                <motion.div
-                  key={entry.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-30px" }}
-                  transition={{ duration: 0.45, delay: Math.min(idx * 0.05, 0.25), ease: [0.21, 0.47, 0.32, 0.98] }}
+            <div className="space-y-5">
+              <div className="flex items-center justify-between px-1 pb-1 border-b border-white/10 text-xs text-slate-400">
+                <span className="font-bold text-[#f6e7b8] uppercase tracking-wider">
+                  📜 Timeline Feed ({filteredEntries.length})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('book')}
+                  className="text-xs text-amber-300 hover:text-white font-semibold flex items-center gap-1 underline cursor-pointer"
                 >
-                  <ReflectionCard
-                    entry={entry}
-                    persona={persona}
-                    isFocused={entry.id === activeEntryId}
-                    onToggleActionItem={handleToggleActionItem}
-                    onToggleBookmark={handleToggleBookmark}
-                    onDeleteEntry={handleDeleteEntry}
-                    onUpdateEntry={handleUpdateEntry}
-                    onTriggerAiReflection={(entryId) => {
-                      const target = entries.find((e) => e.id === entryId);
-                      if (target) {
-                        triggerAiSynthesis(target.id, target.rawText, persona, target.location);
-                      }
-                    }}
-                  />
-                </motion.div>
-              ))}
+                  Switch to 📖 Book View
+                </button>
+              </div>
+              <div className="space-y-6">
+                {filteredEntries.map((entry, idx) => (
+                  <motion.div
+                    key={entry.id}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-30px" }}
+                    transition={{ duration: 0.45, delay: Math.min(idx * 0.05, 0.25), ease: [0.21, 0.47, 0.32, 0.98] }}
+                  >
+                    <ReflectionCard
+                      entry={entry}
+                      persona={persona}
+                      isFocused={entry.id === activeEntryId}
+                      onToggleActionItem={handleToggleActionItem}
+                      onToggleBookmark={handleToggleBookmark}
+                      onDeleteEntry={handleDeleteEntry}
+                      onUpdateEntry={handleUpdateEntry}
+                      onTriggerAiReflection={(entryId) => {
+                        const target = entries.find((e) => e.id === entryId);
+                        if (target) {
+                          triggerAiSynthesis(target.id, target.rawText, persona, target.location);
+                        }
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </div>
             </div>
           )}
         </section>
@@ -1213,15 +1278,15 @@ export default function App() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="pt-6 border-t border-white/10 space-y-3"
         >
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#d4af37] shadow-[0_0_8px_#d4af37]" />
-              <h2 className="text-sm font-semibold text-[#f6e7b8] tracking-wide uppercase">
-                ✍️ Pour Your Thoughts Into Words
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 pb-1">
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 animate-pulse" />
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#fae8a8] via-[#38bdf8] via-[#c084fc] to-[#34d399] bg-clip-text text-transparent animate-gradient-text drop-shadow-md">
+                Create New Journal Post
               </h2>
             </div>
-            <span className="text-[11px] text-slate-400 hidden sm:inline">
-              Saved instantly • Interactive follow-up chat
+            <span className="text-xs text-slate-300 font-medium">
+              Saved instantly to your private cloud vault • Interactive AI coaching
             </span>
           </div>
 
@@ -1291,6 +1356,40 @@ export default function App() {
         entries={entries}
         persona={persona}
       />
+
+      {/* Clear All Posts Confirmation Modal */}
+      {isConfirmingClearAll && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md p-6 rounded-2xl bg-gradient-to-br from-[#1a0808] via-[#120505] to-[#0a0202] border border-rose-500/50 shadow-2xl space-y-4 text-slate-100">
+            <div className="flex items-center gap-3 text-rose-400 font-bold text-lg border-b border-rose-500/20 pb-3">
+              <AlertCircle className="w-6 h-6 shrink-0" />
+              <span>Clear All Journal Posts?</span>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+              Are you sure you want to delete <strong>all {entries.length} journal posts</strong>? This will permanently wipe all entries from your local timeline and Firestore cloud storage. This action cannot be undone.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3">
+              <button
+                type="button"
+                onClick={() => setIsConfirmingClearAll(false)}
+                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 font-bold text-xs hover:bg-white/20 transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAllPosts}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 text-white font-bold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Yes, Clear All Posts</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,11 +1,12 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, deleteApp, type FirebaseApp } from 'firebase/app';
 import { 
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut as firebaseSignOut,
-  onAuthStateChanged,
-  type User 
+  onAuthStateChanged as firebaseOnAuthStateChanged,
+  type User,
+  type Auth
 } from 'firebase/auth';
 import { 
   getFirestore, 
@@ -19,6 +20,7 @@ import {
   deleteDoc, 
   updateDoc 
 } from 'firebase/firestore';
+
 const defaultFallbackConfig = {
   projectId: "genaiacademy3",
   appId: "1:217104786977:web:default",
@@ -29,36 +31,101 @@ const defaultFallbackConfig = {
   messagingSenderId: "217104786977",
 };
 
-import type { UserPersona, JournalEntry } from './types';
+// Determine initial config synchronously from environment variables if present
+const getInitialConfig = () => {
+  const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+  const appId = import.meta.env.VITE_FIREBASE_APP_ID;
 
-// Initialize Firebase App
-let app = !getApps().length ? initializeApp(defaultFallbackConfig) : getApp();
-export let auth = getAuth(app);
+  if (apiKey && apiKey !== 'AIzaSy_demo_client_key') {
+    const pId = projectId || "genaiacademy3";
+    return {
+      projectId: pId,
+      appId: appId || "1:217104786977:web:default",
+      apiKey: apiKey,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${pId}.firebaseapp.com`,
+      firestoreDatabaseId: "(default)",
+      storageBucket: `${pId}.firebasestorage.app`,
+      messagingSenderId: "217104786977",
+    };
+  }
+  return defaultFallbackConfig;
+};
+
+let currentConfig = getInitialConfig();
+export let app: FirebaseApp = !getApps().length ? initializeApp(currentConfig) : getApp();
+export let auth: Auth = getAuth(app);
 export let db = getFirestore(app);
 
-// Fetch dynamic runtime config from Secret Manager backend
+import type { UserPersona, JournalEntry } from './types';
+
+// Subscription manager so App.tsx always receives auth events even if auth instance re-initializes
+type AuthListener = (user: User | null) => void;
+const listeners = new Set<AuthListener>();
+let currentUnsubscribe: (() => void) | null = null;
+
+function setupAuthSubscription() {
+  if (currentUnsubscribe) {
+    currentUnsubscribe();
+  }
+  currentUnsubscribe = firebaseOnAuthStateChanged(auth, (user) => {
+    listeners.forEach(listener => listener(user));
+  });
+}
+
+// Attach initial auth listener immediately
+setupAuthSubscription();
+
+// Custom wrapper exported for App.tsx that registers callbacks to the active Auth instance
+export function onAuthStateChanged(_authInstance: Auth, callback: AuthListener): () => void {
+  listeners.add(callback);
+  callback(auth.currentUser);
+  return () => {
+    listeners.delete(callback);
+  };
+}
+
+let isInitializing = false;
+let initializedConfigKey = `${currentConfig.apiKey}:${currentConfig.projectId}`;
+
+// Fetch dynamic runtime config from Secret Manager backend if not already set
 export async function initializeRuntimeFirebase(): Promise<void> {
+  if (isInitializing) return;
+  isInitializing = true;
   try {
     const res = await fetch('/api/config');
     if (res.ok) {
       const data = await res.json();
       if (data.firebaseApiKey && data.firebaseApiKey !== 'AIzaSy_demo_client_key') {
-        const liveConfig = {
-          projectId: data.projectId || "genaiacademy3",
-          appId: data.appId || "1:217104786977:web:default",
-          apiKey: data.firebaseApiKey,
-          authDomain: data.authDomain || "genaiacademy3.firebaseapp.com",
-          firestoreDatabaseId: "(default)",
-          storageBucket: "genaiacademy3.firebasestorage.app",
-          messagingSenderId: "217104786977",
-        };
-        app = initializeApp(liveConfig, 'liveApp');
-        auth = getAuth(app);
-        db = getFirestore(app);
+        const configKey = `${data.firebaseApiKey}:${data.projectId}`;
+        if (configKey !== initializedConfigKey) {
+          const liveConfig = {
+            projectId: data.projectId || "genaiacademy3",
+            appId: data.appId || "1:217104786977:web:default",
+            apiKey: data.firebaseApiKey,
+            authDomain: data.authDomain || `${data.projectId || "genaiacademy3"}.firebaseapp.com`,
+            firestoreDatabaseId: "(default)",
+            storageBucket: `${data.projectId || "genaiacademy3"}.firebasestorage.app`,
+            messagingSenderId: "217104786977",
+          };
+          
+          if (getApps().length) {
+            await deleteApp(app).catch(() => {});
+          }
+          
+          app = initializeApp(liveConfig);
+          auth = getAuth(app);
+          db = getFirestore(app);
+          initializedConfigKey = configKey;
+          
+          setupAuthSubscription();
+        }
       }
     }
   } catch (e) {
     console.warn('Could not load dynamic firebase config from /api/config:', e);
+  } finally {
+    isInitializing = false;
   }
 }
 
@@ -149,7 +216,15 @@ export function sanitizeForFirestore<T>(data: T): T {
     const cleaned: Record<string, any> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value !== undefined) {
-        cleaned[key] = sanitizeForFirestore(value);
+        // Prevent Firestore 1MB field limit crash by storing null instead of heavy base64 strings
+        if (key === 'bannerImageUrl' && typeof value === 'string' && value.length > 500000) {
+          cleaned[key] = null;
+        } else {
+          const sanitizedVal = sanitizeForFirestore(value);
+          if (sanitizedVal !== undefined) {
+            cleaned[key] = sanitizedVal;
+          }
+        }
       }
     }
     return cleaned as any;
@@ -240,4 +315,17 @@ export const deleteJournalEntry = async (userId: string, entryId: string): Promi
   }
 };
 
-export { onAuthStateChanged, type User };
+export const deleteAllJournalEntries = async (userId: string): Promise<void> => {
+  const path = `users/${userId}/entries`;
+  try {
+    await ensureAuthToken();
+    const entriesRef = collection(db, 'users', userId, 'entries');
+    const snap = await getDocs(entriesRef);
+    const deletePromises = snap.docs.map(docSnap => deleteDoc(docSnap.ref));
+    await Promise.all(deletePromises);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+  }
+};
+
+export type { User };

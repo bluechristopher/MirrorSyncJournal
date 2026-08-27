@@ -33,10 +33,11 @@ function getGenAI(): GoogleGenAI {
 
 // Fallback Model Ladder strictly prioritizing gemini-3.7-flash, then gemini-3.6-flash, then gemini-3.1-flash-lite, then gemini-flash-latest
 const MODEL_FALLBACK_LADDER = [
-  'gemini-3.7-flash',
-  'gemini-3.6-flash',
-  'gemini-3.1-flash-lite',
-  'gemini-flash-latest'
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-1.5-flash',
+  'gemini-2.0-flash-lite'
 ];
 
 interface FallbackExecutionResult<T> {
@@ -347,167 +348,226 @@ async function generateContentWithFallback<T>(
 }
 
 /**
- * Curated high-resolution photorealistic imagery fallback intelligently matched to actual content themes
+ * Curated photorealistic imagery fallback dynamically matched to actual content topic
  */
 function getCuratedPhotorealisticFallback(prompt: string, domain: string = 'Work', rawText: string = ''): string {
-  const combined = (prompt + ' ' + rawText).toLowerCase();
-
-  // Content-specific photographic matchers
-  if (/mountain|hike|summit|alpine|trail|climb/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/ocean|sea|beach|coastal|waves|surf|water/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/forest|trees|nature|woodland|rainforest|green/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/coffee|cafe|morning|breakfast|tea|mug/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/night|stars|galaxy|midnight|evening|astronomy|moon/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/code|coding|software|terminal|developer|engineer|screen|matrix|tech/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/art|painting|drawing|sketch|gallery|museum|canvas|color/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/music|guitar|piano|song|instrument|audio|sound/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/book|reading|library|study|literature|novel/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/city|urban|skyline|tokyo|new york|architecture|buildings/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/workout|gym|fitness|run|running|exercise|training/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&q=80';
-  }
-  if (/home|cozy|couch|living room|interior|fireplace/i.test(combined)) {
-    return 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80';
-  }
-
-  const domainCollections: Record<string, string[]> = {
-    Work: [
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
-    ],
-    Personal: [
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80',
-    ],
-    Creative: [
-      'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
-    ],
-    'Email Drafting': [
-      'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80',
-    ]
-  };
-
-  const pool = domainCollections[domain] || domainCollections.Work;
-  let hash = 0;
-  for (let i = 0; i < prompt.length; i++) {
-    hash = (hash << 5) - hash + prompt.charCodeAt(i);
-    hash |= 0;
-  }
-  const idx = Math.abs(hash) % pool.length;
-  return pool[idx];
+  const words = (rawText || prompt)
+    .replace(/[^a-zA-Z0-9\s]/g, '')
+    .split(/\s+/)
+    .filter(w => w.length > 3)
+    .slice(0, 4);
+  const topic = words.length > 0 ? words.join(' ') : 'journal reflection workspace';
+  const pollPrompt = `photograph of ${topic}, realistic, atmospheric, 16:9, highly detailed`;
+  const seed = Math.floor(Math.random() * 900000) + 100000;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(pollPrompt)}?width=800&height=450&seed=${seed}&nologo=true&model=flux`;
 }
+
+// Server-side Image Storage Map (Stores image buffers outside Firestore)
+const bannerImageStore = new Map<string, { mimeType: string; data: Buffer }>();
+
+function storeBannerImage(mimeType: string, base64Data: string): string {
+  const imageId = `img-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+  const buffer = Buffer.from(base64Data, 'base64');
+  bannerImageStore.set(imageId, { mimeType, data: buffer });
+  return `/api/gemini/banner-image/${imageId}`;
+}
+
+function deletePreviousBannerImage(oldImageUrl?: string) {
+  if (oldImageUrl && oldImageUrl.includes('/api/gemini/banner-image/')) {
+    const parts = oldImageUrl.split('/api/gemini/banner-image/');
+    const oldId = parts[parts.length - 1];
+    if (oldId && bannerImageStore.has(oldId)) {
+      bannerImageStore.delete(oldId);
+      console.info(`[Server Image Store] Deleted previous image: ${oldId}`);
+    }
+  }
+}
+
+// Endpoint to purge all stored banner images when Clear All Posts is triggered
+app.post('/api/gemini/clear-all-images', (_req: Request, res: Response) => {
+  const count = bannerImageStore.size;
+  bannerImageStore.clear();
+  console.info(`[Server Image Store] Cleared all ${count} banner images!`);
+  res.json({ success: true, countCleared: count });
+});
+
+// Endpoint to serve generated banner images cleanly by ID
+app.get('/api/gemini/banner-image/:imageId', (req: Request, res: Response) => {
+  const { imageId } = req.params;
+  const img = bannerImageStore.get(imageId);
+  if (!img) {
+    return res.status(404).send('Image not found');
+  }
+  res.setHeader('Content-Type', img.mimeType);
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.send(img.data);
+});
 
 /**
  * Generate a photorealistic banner image using Gemini AI with resilient fallbacks
  */
 async function generatePhotorealisticBanner(prompt: string, domain: string = 'Work', rawText: string = ''): Promise<string> {
   const ai = getGenAI();
-  
-  let refinedScene = prompt;
-  for (const dirModel of MODEL_FALLBACK_LADDER) {
-    try {
-      const promptRes = await ai.models.generateContent({
-        model: dirModel,
-        contents: `Describe a specific, atmospheric, photorealistic 16:9 35mm wide shot representing the core mood of: "${prompt}". Context: "${(rawText || '').slice(0, 150)}". Output ONLY a single concise visual description sentence without preamble, captions, or quotes.`,
-        config: {
-          maxOutputTokens: 60,
-          temperature: 0.7,
-        }
-      });
-      if (promptRes.text) {
-        refinedScene = promptRes.text.trim().replace(/^["']|["']$/g, '');
-        break;
-      }
-    } catch (_promptErr: any) {
-      continue;
+  const combinedText = (rawText || prompt || '').replace(/seed-\d+|[0-9a-f-]{10,}/gi, '').trim();
+
+  let concreteTopic = '';
+  try {
+    const geminiRes = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Analyze this journal entry text: "${combinedText.slice(0, 600)}".
+Extract the single most specific 2-to-4 word English visual topic representing the exact subject matter (e.g., "pickleball court paddle", "classroom computer exam", "singapore skyline").
+Output JSON ONLY: { "concreteTopic": "pickleball court paddle" }`,
+      config: { responseMimeType: 'application/json', temperature: 0.2 }
+    });
+    if (geminiRes.text) {
+      const parsed = JSON.parse(geminiRes.text);
+      concreteTopic = parsed.concreteTopic || '';
     }
+  } catch (_e) {}
+
+  if (!concreteTopic) {
+    const words = combinedText.split(/\s+/).filter(w => w.length > 3).slice(0, 4);
+    concreteTopic = words.length > 0 ? words.join(' ') : 'journal reflection workspace';
   }
 
-  // Attempt direct Gemini image generation with Gemini image models
-  const imageModels = ['gemini-3.1-flash-lite-image', 'gemini-3.1-flash-image'];
-  const fullPrompt = `A photorealistic wide cinematic photograph representing: ${refinedScene}. Atmospheric real-world scene, 35mm lens, natural cinematic lighting, rich textures, authentic environment, high fidelity, 8k photography, realistic, no text, no CGI illustration.`;
+  const cleanTopic = concreteTopic.replace(/[^a-zA-Z0-9\s]/g, '').trim();
 
-  for (const model of imageModels) {
-    try {
-      const response: any = await ai.models.generateContent({
-        model,
-        contents: {
-          parts: [{ text: fullPrompt }],
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: '16:9',
-          }
-        }
-      });
-
-      const parts = response.candidates?.[0]?.content?.parts || [];
-      for (const part of parts) {
-        if (part.inlineData?.data) {
-          const mime = part.inlineData.mimeType || 'image/png';
-          return `data:${mime};base64,${part.inlineData.data}`;
-        }
+  // Try direct native Gemini image generation & store on server
+  try {
+    const imgRes = await ai.models.generateContent({
+      model: 'gemini-3.1-flash-lite-image',
+      contents: `Generate a 16:9 photo of ${cleanTopic}, natural lighting, realistic`,
+      config: { responseModalities: ['IMAGE'] }
+    });
+    const parts = imgRes.candidates?.[0]?.content?.parts || [];
+    for (const part of parts) {
+      if (part.inlineData?.data) {
+        const mime = part.inlineData.mimeType || 'image/jpeg';
+        return storeBannerImage(mime, part.inlineData.data);
       }
-    } catch (_imgErr: any) {
-      // Free tier quota or paid key transition
-      continue;
     }
-  }
+  } catch (_err) {}
 
-  // Graceful curated content-grounded fallback
-  return getCuratedPhotorealisticFallback(refinedScene || prompt, domain, rawText);
+  // Fallback
+  const pollPrompt = `photograph of ${cleanTopic}, realistic, atmospheric, 16:9, highly detailed`;
+  const seed = Math.floor(Math.random() * 900000) + 100000;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(pollPrompt)}?width=800&height=450&seed=${seed}&nologo=true&model=flux`;
 }
 
-// Dedicated endpoint to generate / regenerate photorealistic banner art
+// Dedicated endpoint to generate / regenerate contextual banner art
 app.post('/api/gemini/generate-banner', async (req: Request, res: Response) => {
   try {
-    const { prompt = 'Journal reflection moment', domain = 'Work', rawText = '' } = req.body;
-    const imageUrl = await generatePhotorealisticBanner(prompt, domain, rawText);
+    const { prompt = '', domain = 'Work', rawText = '', isCustomPrompt = false, oldImageUrl = '' } = req.body;
+    const ai = getGenAI();
+
+    // Delete previous image buffer from server memory store if regenerating
+    deletePreviousBannerImage(oldImageUrl);
+
+    let visualPrompt = prompt;
+    let targetPrompt = prompt;
+
+    // IF user provided a custom prompt explicitly, DO NOT re-read rawText content!
+    if (isCustomPrompt && prompt.trim()) {
+      targetPrompt = prompt.trim();
+      visualPrompt = prompt.trim();
+      console.info(`[Generate Banner] Using direct custom user prompt: "${targetPrompt}"`);
+    } else {
+      // Otherwise, extract concrete topic from journal text
+      const combinedText = (rawText || prompt || '')
+        .replace(/seed-\d+|[0-9a-f-]{10,}/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      let concreteTopic = '';
+
+      try {
+        const geminiRes = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: `Analyze this journal entry:
+"${combinedText.slice(0, 700)}"
+
+Task:
+1. "concreteTopic": The single most specific 2-to-4 word English visual topic representing the exact subject matter (e.g., "classroom computer exam", "singapore skyline marina bay", "running shoes park trail", "coffee cup study notebook", "guitar music studio").
+2. "visualPrompt": A clear 1-sentence English visual summary sentence representing this specific scene (12 to 20 words).
+
+Output JSON ONLY format:
+{
+  "concreteTopic": "classroom computer exam",
+  "visualPrompt": "A computer science educator evaluating Python code on laptops during a classroom mock exam"
+}`,
+          config: {
+            responseMimeType: 'application/json',
+            temperature: 0.2,
+          }
+        });
+
+        if (geminiRes.text) {
+          const parsed = JSON.parse(geminiRes.text);
+          visualPrompt = parsed.visualPrompt || visualPrompt;
+          concreteTopic = parsed.concreteTopic || '';
+        }
+      } catch (_gErr) {
+        console.warn('Gemini topic extraction fallback:', _gErr);
+      }
+
+      if (!concreteTopic) {
+        const words = combinedText.split(/\s+/).filter(w => w.length > 3).slice(0, 4);
+        concreteTopic = words.length > 0 ? words.join(' ') : 'journal writing desk';
+      }
+
+      if (!visualPrompt) {
+        visualPrompt = `Scene representing ${concreteTopic}`;
+      }
+
+      targetPrompt = concreteTopic.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+    }
+
+    let imageUrl = '';
+
+    // 1. Direct native Google Gemini AI Image Generation using gemini-3.1-flash-lite-image
+    try {
+      const imgRes = await ai.models.generateContent({
+        model: 'gemini-3.1-flash-lite-image',
+        contents: `Generate a 16:9 photo of ${targetPrompt}, natural lighting, realistic`,
+        config: {
+          responseModalities: ['IMAGE'],
+        }
+      });
+
+      const parts = imgRes.candidates?.[0]?.content?.parts || [];
+      for (const part of parts) {
+        if (part.inlineData?.data) {
+          const mime = part.inlineData.mimeType || 'image/jpeg';
+          imageUrl = storeBannerImage(mime, part.inlineData.data);
+          console.info(`[Generate Banner] Stored image server-side! URL: ${imageUrl}`);
+          break;
+        }
+      }
+    } catch (_geminiImgErr: any) {
+      console.warn('[Generate Banner] gemini-3.1-flash-lite-image note:', _geminiImgErr?.message || _geminiImgErr);
+    }
+
+    // 2. Resilient fallback if native Gemini image key hits quota
+    if (!imageUrl) {
+      const pollPrompt = `photograph of ${targetPrompt}, realistic, atmospheric, 16:9, highly detailed`;
+      const encodedPrompt = encodeURIComponent(pollPrompt);
+      const seed = Math.floor(Math.random() * 900000) + 100000;
+      imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=450&seed=${seed}&nologo=true&model=flux`;
+    }
+
+    console.info(`[Generate Banner] Target Prompt: "${targetPrompt}" | Visual Prompt: "${visualPrompt}"`);
+
     res.json({
       success: true,
       imageUrl,
-      prompt
+      generatedArtPrompt: visualPrompt,
+      keywords: targetPrompt
     });
   } catch (error: any) {
     console.error('Error generating banner:', error);
-    const fallbackUrl = getCuratedPhotorealisticFallback(req.body?.prompt || '', req.body?.domain || 'Work');
-    res.json({
-      success: true,
-      imageUrl: fallbackUrl,
-      prompt: req.body?.prompt || 'Journal moment'
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate banner artwork'
     });
   }
 });
@@ -681,7 +741,7 @@ INSTRUCTIONS FOR OUTPUT FIELDS:
   - "sentimentSummary": A warm, encouraging 1-sentence empathetic reflection on their feelings.
 - "domain": Exactly one of "Work", "Personal", "Creative", or "Email Drafting".
 - "summary": A vibrant, encouraging 2-3 sentence synthesis capturing the essence with enthusiastic emojis.
-- "coaching": 2-3 paragraphs of energetic, uplifting guidance, positive reinforcement, and actionable encouragement with rich emojis.
+- "coaching": 2 concise paragraphs of energetic, uplifting guidance, ending with 2 curious, inquisitive bullet-point questions (starting with "• ") that probe for more details.
 - "initialConversationalPrompt": An energetic, friendly opening question inviting them to chat, add more feelings, or refine notes with joyful emojis.
 - "category":
   - "primaryTag": Short anchor category.
@@ -860,7 +920,13 @@ ${rawText.replace(/"/g, '\\"')}
         tone: `${commStyle} • ${coachingTone}`,
         keyPoints: [rawText.slice(0, 60)]
       } : null),
-      creativeSpark: rawData.creativeSpark || null,
+      creativeSpark: (() => {
+        if (!rawData.creativeSpark || typeof rawData.creativeSpark !== 'string') return null;
+        const trimmed = rawData.creativeSpark.trim();
+        const lower = trimmed.toLowerCase().replace(/^["']|["']$/g, '');
+        if (!trimmed || lower === 'null' || lower === 'undefined' || lower === 'none' || lower === 'n/a') return null;
+        return trimmed;
+      })(),
       editorialArtPrompt: rawData.editorialArtPrompt || 'A photorealistic wide view of a modern desk with ambient morning sunlight, 35mm photography.',
       bannerImageUrl,
       locationContext: rawData.locationContext || (location?.name ? `Recorded with presence at ${location.name}.` : null),
@@ -1369,14 +1435,16 @@ Generate the refined email and reply with proper paragraph breaks and formatting
   }
 });
 
-// Dynamic Runtime Config Endpoint (Serves Firebase and Google Maps keys loaded from Secret Manager)
+// Dynamic Runtime Config Endpoint (Serves Firebase and Google Maps keys loaded from Secret Manager or .env)
 app.get('/api/config', (_req: Request, res: Response) => {
+  const projectId = process.env.GCP_PROJECT || process.env.VITE_FIREBASE_PROJECT_ID || 'genaiacademy3';
+  const authDomain = process.env.FIREBASE_AUTH_DOMAIN || process.env.VITE_FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`;
   res.json({
     firebaseApiKey: process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY || '',
     googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    projectId: process.env.GCP_PROJECT || 'genaiacademy3',
-    appId: process.env.FIREBASE_APP_ID || '1:217104786977:web:default',
-    authDomain: 'genaiacademy3.firebaseapp.com'
+    projectId,
+    appId: process.env.FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID || '1:217104786977:web:default',
+    authDomain
   });
 });
 
