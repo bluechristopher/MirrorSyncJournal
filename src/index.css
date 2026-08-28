@@ -109,94 +109,98 @@
 
 /* ========================================================
    DISTINCT DARK METALLIC POST THEMES (AERO / OBSIDIAN)
+   - Work: Sapphire / Deep Electric Blue Tint
+   - Personal: Rich Warm Amber Obsidian / Brown Tone
+   - Creative: Vivid Amethyst / Royal Purple Tint
+   - Email: Deep Emerald / Mint Green Tint
    ======================================================== */
 
-/* 1. Sapphire / Deep Midnight Blue (Work Domain) */
+/* 1. Sapphire / Deep Electric Blue Metallic (Work Domain) */
 .metallic-card-work {
-  background: linear-gradient(145deg, rgba(12, 28, 58, 0.88) 0%, rgba(5, 14, 30, 0.96) 45%, rgba(18, 38, 76, 0.84) 100%);
+  background: linear-gradient(145deg, rgba(10, 32, 74, 0.92) 0%, rgba(4, 15, 38, 0.98) 45%, rgba(14, 42, 92, 0.88) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid rgba(56, 189, 248, 0.45);
   box-shadow: 
-    inset 0 1.5px 1.5px 0 rgba(186, 230, 253, 0.40),
-    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
-    0 16px 44px -4px rgba(0, 0, 0, 0.80),
-    0 0 24px -4px rgba(56, 189, 248, 0.18);
+    inset 0 1.5px 1.5px 0 rgba(186, 230, 253, 0.45),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.80),
+    0 16px 44px -4px rgba(0, 0, 0, 0.85),
+    0 0 28px -4px rgba(56, 189, 248, 0.25);
 }
 
 .metallic-card-work:hover {
-  border-color: rgba(125, 211, 252, 0.60);
+  border-color: rgba(125, 211, 252, 0.70);
   box-shadow: 
-    inset 0 2px 2px 0 rgba(224, 242, 254, 0.60),
+    inset 0 2px 2px 0 rgba(224, 242, 254, 0.65),
     inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
     0 24px 54px -6px rgba(0, 0, 0, 0.90),
-    0 0 32px 2px rgba(56, 189, 248, 0.30);
+    0 0 34px 2px rgba(56, 189, 248, 0.35);
 }
 
-/* 2. Emerald / Jade Obsidian (Personal Domain) */
+/* 2. Rich Warm Amber Obsidian / Brown Leather (Personal Domain) */
 .metallic-card-personal {
-  background: linear-gradient(145deg, rgba(8, 38, 26, 0.88) 0%, rgba(3, 18, 12, 0.96) 45%, rgba(12, 48, 34, 0.84) 100%);
+  background: linear-gradient(145deg, rgba(38, 24, 10, 0.92) 0%, rgba(18, 11, 4, 0.98) 45%, rgba(48, 30, 12, 0.88) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(52, 211, 153, 0.35);
+  border: 1px solid rgba(246, 231, 184, 0.38);
   box-shadow: 
-    inset 0 1.5px 1.5px 0 rgba(167, 243, 208, 0.40),
-    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
-    0 16px 44px -4px rgba(0, 0, 0, 0.80),
-    0 0 24px -4px rgba(52, 211, 153, 0.18);
+    inset 0 1.5px 1.5px 0 rgba(255, 225, 170, 0.40),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.80),
+    0 16px 44px -4px rgba(0, 0, 0, 0.85),
+    0 0 26px -4px rgba(212, 175, 55, 0.20);
 }
 
 .metallic-card-personal:hover {
-  border-color: rgba(110, 231, 183, 0.60);
+  border-color: rgba(246, 231, 184, 0.65);
   box-shadow: 
-    inset 0 2px 2px 0 rgba(209, 250, 229, 0.60),
+    inset 0 2px 2px 0 rgba(255, 245, 215, 0.65),
     inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
     0 24px 54px -6px rgba(0, 0, 0, 0.90),
-    0 0 32px 2px rgba(52, 211, 153, 0.30);
+    0 0 34px 2px rgba(212, 175, 55, 0.35);
 }
 
-/* 3. Amethyst / Deep Violet Titanium (Creative Domain) */
+/* 3. Amethyst / Deep Royal Purple Metallic (Creative Domain) */
 .metallic-card-creative {
-  background: linear-gradient(145deg, rgba(38, 14, 56, 0.88) 0%, rgba(18, 6, 28, 0.96) 45%, rgba(50, 18, 76, 0.84) 100%);
+  background: linear-gradient(145deg, rgba(46, 16, 68, 0.92) 0%, rgba(20, 6, 32, 0.98) 45%, rgba(58, 20, 86, 0.88) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(192, 132, 252, 0.35);
+  border: 1px solid rgba(192, 132, 252, 0.45);
   box-shadow: 
-    inset 0 1.5px 1.5px 0 rgba(233, 213, 255, 0.40),
-    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
-    0 16px 44px -4px rgba(0, 0, 0, 0.80),
-    0 0 24px -4px rgba(192, 132, 252, 0.18);
+    inset 0 1.5px 1.5px 0 rgba(233, 213, 255, 0.45),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.80),
+    0 16px 44px -4px rgba(0, 0, 0, 0.85),
+    0 0 28px -4px rgba(192, 132, 252, 0.25);
 }
 
 .metallic-card-creative:hover {
-  border-color: rgba(216, 180, 254, 0.60);
+  border-color: rgba(216, 180, 254, 0.70);
   box-shadow: 
-    inset 0 2px 2px 0 rgba(243, 232, 255, 0.60),
+    inset 0 2px 2px 0 rgba(243, 232, 255, 0.65),
     inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
     0 24px 54px -6px rgba(0, 0, 0, 0.90),
-    0 0 32px 2px rgba(192, 132, 252, 0.30);
+    0 0 34px 2px rgba(192, 132, 252, 0.35);
 }
 
-/* 4. Ocean Steel / Aquamarine Titanium (Email Drafting Domain) */
+/* 4. Forest Emerald / Jade Green Metallic (Email Drafting Domain) */
 .metallic-card-email {
-  background: linear-gradient(145deg, rgba(10, 36, 48, 0.88) 0%, rgba(4, 18, 25, 0.96) 45%, rgba(14, 46, 62, 0.84) 100%);
+  background: linear-gradient(145deg, rgba(8, 42, 28, 0.92) 0%, rgba(3, 18, 12, 0.98) 45%, rgba(12, 54, 38, 0.88) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid rgba(52, 211, 153, 0.45);
   box-shadow: 
-    inset 0 1.5px 1.5px 0 rgba(186, 230, 253, 0.40),
-    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
-    0 16px 44px -4px rgba(0, 0, 0, 0.80),
-    0 0 24px -4px rgba(56, 189, 248, 0.18);
+    inset 0 1.5px 1.5px 0 rgba(167, 243, 208, 0.45),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.80),
+    0 16px 44px -4px rgba(0, 0, 0, 0.85),
+    0 0 28px -4px rgba(52, 211, 153, 0.25);
 }
 
 .metallic-card-email:hover {
-  border-color: rgba(125, 211, 252, 0.60);
+  border-color: rgba(110, 231, 183, 0.70);
   box-shadow: 
-    inset 0 2px 2px 0 rgba(224, 242, 254, 0.60),
+    inset 0 2px 2px 0 rgba(209, 250, 229, 0.65),
     inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
     0 24px 54px -6px rgba(0, 0, 0, 0.90),
-    0 0 32px 2px rgba(56, 189, 248, 0.30);
+    0 0 34px 2px rgba(52, 211, 153, 0.35);
 }
 
 /* 5. Obsidian Gold / Champagne Titanium (Default / Fallback) */
@@ -233,6 +237,31 @@
 
 .aero-float-card:hover {
   transform: none !important;
+}
+
+/* ========================================================
+   DEEP BROWN METALLIC USER CHAT BUBBLE & CONVERSATION THEME
+   ======================================================== */
+.metallic-user-chat-bubble {
+  background: linear-gradient(145deg, rgba(58, 32, 16, 0.92) 0%, rgba(32, 17, 8, 0.96) 45%, rgba(68, 38, 20, 0.88) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(217, 155, 85, 0.45);
+  box-shadow: 
+    inset 0 1.5px 1.5px 0 rgba(255, 220, 160, 0.35),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.75),
+    0 10px 28px -4px rgba(0, 0, 0, 0.75),
+    0 0 18px -2px rgba(180, 110, 50, 0.20);
+  color: #fef6e4;
+}
+
+.metallic-user-chat-bubble:hover {
+  border-color: rgba(235, 175, 105, 0.65);
+  box-shadow: 
+    inset 0 2px 2px 0 rgba(255, 230, 180, 0.45),
+    inset 0 -2px 1.5px 0 rgba(0, 0, 0, 0.85),
+    0 14px 34px -4px rgba(0, 0, 0, 0.85),
+    0 0 24px rgba(210, 140, 70, 0.25);
 }
 
 /* ========================================================
@@ -489,6 +518,140 @@
     0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
+/* ========================================================
+   HIGH-SPECULAR 3D METALLIC ACTION BUTTONS
+   ======================================================== */
+.metallic-btn-3d {
+  background: linear-gradient(145deg, #2c3444 0%, #1c222e 45%, #10151f 100%);
+  border: 1px solid rgba(190, 210, 240, 0.45);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 2px 0 rgba(0, 0, 0, 0.85),
+    0 4px 12px rgba(0, 0, 0, 0.65),
+    0 0 10px rgba(160, 185, 220, 0.15);
+  color: #f1f5f9;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-btn-3d:hover {
+  background: linear-gradient(145deg, #364154 0%, #242c3b 45%, #161c28 100%);
+  border-color: rgba(220, 235, 255, 0.75);
+  color: #ffffff;
+  box-shadow: 
+    inset 0 2px 1.5px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -2px 2px 0 rgba(0, 0, 0, 0.90),
+    0 6px 18px rgba(0, 0, 0, 0.80),
+    0 0 16px rgba(190, 215, 255, 0.30);
+  transform: translateY(-1px);
+}
+
+.metallic-btn-3d:active {
+  transform: translateY(1px);
+  box-shadow: 
+    inset 0 2px 3px rgba(0, 0, 0, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 3D Blue Action Button (View Details) */
+.metallic-btn-3d-blue {
+  background: linear-gradient(145deg, #0e3a64 0%, #082442 45%, #041426 100%);
+  border: 1px solid rgba(125, 211, 252, 0.60);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(224, 242, 254, 0.60),
+    inset 0 -2px 2px 0 rgba(0, 0, 0, 0.85),
+    0 6px 16px rgba(14, 116, 144, 0.40),
+    0 0 14px rgba(56, 189, 248, 0.25);
+  color: #e0f2fe;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-btn-3d-blue:hover {
+  background: linear-gradient(145deg, #134e84 0%, #0a3056 45%, #051b32 100%);
+  border-color: rgba(186, 230, 253, 0.90);
+  color: #ffffff;
+  box-shadow: 
+    inset 0 2px 1.5px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -2px 2px 0 rgba(0, 0, 0, 0.90),
+    0 8px 22px rgba(14, 116, 144, 0.60),
+    0 0 22px rgba(56, 189, 248, 0.45);
+  transform: translateY(-1px);
+}
+
+/* 3D Violet Action Button (Read Aloud) */
+.metallic-btn-3d-violet {
+  background: linear-gradient(145deg, #3c1a6e 0%, #250f46 45%, #130726 100%);
+  border: 1px solid rgba(192, 132, 252, 0.60);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(243, 232, 255, 0.60),
+    inset 0 -2px 2px 0 rgba(0, 0, 0, 0.85),
+    0 6px 16px rgba(126, 34, 206, 0.40),
+    0 0 14px rgba(192, 132, 252, 0.25);
+  color: #f3e8ff;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-btn-3d-violet:hover {
+  background: linear-gradient(145deg, #4f2290 0%, #32145e 45%, #1b0936 100%);
+  border-color: rgba(233, 213, 255, 0.90);
+  color: #ffffff;
+  box-shadow: 
+    inset 0 2px 1.5px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -2px 2px 0 rgba(0, 0, 0, 0.90),
+    0 8px 22px rgba(126, 34, 206, 0.60),
+    0 0 22px rgba(192, 132, 252, 0.45);
+  transform: translateY(-1px);
+}
+
+/* 3D Metallic PRO Badge (Emerald & Jade Chrome) */
+.metallic-badge-3d-pro {
+  background: linear-gradient(145deg, #094732 0%, #032b1d 50%, #011910 100%);
+  border: 1px solid rgba(110, 231, 183, 0.75);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.85),
+    0 4px 10px rgba(0, 0, 0, 0.50),
+    0 0 12px rgba(52, 211, 153, 0.35);
+  color: #6ee7b7;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-badge-3d-pro:hover {
+  background: linear-gradient(145deg, #0e5e43 0%, #053b28 50%, #022417 100%);
+  border-color: #a7f3d0;
+  box-shadow: 
+    inset 0 2px 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.90),
+    0 6px 14px rgba(0, 0, 0, 0.65),
+    0 0 18px rgba(52, 211, 153, 0.55);
+  transform: translateY(-1px);
+}
+
+/* 3D Metallic DEMO Badge (Amber Gold & Bronze Chrome) */
+.metallic-badge-3d-demo {
+  background: linear-gradient(145deg, #4d2f09 0%, #301b04 50%, #170b01 100%);
+  border: 1px solid rgba(251, 191, 36, 0.75);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.85),
+    0 4px 10px rgba(0, 0, 0, 0.50),
+    0 0 12px rgba(245, 158, 11, 0.35);
+  color: #fde68a;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-badge-3d-demo:hover {
+  background: linear-gradient(145deg, #633e0d 0%, #3d2306 50%, #200f02 100%);
+  border-color: #fef08a;
+  box-shadow: 
+    inset 0 2px 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.90),
+    0 6px 14px rgba(0, 0, 0, 0.65),
+    0 0 18px rgba(245, 158, 11, 0.55);
+  transform: translateY(-1px);
+}
+
 /* --- 5. TITANIUM / BRUSHED STEEL BUTTON --- */
 .metallic-titanium-button {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(200, 215, 240, 0.07) 50%, rgba(150, 165, 190, 0.14) 100%);
@@ -529,6 +692,65 @@
 .ai-gold-heading {
   color: #fae8b0;
   text-shadow: 0 1px 8px rgba(212, 175, 55, 0.25);
+}
+
+/* ========================================================
+   ANIMATED AURORA & SPECULAR METALLIC SHEEN (PRO & DEMO)
+   ======================================================== */
+@keyframes aurora-flow {
+  0% {
+    background-position: 0% 50%, 0% 0%, 50% 50%;
+  }
+  50% {
+    background-position: 100% 50%, 50% 100%, 0% 50%;
+  }
+  100% {
+    background-position: 0% 50%, 0% 0%, 50% 50%;
+  }
+}
+
+@keyframes sheen-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* PRO Mode Aurora: Luminous Emerald, Cyan & Deep Celestial Jade */
+.header-aurora-pro {
+  background-color: #02140d;
+  background-image: 
+    radial-gradient(ellipse 90% 120% at 20% -20%, rgba(52, 211, 153, 0.28), transparent 70%),
+    radial-gradient(ellipse 70% 90% at 85% 120%, rgba(6, 182, 212, 0.22), transparent 70%),
+    linear-gradient(135deg, #01140e 0%, #06261c 25%, #083827 50%, #032117 75%, #01120b 100%);
+  background-size: 200% 200%, 180% 180%, 250% 250%;
+  animation: aurora-flow 18s ease-in-out infinite;
+  border-bottom: 1px solid rgba(52, 211, 153, 0.40);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -2px 3px 0 rgba(0, 0, 0, 0.9),
+    0 12px 40px rgba(0, 0, 0, 0.85),
+    0 0 28px rgba(52, 211, 153, 0.20);
+}
+
+/* DEMO Mode Aurora: Obsidian, Warm Amber/Gold Sheen & Sapphire Horizon */
+.header-aurora-demo {
+  background-color: #0b0f19;
+  background-image: 
+    radial-gradient(ellipse 90% 120% at 15% -20%, rgba(245, 158, 11, 0.22), transparent 70%),
+    radial-gradient(ellipse 70% 90% at 85% 120%, rgba(56, 189, 248, 0.20), transparent 70%),
+    radial-gradient(circle at 50% 0%, rgba(192, 132, 252, 0.14), transparent 60%),
+    linear-gradient(135deg, #070a12 0%, #121829 25%, #1c182b 50%, #151124 75%, #090c14 100%);
+  background-size: 200% 200%, 180% 180%, 160% 160%, 250% 250%;
+  animation: aurora-flow 20s ease-in-out infinite;
+  border-bottom: 1px solid rgba(246, 231, 184, 0.35);
+  box-shadow: 
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.30),
+    inset 0 -2px 3px 0 rgba(0, 0, 0, 0.9),
+    0 12px 40px rgba(0, 0, 0, 0.85),
+    0 0 28px rgba(246, 231, 184, 0.15);
 }
 
 /* Top Bar: Polished Cool Gray-Black Metallic Chrome Gradient */
@@ -680,27 +902,53 @@
 }
 
 /* ========================================================
-   SILVER-GRAY METALLIC JOURNAL TEXTAREA
+   SILVER-DARK GRAY METALLIC JOURNAL & CHAT TEXTAREA (OBVIOUS 3D)
    ======================================================== */
 .metallic-silver-textarea {
-  background: linear-gradient(145deg, #242a35 0%, #191f28 45%, #10141b 100%);
-  border: 1px solid rgba(160, 175, 200, 0.45);
+  background: linear-gradient(145deg, #2b3240 0%, #1c222c 35%, #12161f 70%, #0c0f16 100%);
+  border: 1px solid rgba(190, 205, 230, 0.50);
   box-shadow: 
-    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -2px 4px 0 rgba(0, 0, 0, 0.75),
-    0 12px 36px rgba(0, 0, 0, 0.65),
-    0 0 20px rgba(160, 175, 200, 0.1);
+    inset 0 2px 1.5px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -2.5px 4px 0 rgba(0, 0, 0, 0.85),
+    inset 2px 0 3px 0 rgba(255, 255, 255, 0.12),
+    inset -2px 0 3px 0 rgba(0, 0, 0, 0.70),
+    0 14px 38px rgba(0, 0, 0, 0.75),
+    0 0 22px rgba(160, 180, 215, 0.15);
   color: #f1f5f9;
 }
 
 .metallic-silver-textarea:focus {
-  border-color: rgba(226, 232, 240, 0.85);
+  border-color: rgba(246, 231, 184, 0.85);
   box-shadow: 
-    inset 0 2px 2px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.8),
-    0 0 0 2px rgba(203, 213, 225, 0.3),
-    0 16px 40px rgba(0, 0, 0, 0.75),
-    0 0 24px rgba(226, 232, 240, 0.25);
+    inset 0 2.5px 2px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 3px 0 rgba(0, 0, 0, 0.90),
+    0 0 0 2px rgba(246, 231, 184, 0.35),
+    0 18px 45px rgba(0, 0, 0, 0.85),
+    0 0 28px rgba(246, 231, 184, 0.30);
+  outline: none;
+}
+
+.metallic-chat-textarea {
+  background: linear-gradient(145deg, #2a313f 0%, #1d2430 35%, #131822 70%, #0d1119 100%);
+  border: 1px solid rgba(175, 195, 225, 0.45);
+  box-shadow: 
+    inset 0 2px 1.5px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -2.5px 4px 0 rgba(0, 0, 0, 0.85),
+    inset 1.5px 0 2px 0 rgba(255, 255, 255, 0.10),
+    inset -1.5px 0 2px 0 rgba(0, 0, 0, 0.65),
+    0 12px 32px rgba(0, 0, 0, 0.70),
+    0 0 18px rgba(160, 180, 210, 0.12);
+  color: #f8fafc;
+}
+
+.metallic-chat-textarea:focus {
+  border-color: rgba(246, 231, 184, 0.85);
+  box-shadow: 
+    inset 0 2.5px 2px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 3px 0 rgba(0, 0, 0, 0.90),
+    0 0 0 2px rgba(246, 231, 184, 0.35),
+    0 16px 40px rgba(0, 0, 0, 0.80),
+    0 0 24px rgba(246, 231, 184, 0.25);
   outline: none;
 }
 
@@ -773,20 +1021,25 @@
 }
 
 /* ========================================================
-   AUTHENTIC TEXTURED MEMO PAPER EFFECT (TIGHT DOT PATTERN)
+   AUTHENTIC TEXTURED MEMO PAPER EFFECT WITH CATEGORY TINTS
+   (Darkened Exterior Dot Texture for High Contrast)
    ======================================================== */
-.memo-paper-texture {
-  background-color: #ede5d5;
+
+/* Default / Personal: Rich Warm Earthy Brown / Sandstone Tone */
+.memo-paper-texture,
+.memo-paper-personal {
+  background-color: #2b1d12;
   background-image: 
-    radial-gradient(#c2b39b 0.65px, transparent 0.65px),
-    radial-gradient(#cebfab 0.65px, #ede5d5 0.65px);
+    radial-gradient(#5a3d24 0.75px, transparent 0.75px),
+    radial-gradient(#482f1b 0.75px, #2b1d12 0.75px);
   background-size: 6px 6px;
   background-position: 0 0, 3px 3px;
-  border-color: #c9baa5;
+  border-color: #5c3e26;
 }
 
-.memo-inner-sheet {
-  background-color: #faf6ed;
+.memo-inner-sheet,
+.memo-inner-personal {
+  background-color: #faf6ee;
   background-image: 
     radial-gradient(#ded2be 0.55px, transparent 0.55px),
     linear-gradient(rgba(215, 204, 188, 0.28) 1px, transparent 1px);
@@ -795,47 +1048,110 @@
   border-color: #dfd4c0;
 }
 
+/* Work: Deep Midnight Navy / Slate Dot Textured Exterior */
+.memo-paper-work {
+  background-color: #0f2038;
+  background-image: 
+    radial-gradient(#244b7a 0.75px, transparent 0.75px),
+    radial-gradient(#1c3c64 0.75px, #0f2038 0.75px);
+  background-size: 6px 6px;
+  background-position: 0 0, 3px 3px;
+  border-color: #29578d;
+}
+
+.memo-inner-work {
+  background-color: #edf5fc;
+  background-image: 
+    radial-gradient(#bfd7ed 0.55px, transparent 0.55px),
+    linear-gradient(rgba(147, 185, 222, 0.32) 1px, transparent 1px);
+  background-size: 7px 7px, 100% 30px;
+  background-position: 0 0, 0 8px;
+  border-color: #b9d5ee;
+}
+
+/* Creative: Deep Velvet Violet / Royal Plum Dot Textured Exterior */
+.memo-paper-creative {
+  background-color: #261038;
+  background-image: 
+    radial-gradient(#562b7c 0.75px, transparent 0.75px),
+    radial-gradient(#452163 0.75px, #261038 0.75px);
+  background-size: 6px 6px;
+  background-position: 0 0, 3px 3px;
+  border-color: #63328e;
+}
+
+.memo-inner-creative {
+  background-color: #f7f0fe;
+  background-image: 
+    radial-gradient(#dcc8f5 0.55px, transparent 0.55px),
+    linear-gradient(rgba(186, 153, 230, 0.32) 1px, transparent 1px);
+  background-size: 7px 7px, 100% 30px;
+  background-position: 0 0, 0 8px;
+  border-color: #dec9f7;
+}
+
+/* Email: Deep Forest Emerald / Pine Dot Textured Exterior */
+.memo-paper-email {
+  background-color: #0c2618;
+  background-image: 
+    radial-gradient(#1c5738 0.75px, transparent 0.75px),
+    radial-gradient(#15462c 0.75px, #0c2618 0.75px);
+  background-size: 6px 6px;
+  background-position: 0 0, 3px 3px;
+  border-color: #216742;
+}
+
+.memo-inner-email {
+  background-color: #eefbf4;
+  background-image: 
+    radial-gradient(#bee7cf 0.55px, transparent 0.55px),
+    linear-gradient(rgba(130, 202, 163, 0.32) 1px, transparent 1px);
+  background-size: 7px 7px, 100% 30px;
+  background-position: 0 0, 0 8px;
+  border-color: #b7e8cb;
+}
+
 /* ========================================================
    AUTHENTIC RICH LEATHER JOURNAL TEXTURE & EMBOSSED STITCHING
    ======================================================== */
 .leather-journal-exterior {
-  background-color: #241308;
+  background-color: #120904;
   background-image: 
-    linear-gradient(125deg, rgba(255, 230, 180, 0.06) 0%, rgba(210, 140, 70, 0.02) 35%, rgba(0, 0, 0, 0.6) 100%),
-    radial-gradient(ellipse at 40% 30%, rgba(68, 38, 18, 0.95) 0%, rgba(24, 13, 6, 0.98) 100%),
-    radial-gradient(circle at 1.5px 1.5px, rgba(195, 135, 75, 0.22) 0.8px, transparent 1.2px),
-    radial-gradient(circle at 5.5px 6.5px, rgba(160, 100, 50, 0.18) 0.8px, transparent 1.2px),
-    radial-gradient(circle at 8.5px 2.5px, rgba(0, 0, 0, 0.45) 1.2px, transparent 1.6px),
-    radial-gradient(circle at 3.5px 9.5px, rgba(0, 0, 0, 0.4) 1.2px, transparent 1.6px);
+    linear-gradient(125deg, rgba(255, 230, 180, 0.04) 0%, rgba(210, 140, 70, 0.01) 35%, rgba(0, 0, 0, 0.8) 100%),
+    radial-gradient(ellipse at 40% 30%, rgba(42, 22, 10, 0.95) 0%, rgba(12, 6, 2, 0.99) 100%),
+    radial-gradient(circle at 1.5px 1.5px, rgba(165, 105, 55, 0.15) 0.8px, transparent 1.2px),
+    radial-gradient(circle at 5.5px 6.5px, rgba(130, 80, 40, 0.12) 0.8px, transparent 1.2px),
+    radial-gradient(circle at 8.5px 2.5px, rgba(0, 0, 0, 0.6) 1.2px, transparent 1.6px),
+    radial-gradient(circle at 3.5px 9.5px, rgba(0, 0, 0, 0.55) 1.2px, transparent 1.6px);
   background-size: 100% 100%, 100% 100%, 10px 10px, 10px 10px, 10px 10px, 10px 10px;
   box-shadow: 
-    inset 0 2px 4px 0 rgba(255, 220, 160, 0.2),
-    inset 0 -3px 5px 0 rgba(0, 0, 0, 0.85),
-    inset 2px 0 4px 0 rgba(255, 220, 160, 0.15),
-    inset -2px 0 5px 0 rgba(0, 0, 0, 0.85),
-    0 24px 64px -8px rgba(0, 0, 0, 0.95);
-  border: 1px solid rgba(217, 155, 85, 0.35);
+    inset 0 2px 4px 0 rgba(255, 220, 160, 0.15),
+    inset 0 -4px 6px 0 rgba(0, 0, 0, 0.95),
+    inset 2px 0 4px 0 rgba(255, 220, 160, 0.10),
+    inset -2px 0 6px 0 rgba(0, 0, 0, 0.95),
+    0 28px 72px -8px rgba(0, 0, 0, 0.98);
+  border: 1px solid rgba(180, 120, 60, 0.30);
 }
 
 .leather-spine-ribs {
   background: linear-gradient(
     90deg, 
-    #140a04 0%, 
-    #2c170a 25%, 
-    #4a2712 50%, 
-    #241308 75%, 
-    #120803 100%
+    #0a0502 0%, 
+    #1c0e06 25%, 
+    #2e170a 50%, 
+    #140a04 75%, 
+    #080301 100%
   );
   box-shadow: 
-    inset 0 1px 2px rgba(255, 230, 180, 0.25),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.8),
-    2px 0 8px rgba(0, 0, 0, 0.7);
-  border-right: 1px solid rgba(217, 155, 85, 0.3);
+    inset 0 1px 2px rgba(255, 230, 180, 0.18),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.9),
+    2px 0 8px rgba(0, 0, 0, 0.85);
+  border-right: 1px solid rgba(180, 120, 60, 0.25);
 }
 
 .leather-saddle-stitch {
-  border: 1.5px dashed rgba(220, 165, 95, 0.4);
-  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.35);
+  border: 1.5px dashed rgba(190, 135, 75, 0.35);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
 }
 
 /* ========================================================

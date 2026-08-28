@@ -291,19 +291,22 @@ export function DynamicCategoryCards({
             >
               {topics.map((topic) => {
                 const isSelected = selectedTopicId === topic.id;
+                const hasAnySelection = selectedTopicId !== null;
+                const isDulled = hasAnySelection && !isSelected;
+
                 const colorKey = topic.accentColor || 'amber';
                 const style = ACCENT_STYLES[colorKey] || ACCENT_STYLES.amber;
                 const IconComponent = ICON_MAP[topic.iconName || 'Sparkles'] || Sparkles;
 
                 const panelClass = {
-                  emerald: 'metallic-green-panel ring-1 ring-emerald-400/70 shadow-[0_0_22px_rgba(52,211,153,0.3)]',
-                  blue: 'metallic-blue-panel ring-1 ring-sky-400/70 shadow-[0_0_22px_rgba(56,189,248,0.3)]',
-                  purple: 'metallic-purple-panel ring-1 ring-purple-400/70 shadow-[0_0_22px_rgba(192,132,252,0.3)]',
-                  amber: 'metallic-gold-panel ring-1 ring-[#f6e7b8]/70 shadow-[0_0_22px_rgba(246,231,184,0.3)]',
-                  rose: 'metallic-panel border-rose-400/60 ring-1 ring-rose-400/60 shadow-[0_0_22px_rgba(244,63,94,0.3)]',
-                  indigo: 'metallic-blue-panel ring-1 ring-indigo-400/70 shadow-[0_0_22px_rgba(99,102,241,0.3)]',
-                  cyan: 'metallic-blue-panel ring-1 ring-cyan-400/70 shadow-[0_0_22px_rgba(6,182,212,0.3)]'
-                }[colorKey] || 'metallic-gold-panel ring-1 ring-[#f6e7b8]/70 shadow-[0_0_22px_rgba(246,231,184,0.3)]';
+                  emerald: 'metallic-green-panel ring-2 ring-emerald-400 shadow-[0_0_32px_rgba(52,211,153,0.55),0_0_60px_rgba(52,211,153,0.25)] scale-[1.025]',
+                  blue: 'metallic-blue-panel ring-2 ring-sky-400 shadow-[0_0_32px_rgba(56,189,248,0.55),0_0_60px_rgba(56,189,248,0.25)] scale-[1.025]',
+                  purple: 'metallic-purple-panel ring-2 ring-purple-400 shadow-[0_0_32px_rgba(192,132,252,0.55),0_0_60px_rgba(192,132,252,0.25)] scale-[1.025]',
+                  amber: 'metallic-gold-panel ring-2 ring-[#f6e7b8] shadow-[0_0_32px_rgba(246,231,184,0.55),0_0_60px_rgba(246,231,184,0.25)] scale-[1.025]',
+                  rose: 'metallic-panel border-rose-400 ring-2 ring-rose-400 shadow-[0_0_32px_rgba(244,63,94,0.55),0_0_60px_rgba(244,63,94,0.25)] scale-[1.025]',
+                  indigo: 'metallic-blue-panel ring-2 ring-indigo-400 shadow-[0_0_32px_rgba(99,102,241,0.55),0_0_60px_rgba(99,102,241,0.25)] scale-[1.025]',
+                  cyan: 'metallic-blue-panel ring-2 ring-cyan-400 shadow-[0_0_32px_rgba(6,182,212,0.55),0_0_60px_rgba(6,182,212,0.25)] scale-[1.025]'
+                }[colorKey] || 'metallic-gold-panel ring-2 ring-[#f6e7b8] shadow-[0_0_32px_rgba(246,231,184,0.55),0_0_60px_rgba(246,231,184,0.25)] scale-[1.025]';
 
                 const titleColorClass = {
                   emerald: 'text-emerald-200 group-hover:text-emerald-100',
@@ -321,35 +324,37 @@ export function DynamicCategoryCards({
                     id={`topic-card-${topic.id}`}
                     type="button"
                     variants={CARD_VARIANTS}
-                    whileHover={{ scale: 1.015 }}
+                    whileHover={{ scale: isSelected ? 1.04 : 1.015 }}
                     whileTap={{ scale: 0.985 }}
                     onClick={() => {
                       onSelectTopic(isSelected ? null : topic.id);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer relative group flex flex-col justify-between gap-2.5 ${
+                    className={`text-left p-3.5 rounded-2xl border transition-all duration-300 cursor-pointer relative group flex flex-col justify-between gap-2.5 ${
                       isSelected
-                        ? panelClass
+                        ? `${panelClass} z-20`
+                        : isDulled
+                        ? `metallic-card opacity-20 grayscale brightness-50 hover:opacity-85 hover:grayscale-0 hover:brightness-100 border-white/5`
                         : `metallic-card ${style.border} hover:brightness-105`
                     }`}
                   >
                     {/* Top Row: Icon, Emoji, Entry Count */}
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2">
-                        <span className="text-xl select-none" aria-hidden="true">
+                        <span className={`text-xl select-none transition-opacity ${isDulled ? 'opacity-30 group-hover:opacity-100' : ''}`} aria-hidden="true">
                           {topic.emoji}
                         </span>
-                        <div className={`p-1.5 rounded-lg ${style.iconBg} ${style.iconText} border border-white/10`}>
+                        <div className={`p-1.5 rounded-lg ${isDulled ? 'bg-white/5 text-slate-500 border-white/5' : `${style.iconBg} ${style.iconText} border border-white/10`}`}>
                           <IconComponent className="w-3.5 h-3.5" />
                         </div>
                       </div>
 
                       <div className="flex items-center gap-1.5">
-                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${style.badgeBg} ${style.badgeText} border border-white/10`}>
+                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${isDulled ? 'bg-white/5 text-slate-500 border-white/5' : `${style.badgeBg} ${style.badgeText} border border-white/10`}`}>
                           {topic.count} {topic.count === 1 ? 'entry' : 'entries'}
                         </span>
                         {isSelected && (
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] animate-pulse" />
                         )}
                       </div>
                     </div>
@@ -357,23 +362,23 @@ export function DynamicCategoryCards({
                     {/* Title & Description */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <h4 className={`text-sm font-bold transition-colors ${titleColorClass}`}>
+                        <h4 className={`text-sm font-bold transition-colors ${isDulled ? 'text-slate-500 group-hover:text-slate-200' : titleColorClass}`}>
                           {topic.name}
                         </h4>
-                        <ChevronRight className={`w-3.5 h-3.5 transition-transform ${isSelected ? 'rotate-90 text-white' : 'text-slate-500 group-hover:text-slate-300 group-hover:translate-x-0.5'}`} />
+                        <ChevronRight className={`w-3.5 h-3.5 transition-transform ${isSelected ? 'rotate-90 text-white' : isDulled ? 'text-slate-600' : 'text-slate-500 group-hover:text-slate-300 group-hover:translate-x-0.5'}`} />
                       </div>
-                      <p className="text-xs text-slate-300 leading-relaxed line-clamp-2 font-light">
+                      <p className={`text-xs leading-relaxed line-clamp-2 font-light ${isDulled ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-300'}`}>
                         {topic.description}
                       </p>
                     </div>
 
                     {/* Action Hint */}
-                    <div className="pt-1 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
-                      <span className="font-medium text-slate-400 group-hover:text-slate-200">
-                        {isSelected ? '✓ Showing entries' : 'Tap to reveal entries'}
+                    <div className={`pt-1 border-t flex items-center justify-between text-[11px] ${isDulled ? 'border-white/5 text-slate-600 group-hover:text-slate-400' : 'border-white/10 text-slate-400'}`}>
+                      <span className={`font-medium ${isSelected ? 'text-emerald-300 font-bold' : isDulled ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-400 group-hover:text-slate-200'}`}>
+                        {isSelected ? '✓ Filter Active' : 'Tap to reveal entries'}
                       </span>
-                      <span className="text-slate-400 group-hover:text-white transition-colors font-medium">
-                        View & Edit →
+                      <span className={`${isSelected ? 'text-white' : isDulled ? 'text-slate-600 group-hover:text-slate-300' : 'text-slate-400 group-hover:text-white'} transition-colors font-medium`}>
+                        {isSelected ? 'Reset Filter ×' : 'View & Edit →'}
                       </span>
                     </div>
                   </motion.button>

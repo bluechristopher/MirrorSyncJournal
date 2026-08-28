@@ -299,31 +299,26 @@ export function HistorySidebar({
                     </span>
                   </div>
 
-                  {/* Summary / Snippet */}
-                  <div className="space-y-1">
-                    {entry.reflectionSummary && (
-                      <p className="text-xs font-serif font-medium text-[#f6e7b8] line-clamp-1">
-                        {entry.reflectionSummary}
-                      </p>
-                    )}
-                    <p className="text-xs sm:text-[13px] font-neuton text-slate-200 line-clamp-3 leading-relaxed">
-                      "{previewSnippet}"
-                    </p>
+                  {/* Title in clean, prominent book serif */}
+                  <div className="space-y-1 pt-0.5">
+                    <h3 className="text-[13px] sm:text-sm font-libre-baskerville font-semibold text-[#f6e7b8] leading-snug tracking-wide line-clamp-2">
+                      {entry.reflectionSummary || previewSnippet}
+                    </h3>
                   </div>
 
                   {/* Badges / Metrics Row */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-slate-400">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5 text-[11px] text-slate-400">
                     <div className="flex items-center gap-2">
                       {totalActions > 0 && (
-                        <span className="flex items-center gap-1 text-slate-300">
+                        <span className="flex items-center gap-1 text-slate-300 text-[10px]">
                           <CheckCircle2 className={`w-3 h-3 ${completedActions === totalActions ? 'text-emerald-400' : 'text-slate-500'}`} />
                           <span>{completedActions}/{totalActions}</span>
                         </span>
                       )}
 
                       {entry.messages && entry.messages.length > 0 && (
-                        <span className="px-1.5 py-0.5 rounded-md metallic-panel text-slate-200 text-[10px]">
-                          {entry.messages.length} msg{entry.messages.length > 1 ? 's' : ''}
+                        <span className="px-1.5 py-0.2 rounded-md metallic-panel text-slate-200 text-[10px]">
+                          {entry.messages.length} follow-up{entry.messages.length > 1 ? 's' : ''}
                         </span>
                       )}
                     </div>

@@ -14,8 +14,6 @@ import {
   UserCheck,
   FileText,
   MessageSquareReply,
-  Maximize2,
-  Minimize2,
   ChevronDown,
   ChevronUp,
   AlignLeft
@@ -59,7 +57,6 @@ export function EmailDraftingStudio({
   const [isCopied, setIsCopied] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isExpandedView, setIsExpandedView] = useState(false);
   const [quickSuggestions, setQuickSuggestions] = useState<string[]>([
     '📝 Expand with More Detail',
     '✂️ Make Shorter & Concise',
@@ -398,39 +395,42 @@ export function EmailDraftingStudio({
               {/* Length Selector */}
               <div className="flex items-center gap-1 text-[11px] text-slate-400">
                 <span>Length:</span>
-                <div className="flex items-center gap-1 p-0.5 rounded-lg metallic-panel border border-white/10">
+                <div className="flex items-center gap-1.5 p-1 rounded-xl metallic-panel border border-white/10">
                   <button
                     type="button"
                     onClick={() => setLengthPreference('default')}
-                    className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
                       lengthPreference === 'default'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-semibold'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/60 font-bold shadow-xs'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
                     }`}
                   >
-                    Standard
+                    <span>📄</span>
+                    <span>Standard</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setLengthPreference('expanded')}
-                    className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
                       lengthPreference === 'expanded'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-semibold'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? 'bg-sky-500/25 text-sky-200 border border-sky-400/60 font-bold shadow-xs shadow-sky-500/20'
+                        : 'text-slate-400 hover:text-sky-300 hover:bg-white/5'
                     }`}
                   >
-                    Expanded
+                    <span>📖</span>
+                    <span>Expand</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setLengthPreference('concise')}
-                    className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-medium transition-all flex items-center gap-1 cursor-pointer ${
                       lengthPreference === 'concise'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-semibold'
-                        : 'text-slate-400 hover:text-slate-200'
+                        ? 'bg-amber-500/25 text-amber-200 border border-amber-400/60 font-bold shadow-xs shadow-amber-500/20'
+                        : 'text-slate-400 hover:text-amber-300 hover:bg-white/5'
                     }`}
                   >
-                    Concise
+                    <span>✂️</span>
+                    <span>Concise</span>
                   </button>
                 </div>
               </div>
@@ -532,34 +532,27 @@ export function EmailDraftingStudio({
 
               {/* Length Controls & Action Controls */}
               <div className="flex items-center gap-2">
-                {/* Length Modifier Pills */}
-                <div className="flex items-center gap-1 p-0.5 rounded-lg metallic-panel border border-white/10 text-xs">
+                {/* Length Modifier Pills with Emojis and Distinct Colors */}
+                <div className="flex items-center gap-1.5 p-1 rounded-xl metallic-panel border border-white/10 text-xs">
                   <button
                     type="button"
                     onClick={() => handleQuickLengthToggle('expanded')}
-                    className="px-2 py-1 rounded text-[11px] text-slate-300 hover:text-emerald-300 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-sky-950/40 text-sky-200 hover:text-white border border-sky-500/30 hover:border-sky-400/60 hover:bg-sky-900/50 transition-all flex items-center gap-1 cursor-pointer shadow-xs"
                     title="Expand email with more detail and context"
                   >
-                    Expand
+                    <span>📖</span>
+                    <span>Expand</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleQuickLengthToggle('concise')}
-                    className="px-2 py-1 rounded text-[11px] text-slate-300 hover:text-emerald-300 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-950/40 text-amber-200 hover:text-white border border-amber-500/30 hover:border-amber-400/60 hover:bg-amber-900/50 transition-all flex items-center gap-1 cursor-pointer shadow-xs"
                     title="Make email shorter and more concise"
                   >
-                    Concise
+                    <span>✂️</span>
+                    <span>Concise</span>
                   </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsExpandedView(!isExpandedView)}
-                  className="p-1.5 rounded-xl metallic-panel text-slate-300 hover:text-white transition-colors cursor-pointer"
-                  title={isExpandedView ? 'Standard View' : 'Full Expand View'}
-                >
-                  {isExpandedView ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-                </button>
 
                 <button
                   type="button"
@@ -589,9 +582,7 @@ export function EmailDraftingStudio({
             </div>
 
             {/* Email Body with Pristine Paragraph Spacing */}
-            <div className={`p-4 sm:p-5 rounded-xl metallic-panel text-[#f6e7b8] font-ai-response text-xs sm:text-sm leading-relaxed whitespace-pre-wrap selection:bg-emerald-500/30 border border-white/10 shadow-inner ${
-              isExpandedView ? 'min-h-[300px]' : ''
-            }`}>
+            <div className="p-4 sm:p-5 rounded-xl metallic-panel text-[#f6e7b8] font-ai-response text-xs sm:text-sm leading-relaxed whitespace-pre-wrap selection:bg-emerald-500/30 border border-white/10 shadow-inner">
               {activeDraft.body}
             </div>
           </div>

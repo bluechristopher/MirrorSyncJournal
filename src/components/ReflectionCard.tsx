@@ -46,12 +46,14 @@ import {
   PenTool
 } from 'lucide-react';
 import type { JournalEntry, UserPersona, ChatMessage, QuickActionType } from '../types';
+import type { User } from 'firebase/auth';
 import { EditorialArtCanvas } from './EditorialArtCanvas';
 import { GoogleMapView } from './GoogleMapView';
 import { StreamingMarkdown } from './StreamingMarkdown';
 import { sendChatMessageAPI } from '../services/api';
 import { JournalVoicePlayer } from './JournalVoicePlayer';
 import { getRelativeTimeInfo } from '../utils/dateUtils';
+import { logoImg } from '../assets/bannerAssets';
 
 function extractInquisitiveQuestions(adaptiveResponse: string, rawText: string = ''): string {
   if (!adaptiveResponse) {
@@ -121,6 +123,7 @@ interface ReflectionCardProps {
   isFocused?: boolean;
   isGuest?: boolean;
   onSignInGoogle?: () => void;
+  currentUser?: User | null;
 }
 
 export function ReflectionCard({
@@ -133,7 +136,8 @@ export function ReflectionCard({
   onUpdateEntry,
   isFocused = false,
   isGuest = false,
-  onSignInGoogle
+  onSignInGoogle,
+  currentUser
 }: ReflectionCardProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -142,8 +146,17 @@ export function ReflectionCard({
   const [isCopied, setIsCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMap, setShowMap] = useState<boolean>(true);
+  const prevAiStatusRef = useRef(entry.aiStatus);
 
-  // Always reset to condensed view by default whenever navigating to a new post
+  // Auto-expand card only right after new AI reflection finishes generating in real-time
+  useEffect(() => {
+    if (entry.aiStatus === 'ready' && prevAiStatusRef.current === 'synthesizing') {
+      setIsExpanded(true);
+    }
+    prevAiStatusRef.current = entry.aiStatus;
+  }, [entry.aiStatus]);
+
+  // Always reset to collapsed view when navigating to or viewing any post
   useEffect(() => {
     setIsExpanded(false);
     setIsEditing(false);
@@ -158,6 +171,35 @@ export function ReflectionCard({
   const [editText, setEditText] = useState(entry.rawText);
   const [editSummary, setEditSummary] = useState(entry.reflectionSummary || '');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  // Direct editing email draft state
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [editEmailSubject, setEditEmailSubject] = useState(entry.emailDraft?.subject || '');
+  const [editEmailRecipient, setEditEmailRecipient] = useState(entry.emailDraft?.recipient || '');
+  const [editEmailBody, setEditEmailBody] = useState(entry.emailDraft?.body || '');
+  const [isSavingEmailEdit, setIsSavingEmailEdit] = useState(false);
+
+  const handleSaveEmailDraftEdit = async () => {
+    if (!onUpdateEntry || !entry.emailDraft) return;
+    setIsSavingEmailEdit(true);
+    try {
+      const updatedDraft = {
+        ...entry.emailDraft,
+        subject: editEmailSubject.trim() || entry.emailDraft.subject,
+        recipient: editEmailRecipient.trim() || entry.emailDraft.recipient,
+        body: editEmailBody
+      };
+      await onUpdateEntry(entry.id, {
+        emailDraft: updatedDraft,
+        updatedAt: Date.now()
+      });
+      setIsEditingEmail(false);
+    } catch (err) {
+      console.error('Failed to save email draft edit:', err);
+    } finally {
+      setIsSavingEmailEdit(false);
+    }
+  };
 
   // Proposal editing state (allows editing writeup proposal before merging)
   const [editingProposalMsgId, setEditingProposalMsgId] = useState<string | null>(null);
@@ -217,7 +259,12 @@ export function ReflectionCard({
   useEffect(() => {
     setEditText(entry.rawText);
     setEditSummary(entry.reflectionSummary || '');
-  }, [entry.rawText, entry.reflectionSummary]);
+    if (entry.emailDraft) {
+      setEditEmailSubject(entry.emailDraft.subject || '');
+      setEditEmailRecipient(entry.emailDraft.recipient || '');
+      setEditEmailBody(entry.emailDraft.body || '');
+    }
+  }, [entry.rawText, entry.reflectionSummary, entry.emailDraft]);
 
   // Fluid Scroll Animation via IntersectionObserver
   useEffect(() => {
@@ -323,6 +370,58 @@ export function ReflectionCard({
     Creative: 'metallic-card-creative',
     'Email Drafting': 'metallic-card-email',
   }[domain] || 'metallic-card-gold';
+
+  const memoThemeConfig = {
+    Work: {
+      wrapper: 'memo-paper-work border-[#29578d]',
+      innerSheet: 'memo-inner-work border-[#b9d5ee] text-[#162740]',
+      tape: 'bg-gradient-to-r from-sky-600/40 via-sky-400/60 to-sky-600/40',
+      iconBox: 'bg-sky-950/80 border-sky-400/50 text-sky-300',
+      iconText: 'text-sky-300',
+      titleText: 'text-sky-100',
+      wordCountText: 'text-sky-300/80',
+      editBtn: 'bg-sky-900/60 hover:bg-sky-800/80 text-sky-100 border-sky-400/50',
+    },
+    Personal: {
+      wrapper: 'memo-paper-personal border-[#5c3e26]',
+      innerSheet: 'memo-inner-personal border-[#dfd4c0] text-[#24272c]',
+      tape: 'bg-gradient-to-r from-amber-600/40 via-amber-400/60 to-amber-600/40',
+      iconBox: 'bg-[#1e1208] border-amber-400/50 text-amber-300',
+      iconText: 'text-amber-300',
+      titleText: 'text-amber-100',
+      wordCountText: 'text-amber-300/80',
+      editBtn: 'bg-amber-950/70 hover:bg-amber-900/80 text-amber-100 border-amber-400/50',
+    },
+    Creative: {
+      wrapper: 'memo-paper-creative border-[#63328e]',
+      innerSheet: 'memo-inner-creative border-[#dec9f7] text-[#2a1b3d]',
+      tape: 'bg-gradient-to-r from-purple-600/40 via-purple-400/60 to-purple-600/40',
+      iconBox: 'bg-purple-950/80 border-purple-400/50 text-purple-300',
+      iconText: 'text-purple-300',
+      titleText: 'text-purple-100',
+      wordCountText: 'text-purple-300/80',
+      editBtn: 'bg-purple-900/60 hover:bg-purple-800/80 text-purple-100 border-purple-400/50',
+    },
+    'Email Drafting': {
+      wrapper: 'memo-paper-email border-[#216742]',
+      innerSheet: 'memo-inner-email border-[#b7e8cb] text-[#123020]',
+      tape: 'bg-gradient-to-r from-emerald-600/40 via-emerald-400/60 to-emerald-600/40',
+      iconBox: 'bg-emerald-950/80 border-emerald-400/50 text-emerald-300',
+      iconText: 'text-emerald-300',
+      titleText: 'text-emerald-100',
+      wordCountText: 'text-emerald-300/80',
+      editBtn: 'bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-100 border-emerald-400/50',
+    },
+  }[domain] || {
+    wrapper: 'memo-paper-personal border-[#5c3e26]',
+    innerSheet: 'memo-inner-personal border-[#dfd4c0] text-[#24272c]',
+    tape: 'bg-gradient-to-r from-amber-600/40 via-amber-400/60 to-amber-600/40',
+    iconBox: 'bg-[#1e1208] border-amber-400/50 text-amber-300',
+    iconText: 'text-amber-300',
+    titleText: 'text-amber-100',
+    wordCountText: 'text-amber-300/80',
+    editBtn: 'bg-amber-950/70 hover:bg-amber-900/80 text-amber-100 border-amber-400/50',
+  };
 
   const isSynthesizing = entry.aiStatus === 'synthesizing';
   const isError = entry.aiStatus === 'error';
@@ -572,36 +671,34 @@ export function ReflectionCard({
         transition: 'opacity 0.4s ease-out',
         opacity: isVisible ? 1 : 0
       }}
-      className={`relative rounded-2xl ${cardThemeClass} aero-float-card shadow-2xl overflow-hidden ${
+      className={`relative rounded-xl sm:rounded-2xl ${cardThemeClass} aero-float-card shadow-2xl overflow-hidden ${
         isFocused ? 'ring-2 ring-[#f6e7b8] border-[#f6e7b8]/70 shadow-[0_0_35px_rgba(246,231,184,0.35)]' : ''
       }`}
     >
       {/* 1. Header Row with Prominent Date Time & Unified When | Category Bubble */}
-      <div className="p-4 sm:p-5 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-white/[0.02]">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-wrap">
+      <div className="p-3.5 sm:p-5 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3.5 bg-white/[0.02]">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           {/* Prominent Clear Date & Time */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm sm:text-base font-bold text-slate-100 font-sans tracking-tight drop-shadow-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-xs sm:text-base font-bold text-slate-100 font-sans tracking-tight drop-shadow-xs">
               {timeInfo.fullFormattedDate}
             </span>
           </div>
 
           {/* Unified Bubble: When | Category */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 metallic-panel shadow-sm bg-black/40">
-            <span className="flex items-center gap-1.5 text-sky-200">
-              <Clock className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold border border-white/20 metallic-panel shadow-sm bg-black/40">
+            <span className="flex items-center gap-1 sm:gap-1.5 text-sky-200">
+              <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-400 shrink-0" />
               <span>{timeInfo.relativeLabel}</span>
             </span>
 
             <span className="text-white/30 font-light select-none">|</span>
 
-            <span className="flex items-center gap-1.5 uppercase tracking-wider text-amber-200 font-bold">
-              <DomainIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="flex items-center gap-1 sm:gap-1.5 uppercase tracking-wider text-amber-200 font-bold">
+              <DomainIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" />
               <span>{domain}</span>
             </span>
           </div>
-
-          {/* Department / Category Tag (if present) */}
           {entry.category?.departmentOrContext && (
             <span className="text-xs text-slate-300 font-medium px-2.5 py-1 rounded-lg metallic-panel truncate max-w-[200px] border border-white/10">
               {entry.category.departmentOrContext}
@@ -622,9 +719,25 @@ export function ReflectionCard({
           )}
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center flex-wrap gap-1.5 text-slate-300 self-stretch sm:self-auto justify-between sm:justify-end md:self-center">
-          {/* Distinct Expand / Collapse Details Button */}
+        {/* Action Controls (Read Aloud & View Details first, followed by Edit, Bookmark, Copy, Delete with 3D Metallic Sheen) */}
+        <div className="flex items-center flex-wrap gap-2 text-slate-300 self-stretch sm:self-auto justify-between sm:justify-end md:self-center">
+          
+          {/* 1. Read Aloud Audio Player Toggle with Obvious 3D Violet Metallic Sheen */}
+          <button
+            type="button"
+            onClick={() => setShowVoicePlayer(!showVoicePlayer)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+              showVoicePlayer
+                ? 'metallic-btn-3d-violet ring-2 ring-purple-300/80 brightness-115'
+                : 'metallic-btn-3d-violet'
+            }`}
+            title="Read aloud journal & reflection with natural voice audio narration"
+          >
+            <Volume2 className="w-3.5 h-3.5 text-purple-200 shrink-0" />
+            <span>{showVoicePlayer ? 'Hide Audio' : 'Read Aloud'}</span>
+          </button>
+
+          {/* 2. Expand / Collapse Details Button with Obvious 3D Blue/Gold Metallic Sheen */}
           <button
             type="button"
             onClick={() => {
@@ -634,43 +747,29 @@ export function ReflectionCard({
                 scrollToCardTop();
               }
             }}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
               isExpanded
-                ? 'metallic-gold-panel text-[#f6e7b8] border-[#f6e7b8]/60 shadow-[0_0_14px_rgba(246,231,184,0.3)] hover:brightness-110'
-                : 'bg-sky-500/20 text-sky-200 border-sky-400/50 hover:bg-sky-500/35 hover:text-white shadow-[0_0_14px_rgba(56,189,248,0.3)]'
+                ? 'metallic-gold-button text-[#070d1e] shadow-[0_0_16px_rgba(246,231,184,0.4)]'
+                : 'metallic-btn-3d-blue'
             }`}
             title={isExpanded ? 'Collapse to sleek overview' : 'Expand full reflection details'}
           >
             {isExpanded ? (
               <>
                 <span>Collapse</span>
-                <ChevronUp className="w-3.5 h-3.5 text-[#f6e7b8]" />
+                <ChevronUp className="w-3.5 h-3.5 text-[#070d1e]" />
               </>
             ) : (
               <>
-                <Eye className="w-3.5 h-3.5 text-sky-300" />
+                <Eye className="w-3.5 h-3.5 text-sky-200" />
                 <span>View Details</span>
-                <ChevronDown className="w-3.5 h-3.5 text-sky-300" />
+                <ChevronDown className="w-3.5 h-3.5 text-sky-200" />
               </>
             )}
           </button>
 
+          {/* 3. Utility Actions Group: Edit, Bookmark, Copy, Delete with 3D Metallic Sheen */}
           <div className="flex items-center gap-1.5">
-            {/* Read Aloud Audio Player Toggle with Distinct Violet Theme */}
-            <button
-              type="button"
-              onClick={() => setShowVoicePlayer(!showVoicePlayer)}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
-                showVoicePlayer
-                  ? 'bg-gradient-to-r from-violet-600/40 to-purple-600/40 border-violet-400/70 text-violet-100 shadow-[0_0_12px_rgba(167,139,250,0.35)]'
-                  : 'bg-violet-950/40 hover:bg-violet-900/60 border-violet-500/35 text-violet-300 hover:text-violet-100'
-              }`}
-              title="Read aloud journal & reflection with natural voice audio narration"
-            >
-              <Volume2 className="w-3.5 h-3.5 text-violet-300 shrink-0" />
-              <span>{showVoicePlayer ? 'Hide Audio' : 'Read Aloud'}</span>
-            </button>
-
             {/* Edit Entry Button */}
             <button
               type="button"
@@ -679,55 +778,55 @@ export function ReflectionCard({
                 setEditText(entry.rawText);
                 setEditSummary(entry.reflectionSummary || '');
               }}
-              className={`p-1.5 sm:p-2 rounded-xl transition-all cursor-pointer ${
+              className={`p-2 rounded-xl cursor-pointer ${
                 isEditing 
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-400/40 shadow-sm'
-                  : 'hover:text-white hover:bg-white/10 text-slate-400'
+                  ? 'metallic-btn-3d-blue ring-1 ring-sky-300 text-sky-100'
+                  : 'metallic-btn-3d text-slate-300 hover:text-white'
               }`}
               title="Edit Journal Text"
             >
-              <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Pencil className="w-3.5 h-3.5" />
             </button>
 
             {/* Bookmark Button */}
             <button
               type="button"
               onClick={() => onToggleBookmark(entry.id, !entry.bookmarked)}
-              className={`p-1.5 sm:p-2 rounded-xl transition-all cursor-pointer ${
+              className={`p-2 rounded-xl cursor-pointer ${
                 entry.bookmarked
-                  ? 'text-[#f6e7b8] metallic-gold-panel shadow-[0_0_10px_rgba(246,231,184,0.2)]'
-                  : 'hover:text-white hover:bg-white/10 text-slate-400'
+                  ? 'metallic-btn-3d text-[#f6e7b8] border-amber-400/80 shadow-[0_0_12px_rgba(246,231,184,0.35)]'
+                  : 'metallic-btn-3d text-slate-300 hover:text-[#f6e7b8]'
               }`}
               title={entry.bookmarked ? 'Remove Bookmark' : 'Bookmark Reflection'}
             >
-              <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${entry.bookmarked ? 'fill-[#f6e7b8] text-[#f6e7b8]' : ''}`} />
+              <Bookmark className={`w-3.5 h-3.5 ${entry.bookmarked ? 'fill-[#f6e7b8] text-[#f6e7b8]' : ''}`} />
             </button>
 
             {/* Copy Reflection */}
             <button
               type="button"
               onClick={handleCopy}
-              className="p-1.5 sm:p-2 rounded-xl hover:text-white hover:bg-white/10 transition-all cursor-pointer text-slate-400"
+              className="p-2 rounded-xl metallic-btn-3d text-slate-300 hover:text-white cursor-pointer"
               title="Copy Reflection to Clipboard"
             >
-              {isCopied ? <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+              {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
 
             {/* Delete Entry with Safe Confirmation */}
             {isConfirmingDelete ? (
-              <div className="flex items-center gap-1 bg-rose-950/80 p-1 rounded-xl border border-rose-500/50 animate-in fade-in-50 duration-150">
-                <span className="text-[10px] text-rose-200 font-medium px-1">Del?</span>
+              <div className="flex items-center gap-1 bg-gradient-to-r from-rose-950 to-rose-900 p-1 rounded-xl border border-rose-500/70 shadow-lg animate-in fade-in-50 duration-150">
+                <span className="text-[10px] text-rose-200 font-bold px-1">Del?</span>
                 <button
                   type="button"
                   onClick={() => onDeleteEntry(entry.id)}
-                  className="px-1.5 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-semibold transition-colors cursor-pointer"
+                  className="px-2 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-extrabold transition-colors cursor-pointer shadow-xs"
                 >
                   Yes
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsConfirmingDelete(false)}
-                  className="px-1.5 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-[10px] transition-colors cursor-pointer"
+                  className="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 text-[10px] transition-colors cursor-pointer"
                 >
                   No
                 </button>
@@ -736,52 +835,64 @@ export function ReflectionCard({
               <button
                 type="button"
                 onClick={() => setIsConfirmingDelete(true)}
-                className="p-1.5 sm:p-2 rounded-xl hover:text-rose-300 hover:bg-rose-500/15 transition-all cursor-pointer text-slate-400"
+                className="p-2 rounded-xl metallic-btn-3d text-slate-300 hover:text-rose-400 hover:border-rose-500/60 cursor-pointer"
                 title="Delete Journal Entry"
               >
-                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* 2. Photorealistic AI Banner Image Display (Logged-In Feature / Locked in Demo) */}
-      {isGuest ? (
-        <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0c1527] via-[#090e1a] to-[#060a12] border border-white/10 p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm select-none">🎨</span>
-              <span className="text-xs font-semibold text-[#f6e7b8] uppercase tracking-wider font-sans">AI Banner Artwork</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-300 border border-white/10 font-mono">Logged-In Feature</span>
-            </div>
-            <p className="text-xs text-slate-400">
-              AI Banner generation is accessible when logged in.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
-          <EditorialArtCanvas 
-            prompt={entry.rawText || entry.reflectionSummary} 
-            domain={entry.category?.domain} 
-            imageUrl={entry.bannerImageUrl}
-            rawText={entry.rawText}
-            topicTitle={postTitle}
-            isExpanded={isExpanded}
-            className="w-full shadow-lg border border-white/15"
-            onRegenerate={() => {
-              onUpdateEntry?.(entry.id, { bannerImageUrl: undefined });
-            }}
-            onImageGenerated={(newUrl) => {
-              onUpdateEntry?.(entry.id, { bannerImageUrl: newUrl });
-            }}
-            onClickToggleExpand={() => setIsExpanded(!isExpanded)}
+      {/* 2. Voice Narration Audio Player (Placed Directly Above the Banner Part) */}
+      {showVoicePlayer && (
+        <div className="p-3.5 sm:p-4 pb-0 animate-in fade-in-50 duration-200">
+          <JournalVoicePlayer
+            entry={entry}
+            onClose={() => setShowVoicePlayer(false)}
           />
         </div>
       )}
 
-      {/* 3. Interactive Map Snippet Preview (Logged-In Feature / Locked in Demo) */}
+      {/* 3. Photorealistic AI Banner Image Display (Logged-In Feature / Locked in Demo, Suppressed for Email Drafting) */}
+      {domain !== 'Email Drafting' && (
+        isGuest ? (
+          <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0c1527] via-[#090e1a] to-[#060a12] border border-white/10 p-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm select-none">🎨</span>
+                <span className="text-xs font-semibold text-[#f6e7b8] uppercase tracking-wider font-sans">AI Banner Artwork</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-300 border border-white/10 font-mono">Logged-In Feature</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                AI Banner generation is accessible when logged in.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
+            <EditorialArtCanvas 
+              prompt={entry.rawText || entry.reflectionSummary} 
+              domain={entry.category?.domain} 
+              imageUrl={entry.bannerImageUrl}
+              rawText={entry.rawText}
+              topicTitle={postTitle}
+              isExpanded={isExpanded}
+              className="w-full shadow-lg border border-white/15"
+              onRegenerate={() => {
+                onUpdateEntry?.(entry.id, { bannerImageUrl: undefined });
+              }}
+              onImageGenerated={(newUrl) => {
+                onUpdateEntry?.(entry.id, { bannerImageUrl: newUrl });
+              }}
+              onClickToggleExpand={() => setIsExpanded(!isExpanded)}
+            />
+          </div>
+        )
+      )}
+
+      {/* 4. Interactive Map Snippet Preview (Logged-In Feature / Locked in Demo) */}
       {isExpanded && showMap && entry.location && (
         <div className="p-3.5 sm:p-4.5 bg-gradient-to-r from-[#0c1322] via-[#090e1a] to-[#060a12] border-b border-slate-500/30 space-y-3 animate-in fade-in-50 duration-200">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -818,18 +929,8 @@ export function ReflectionCard({
         </div>
       )}
 
-      {/* 4. Main Content Body (Collapsed Overview VS Staggered Expanded Details) */}
+      {/* 5. Main Content Body (Collapsed Overview VS Staggered Expanded Details) */}
       <div className="p-4 sm:p-6 space-y-6">
-        {/* Voice Narration Audio Player (if active) */}
-        {showVoicePlayer && (
-          <div className="animate-in fade-in-50 duration-200">
-            <JournalVoicePlayer
-              entry={entry}
-              onClose={() => setShowVoicePlayer(false)}
-            />
-          </div>
-        )}
-
         {/* Main Content Body: Authentic Paper Journal Memo & Optional Staggered AI Details */}
         <div className="space-y-4">
           {/* Element 1: Inline Edit Mode Form OR Original Journal Memo Paper Sheet */}
@@ -911,27 +1012,29 @@ export function ReflectionCard({
               </div>
             </motion.div>
           ) : (
-            /* Original Journal Post (Compact Memo with Tight Textured Dot Grid & Deep Gray Text) */
+            /* Original Journal Post (Compact Memo with Category Tinted Dot Grid & Crisp Text) */
             <motion.div 
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.04 }}
-              className="p-3.5 sm:p-4 rounded-xl memo-paper-texture border border-[#c9baa5] shadow-[0_10px_28px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.7)] space-y-2.5 relative overflow-hidden"
+              className={`p-3.5 sm:p-4 rounded-xl ${memoThemeConfig.wrapper} shadow-[0_10px_28px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.7)] space-y-2.5 relative overflow-hidden`}
             >
               {/* Subtle memo top washi tape / paper clip accent */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-1.5 bg-gradient-to-r from-amber-700/30 via-amber-600/50 to-amber-700/30 rounded-b-md shadow-xs" />
+              <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-28 h-1.5 ${memoThemeConfig.tape} rounded-b-md shadow-xs`} />
 
               <div className="flex items-center justify-between gap-2 text-xs font-semibold pt-0.5">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-amber-100/90 border border-amber-300/80 flex items-center justify-center text-amber-900 shadow-xs">
-                    <PenTool className="w-3.5 h-3.5 text-amber-800" />
+                  <div className={`w-6 h-6 rounded-lg ${memoThemeConfig.iconBox} flex items-center justify-center shadow-xs border`}>
+                    <PenTool className={`w-3.5 h-3.5 ${memoThemeConfig.iconText}`} />
                   </div>
-                  <span className="uppercase tracking-widest text-xs font-extrabold text-stone-700">
-                    {isEdited ? 'Edited Journal Memo' : 'Journal Memo'}
+                  <span className={`uppercase tracking-widest text-xs font-extrabold ${memoThemeConfig.titleText}`}>
+                    {domain === 'Email Drafting'
+                      ? (isEdited ? 'Edited Email Prompt' : 'initial email prompt')
+                      : (isEdited ? 'Edited Journal Memo' : 'Journal Memo')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-stone-500 font-mono font-medium">
+                  <span className={`text-[11px] ${memoThemeConfig.wordCountText} font-mono font-medium`}>
                     {entry.rawText ? `${wordCount} words` : ''}
                   </span>
                   <button
@@ -941,15 +1044,15 @@ export function ReflectionCard({
                       setEditText(entry.rawText);
                       setEditSummary(entry.reflectionSummary || '');
                     }}
-                    className="text-[11px] text-stone-700 hover:text-stone-950 flex items-center gap-1 cursor-pointer transition-colors px-2 py-0.5 rounded-lg bg-stone-200/80 hover:bg-stone-300 border border-stone-300/80 shadow-xs font-medium"
-                    title="Edit journal memo"
+                    className={`text-[11px] ${memoThemeConfig.editBtn} flex items-center gap-1 cursor-pointer transition-colors px-2 py-0.5 rounded-lg shadow-xs font-medium border`}
+                    title={domain === 'Email Drafting' ? "Edit email prompt" : "Edit journal memo"}
                   >
-                    <Pencil className="w-3 h-3 text-stone-600" />
+                    <Pencil className="w-3 h-3 opacity-75" />
                     <span>Edit</span>
                   </button>
                 </div>
               </div>
-              <div className="px-3.5 py-3 sm:px-4 sm:py-3.5 rounded-lg memo-inner-sheet border border-[#e8e2d4] font-oregano text-lg sm:text-xl md:text-[21px] text-[#24272c] leading-relaxed tracking-wide whitespace-pre-wrap select-text shadow-xs">
+              <div className={`px-3.5 py-3 sm:px-4 sm:py-3.5 rounded-lg ${memoThemeConfig.innerSheet} font-oregano text-lg sm:text-xl md:text-[21px] leading-relaxed tracking-wide whitespace-pre-wrap select-text shadow-xs`}>
                 {entry.rawText}
               </div>
             </motion.div>
@@ -989,12 +1092,11 @@ export function ReflectionCard({
                 type="button"
                 onClick={() => {
                   setIsExpanded(true);
-                  scrollToCardTop();
                 }}
                 className="px-4 py-2 rounded-xl metallic-gold-button text-[#070d1e] font-bold text-xs flex items-center gap-1.5 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-md ml-auto group"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#070d1e] animate-pulse" />
-                <span>Expand AI Coaching & Insights</span>
+                <span>{domain === 'Email Drafting' ? 'View Email Draft' : 'Expand AI Coaching & Insights'}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-[#070d1e] group-hover:translate-y-0.5 transition-transform" />
               </button>
             </div>
@@ -1045,14 +1147,21 @@ export function ReflectionCard({
               <>
                 {/* Element 2: Sentiment Analysis & Reflection Summary */}
                 <motion.div
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: 0.08 }}
+                  initial={{ opacity: 0, y: 35, filter: 'blur(4px)' }}
+                  whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  viewport={{ once: true, margin: '0px 0px -80px 0px', amount: 0.2 }}
+                  transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
                   className="space-y-4"
                 >
                   {/* Sentiment Analysis Banner (if present) */}
                   {entry.sentiment && (
-                    <div className="p-3.5 sm:p-4 rounded-xl metallic-gold-panel shadow-sm space-y-1.5">
+                    <motion.div 
+                      initial={{ opacity: 0, y: 30, filter: 'blur(4px)' }}
+                      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                      viewport={{ once: true, margin: '0px 0px -80px 0px', amount: 0.2 }}
+                      transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                      className="p-3.5 sm:p-4 rounded-xl metallic-gold-panel shadow-sm space-y-1.5"
+                    >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span className="text-xl" role="img" aria-label="sentiment emoji">
@@ -1080,7 +1189,7 @@ export function ReflectionCard({
                           "{entry.sentiment.sentimentSummary}"
                         </p>
                       )}
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Side-by-Side Grid for Highlights & Creative Spark Cards */}
@@ -1089,7 +1198,13 @@ export function ReflectionCard({
                     return (
                       <div className={`grid grid-cols-1 ${cleanSpark ? 'md:grid-cols-2' : ''} gap-3.5`}>
                         {/* Card 1: Friendly Highlights Card (Cyan/Emerald Theme) */}
-                        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#06241b] via-[#041a13] to-[#020e0b] border border-emerald-500/40 space-y-2 shadow-md flex flex-col justify-between">
+                        <motion.div 
+                          initial={{ opacity: 0, y: 35, filter: 'blur(4px)' }}
+                          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                          viewport={{ once: true, margin: '0px 0px -80px 0px', amount: 0.2 }}
+                          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                          className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#06241b] via-[#041a13] to-[#020e0b] border border-emerald-500/40 space-y-2 shadow-md flex flex-col justify-between"
+                        >
                           <div className="space-y-2">
                             <div className="flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-emerald-300">
                               <div className="flex items-center gap-2">
@@ -1117,11 +1232,17 @@ export function ReflectionCard({
                               <StreamingMarkdown content={entry.reflectionSummary || ''} />
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
 
                         {/* Card 2: Creative Spark Card (Amethyst/Purple Theme) - ONLY RENDERED WHEN VALID! */}
                         {cleanSpark && (
-                          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#241133] via-[#1a0a26] to-[#0d0414] border border-purple-500/40 space-y-2 shadow-md flex flex-col justify-between">
+                          <motion.div 
+                            initial={{ opacity: 0, y: 35, filter: 'blur(4px)' }}
+                            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                            viewport={{ once: true, margin: '0px 0px -80px 0px', amount: 0.2 }}
+                            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
+                            className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#241133] via-[#1a0a26] to-[#0d0414] border border-purple-500/40 space-y-2 shadow-md flex flex-col justify-between"
+                          >
                             <div className="space-y-2">
                               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-300">
                                 <Lightbulb className="w-4 h-4 text-purple-400" />
@@ -1131,7 +1252,7 @@ export function ReflectionCard({
                                 "{cleanSpark}"
                               </div>
                             </div>
-                          </div>
+                          </motion.div>
                         )}
                       </div>
                     );
@@ -1142,7 +1263,13 @@ export function ReflectionCard({
 
             {/* Location Context Grounding */}
             {entry.locationContext && !showMap && (
-              <div className="p-2.5 sm:p-3 rounded-xl metallic-gold-panel text-xs text-[#f6e7b8] flex items-start gap-2">
+              <motion.div 
+                initial={{ opacity: 0, y: 25, filter: 'blur(3px)' }}
+                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                viewport={{ once: true, margin: '0px 0px -60px 0px' }}
+                transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+                className="p-2.5 sm:p-3 rounded-xl metallic-gold-panel text-xs text-[#f6e7b8] flex items-start gap-2"
+              >
                 <MapPin className="w-3.5 h-3.5 text-[#f6e7b8] shrink-0 mt-0.5" />
                 <div className="flex-1 leading-relaxed text-xs text-[#f6e7b8]">
                   <strong className="text-[#f6e7b8]">Setting:</strong> {entry.locationContext}
@@ -1154,74 +1281,212 @@ export function ReflectionCard({
                 >
                   View Map
                 </button>
-              </div>
+              </motion.div>
             )}
 
-            {/* Role-Specific Cognitive Coaching & Actions (Revealed with staggered motion animations) */}
+            {/* Role-Specific Cognitive Coaching & Actions (Revealed with deliberate scroll & slow fade) */}
             <div className="space-y-5 pt-1">
                 {/* Element 3: Dedicated Email Draft & Domain Coaching Guidance */}
                 <motion.div
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: 0.12 }}
+                  initial={{ opacity: 0, y: 40, filter: 'blur(4px)' }}
+                  whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  viewport={{ once: true, margin: '0px 0px -90px 0px', amount: 0.2 }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                   className="space-y-4"
                 >
                   {/* Dedicated Email Draft Card if domain is Email Drafting or emailDraft is present */}
-                  {(domain === 'Email Drafting' || entry.emailDraft) && entry.emailDraft && (
-                    <div className="p-4 sm:p-5 rounded-2xl metallic-card border border-emerald-500/40 space-y-3 shadow-xl">
-                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-emerald-500/20">
-                        <div className="flex items-center gap-2 text-emerald-300 font-semibold text-xs uppercase tracking-wider">
-                          <Mail className="w-4 h-4 text-emerald-400" />
-                          <span>Friendly Email Draft</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {entry.emailDraft.tone && (
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-200 text-[10px] font-mono">
-                              Tone: {entry.emailDraft.tone}
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const full = `Subject: ${entry.emailDraft?.subject || ''}\nTo: ${entry.emailDraft?.recipient || ''}\n\n${entry.emailDraft?.body || ''}`;
-                              navigator.clipboard.writeText(full);
-                              setIsCopied(true);
-                              setTimeout(() => setIsCopied(false), 2000);
-                            }}
-                            className="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                            title="Copy Full Email"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>Copy Email</span>
-                          </button>
-                        </div>
-                      </div>
+                  {(domain === 'Email Drafting' || Boolean(entry.emailDraft)) && (
+                    (() => {
+                      // Ensure a reliable, well-formed draft object is always available
+                      const rawDraft = entry.emailDraft;
+                      let resolvedSubject = rawDraft?.subject?.trim() || (entry.reflectionSummary ? `Update: ${entry.reflectionSummary.slice(0, 50)}` : `Update: ${entry.rawText.slice(0, 40)}`);
+                      let resolvedRecipient = rawDraft?.recipient?.trim() || '';
+                      let resolvedBody = rawDraft?.body?.trim() || entry.adaptiveResponse?.trim() || entry.rawText?.trim() || '';
+                      let rawTone = rawDraft?.tone?.trim() || 'Professional & Direct';
 
-                      {/* Email Headers */}
-                      <div className="space-y-2 text-xs">
-                        <div className="flex items-center gap-2 metallic-panel p-2.5 rounded-xl">
-                          <span className="font-semibold text-emerald-300 shrink-0">Subject:</span>
-                          <span className="font-medium text-[#f6e7b8] flex-1 select-all text-xs">{entry.emailDraft.subject}</span>
-                        </div>
+                      // If LLM returned the whole draft or description inside 'tone', extract clean tone label and push body into body
+                      let resolvedTone = rawTone;
+                      if (rawTone.length > 50) {
+                        resolvedTone = rawTone.slice(0, 45) + '...';
+                        if (!rawDraft?.body && rawTone.includes('Body')) {
+                          resolvedBody = rawTone;
+                        }
+                      }
 
-                        {entry.emailDraft.recipient && (
-                          <div className="flex items-center gap-2 metallic-panel px-3 py-1.5 rounded-xl text-[11px] text-slate-300">
-                            <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-slate-400">Recipient:</span>
-                            <span className="text-[#f6e7b8] font-medium">{entry.emailDraft.recipient}</span>
+                      const draft = {
+                        subject: resolvedSubject,
+                        recipient: resolvedRecipient,
+                        body: resolvedBody,
+                        tone: resolvedTone
+                      };
+
+                      return (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 30, filter: 'blur(3px)' }}
+                          whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                          viewport={{ once: true, margin: '0px 0px -80px 0px' }}
+                          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+                          className="p-4 sm:p-5 rounded-2xl metallic-card border border-emerald-500/40 space-y-3.5 shadow-xl"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-emerald-500/20">
+                            <div className="flex items-center gap-2 text-emerald-300 font-semibold text-xs uppercase tracking-wider">
+                              <Mail className="w-4 h-4 text-emerald-400" />
+                              <span>EMAIL</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {draft.tone && (
+                                <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-200 text-[10px] font-mono max-w-[280px] sm:max-w-md truncate" title={rawDraft?.tone || draft.tone}>
+                                  Tone: {draft.tone}
+                                </span>
+                              )}
+
+                              {!isEditingEmail ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setIsEditingEmail(true);
+                                      setEditEmailSubject(draft.subject || '');
+                                      setEditEmailRecipient(draft.recipient || '');
+                                      setEditEmailBody(draft.body || '');
+                                    }}
+                                    className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    title="Edit Email"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                    <span>Edit Email</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const full = `Subject: ${draft.subject || ''}\n${draft.recipient ? `To: ${draft.recipient}\n` : ''}\n${draft.body || ''}`;
+                                      navigator.clipboard.writeText(full);
+                                      setIsCopied(true);
+                                      setTimeout(() => setIsCopied(false), 2000);
+                                    }}
+                                    className="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    title="Copy Full Email"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                    <span>{isCopied ? 'Copied!' : 'Copy Email'}</span>
+                                  </button>
+                                </>
+                              ) : (
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    disabled={isSavingEmailEdit}
+                                    onClick={async () => {
+                                      if (!onUpdateEntry) return;
+                                      setIsSavingEmailEdit(true);
+                                      try {
+                                        const updatedDraft = {
+                                          ...draft,
+                                          subject: editEmailSubject.trim() || draft.subject,
+                                          recipient: editEmailRecipient.trim() || draft.recipient,
+                                          body: editEmailBody
+                                        };
+                                        await onUpdateEntry(entry.id, {
+                                          emailDraft: updatedDraft,
+                                          updatedAt: Date.now()
+                                        });
+                                        setIsEditingEmail(false);
+                                      } catch (err) {
+                                        console.error('Failed to save email draft edit:', err);
+                                      } finally {
+                                        setIsSavingEmailEdit(false);
+                                      }
+                                    }}
+                                    className="px-3 py-1 rounded-lg bg-emerald-500 text-black font-bold hover:bg-emerald-400 text-xs flex items-center gap-1 shadow-md transition-all cursor-pointer disabled:opacity-50"
+                                  >
+                                    <Save className="w-3.5 h-3.5" />
+                                    <span>{isSavingEmailEdit ? 'Saving...' : 'Save'}</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsEditingEmail(false)}
+                                    className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-xs transition-colors cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
 
-                      {/* Email Body */}
-                      <div className="p-3.5 sm:p-4 rounded-xl metallic-panel text-[#f6e7b8] font-ai-response text-xs sm:text-sm leading-relaxed whitespace-pre-wrap selection:bg-emerald-500/30">
-                        {entry.emailDraft.body}
-                      </div>
-                    </div>
+                          {/* Email Form / Content */}
+                          {isEditingEmail ? (
+                            <div className="space-y-3 pt-1">
+                              <div className="space-y-1">
+                                <label className="text-[11px] font-semibold text-emerald-300">Subject Line</label>
+                                <input
+                                  type="text"
+                                  value={editEmailSubject}
+                                  onChange={(e) => setEditEmailSubject(e.target.value)}
+                                  className="w-full px-3 py-2 rounded-xl metallic-panel text-white border border-emerald-400/40 text-xs focus:ring-1 focus:ring-emerald-400 focus:outline-none"
+                                  placeholder="Email Subject"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[11px] font-semibold text-white">Recipient</label>
+                                <input
+                                  type="text"
+                                  value={editEmailRecipient}
+                                  onChange={(e) => setEditEmailRecipient(e.target.value)}
+                                  className="w-full px-3 py-2 rounded-xl metallic-panel text-[#f6e7b8] border border-emerald-400/40 text-xs focus:ring-1 focus:ring-emerald-400 focus:outline-none"
+                                  placeholder="e.g. client@company.com"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="text-[11px] font-semibold text-emerald-300">Email Body</label>
+                                <textarea
+                                  rows={8}
+                                  value={editEmailBody}
+                                  onChange={(e) => setEditEmailBody(e.target.value)}
+                                  className="w-full p-3 rounded-xl metallic-panel text-[#f6e7b8] border border-emerald-400/40 text-xs sm:text-sm font-ai-response leading-relaxed focus:ring-1 focus:ring-emerald-400 focus:outline-none resize-y"
+                                  placeholder="Compose or edit email body..."
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              {/* Email Headers */}
+                              <div className="space-y-2 text-xs">
+                                <div className="flex items-center gap-2 metallic-panel p-2.5 rounded-xl">
+                                  <span className="font-semibold text-emerald-300 shrink-0">Subject:</span>
+                                  <span className="font-medium text-[#f6e7b8] flex-1 select-all text-xs">{draft.subject}</span>
+                                </div>
+
+                                {draft.recipient && (
+                                  <div className="flex items-center gap-2 metallic-panel px-3 py-1.5 rounded-xl text-[11px] text-slate-300">
+                                    <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                                    <span className="text-white font-medium">Recipient:</span>
+                                    <span className="text-[#f6e7b8] font-medium">{draft.recipient}</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Email Body */}
+                              <div className="p-3.5 sm:p-4 rounded-xl metallic-panel text-[#f6e7b8] font-ai-response text-xs sm:text-sm leading-relaxed whitespace-pre-wrap selection:bg-emerald-500/30 min-h-[60px]">
+                                {draft.body}
+                              </div>
+                            </>
+                          )}
+                        </motion.div>
+                      );
+                    })()
                   )}
 
                   {/* Coaching Guidance & Comments (Sapphire Blue Background with Gold Text) */}
-                  <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0c2347] via-[#081830] to-[#040e1d] border border-sky-400/35 shadow-[0_10px_32px_rgba(8,24,48,0.55),inset_0_1px_1px_rgba(56,189,248,0.2)] space-y-3">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 35, filter: 'blur(4px)' }}
+                    whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    viewport={{ once: true, margin: '0px 0px -90px 0px', amount: 0.15 }}
+                    transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.12 }}
+                    className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0c2347] via-[#081830] to-[#040e1d] border border-sky-400/35 shadow-[0_10px_32px_rgba(8,24,48,0.55),inset_0_1px_1px_rgba(56,189,248,0.2)] space-y-3"
+                  >
                     <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#f6e7b8]">
                       <div className="w-6 h-6 rounded-lg bg-sky-950/80 border border-sky-400/40 flex items-center justify-center text-[#f6e7b8] shadow-xs">
                         <Compass className="w-3.5 h-3.5 text-[#f6e7b8]" />
@@ -1229,7 +1494,7 @@ export function ReflectionCard({
                       <span>
                         {domain === 'Personal' 
                           ? '💖 Friendly Life & Well-Being Notes' 
-                          : domain === 'Work'
+                          : domain === 'Work' 
                           ? '🚀 AI Feedback & Next Steps'
                           : domain === 'Creative'
                           ? '🎨 Creative Sparks & Insights'
@@ -1239,17 +1504,16 @@ export function ReflectionCard({
                     <div className="font-ai-response text-xs sm:text-sm text-slate-100 leading-relaxed space-y-2.5 pl-3.5 border-l-2 border-[#f6e7b8]/70 selection:bg-amber-400/30 selection:text-white">
                       <StreamingMarkdown content={entry.adaptiveResponse || ''} />
                     </div>
-                  </div>
-
-
+                  </motion.div>
                 </motion.div>
 
                 {/* Element 4: Extracted Action Items Checklist (Next Steps) - ONLY FOR WORK DOMAIN */}
                 {domain === 'Work' && entry.actionItems && entry.actionItems.length > 0 && (
                   <motion.div
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25, delay: 0.16 }}
+                    initial={{ opacity: 0, y: 35, filter: 'blur(4px)' }}
+                    whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    viewport={{ once: true, margin: '0px 0px -90px 0px', amount: 0.15 }}
+                    transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
                     className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0a1e3f] via-[#07162e] to-[#040e1d] border border-sky-400/35 shadow-[0_10px_32px_rgba(8,24,48,0.55),inset_0_1px_1px_rgba(56,189,248,0.2)] space-y-3"
                   >
                     <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#f6e7b8]">
@@ -1307,9 +1571,10 @@ export function ReflectionCard({
 
                 {/* Element 6: Follow-Up Chat Stream with Multi-Turn Conversation & Sentiments Merging */}
                 <motion.div
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: 0.24 }}
+                  initial={{ opacity: 0, y: 35, filter: 'blur(4px)' }}
+                  whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  viewport={{ once: true, margin: '0px 0px -90px 0px', amount: 0.15 }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
                   className="pt-3 border-t border-white/10 space-y-3"
                 >
                   <div className="flex items-center justify-between text-xs text-slate-300">
@@ -1328,7 +1593,13 @@ export function ReflectionCard({
                   </div>
 
                   {/* Integrated Inquisitive Leading Questions Banner */}
-                  <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-[#0c1a2e] via-[#081220] to-[#040812] border border-sky-500/35 space-y-2 shadow-md">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 30, filter: 'blur(3px)' }}
+                    whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    viewport={{ once: true, margin: '0px 0px -80px 0px' }}
+                    transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+                    className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-[#0c1a2e] via-[#081220] to-[#040812] border border-sky-500/35 space-y-2 shadow-md"
+                  >
                     <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-300">
                       <HelpCircle className="w-4 h-4 text-sky-400" />
                       <span>🤔 Inquisitive Leading Questions</span>
@@ -1336,7 +1607,7 @@ export function ReflectionCard({
                     <div className="text-xs sm:text-sm text-sky-100 font-sans leading-relaxed">
                       <StreamingMarkdown content={extractInquisitiveQuestions(entry.adaptiveResponse || '', entry.rawText || '')} />
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Messages Feed */}
                   {entry.messages && entry.messages.length > 0 && (
@@ -1349,34 +1620,64 @@ export function ReflectionCard({
                         return (
                           <div
                             key={msg.id}
-                            className={`p-3.5 rounded-2xl border text-xs space-y-2.5 relative group ${
+                            className={`p-3.5 sm:p-4 rounded-2xl border text-xs space-y-2.5 relative group ${
                               isUser
-                                ? 'metallic-titanium-button text-slate-100 ml-6'
-                                : 'metallic-card text-[#f6e7b8] mr-6'
+                                ? 'metallic-user-chat-bubble ml-auto max-w-[90%] sm:max-w-[80%] md:max-w-[72%] border-amber-600/50 text-[#f6e7b8] shadow-[0_8px_24px_rgba(40,20,8,0.75)]'
+                                : 'metallic-card text-[#f6e7b8] mr-auto max-w-[95%] sm:max-w-[90%]'
                             }`}
                           >
-                            <div className="flex items-center justify-between text-[11px] text-slate-400">
-                              <span className="font-semibold text-[#f6e7b8]">
-                                {isUser ? 'You' : (domain === 'Personal' ? '🌟 MirrorSync Life Cheerleader' : '✨ MirrorSync Partner')}
-                              </span>
+                            {/* Header row with gradient sender title, enlarged profile avatar & crisp separator line */}
+                            <div className={`flex items-center justify-between pb-2 mb-2 ${isUser ? 'border-b border-amber-500/20' : 'border-b border-white/10'}`}>
                               <div className="flex items-center gap-2">
-                                <span className="font-mono text-[10px]">
+                                {isUser ? (
+                                  <>
+                                    {currentUser?.photoURL ? (
+                                      <img
+                                        src={currentUser.photoURL}
+                                        alt={currentUser.displayName || 'You'}
+                                        referrerPolicy="no-referrer"
+                                        className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover border-2 border-amber-300 shadow-md"
+                                      />
+                                    ) : (
+                                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-tr from-amber-600 to-yellow-400 border border-amber-200/60 flex items-center justify-center text-xs shadow-md">
+                                        👤
+                                      </div>
+                                    )}
+                                    <span className="bg-gradient-to-r from-amber-200 via-[#f6e7b8] to-yellow-100 bg-clip-text text-transparent font-extrabold text-xs sm:text-sm tracking-wide">
+                                      You
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <img
+                                      src={logoImg}
+                                      alt="MirrorSync Logo"
+                                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover border-2 border-[#f6e7b8]/80 shadow-md ring-1 ring-sky-400/40"
+                                    />
+                                    <span className="bg-gradient-to-r from-amber-300 via-yellow-100 to-sky-300 bg-clip-text text-transparent font-extrabold text-xs sm:text-sm tracking-wide">
+                                      {domain === 'Personal' ? 'MirrorSync Life Cheerleader' : 'MirrorSync Partner'}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`font-mono text-[10px] sm:text-[11px] ${isUser ? 'text-amber-200/80' : 'text-slate-400'}`}>
                                   {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteMessage(msg.id)}
-                                  className="text-slate-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 cursor-pointer"
+                                  className={`${isUser ? 'text-amber-400/60 hover:text-rose-300' : 'text-slate-500 hover:text-rose-400'} opacity-0 group-hover:opacity-100 transition-opacity p-0.5 cursor-pointer`}
                                   title="Delete Message"
                                 >
-                                  <Trash2 className="w-3 h-3" />
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </div>
 
-                            {/* Message Text with appropriate typography & markdown streaming */}
+                            {/* Message Text with gold text, slightly larger font & refined typography */}
                             {isUser ? (
-                              <div className="leading-relaxed font-neuton text-xs sm:text-sm text-slate-100 whitespace-pre-wrap">
+                              <div className="leading-relaxed font-neuton text-sm sm:text-base text-[#f6e7b8] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] font-medium whitespace-pre-wrap">
                                 {msg.content}
                               </div>
                             ) : (
@@ -1577,7 +1878,7 @@ export function ReflectionCard({
                             ? "Type your answers or thoughts here to converse & merge into your post (Press Ctrl+Enter to send, Enter for next line)..." 
                             : "Ask a question or continue discussing (Press Ctrl+Enter to send, Enter for next line)..."
                         }
-                        className="w-full p-3.5 pr-24 rounded-xl metallic-panel text-xs sm:text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 disabled:opacity-50 transition-all shadow-inner font-sans leading-relaxed resize-y"
+                        className="w-full p-3.5 pr-24 rounded-xl metallic-chat-textarea text-xs sm:text-sm text-slate-100 placeholder-slate-400/80 focus:outline-none disabled:opacity-50 transition-all font-sans leading-relaxed resize-y"
                       />
                       <button
                         type="submit"
@@ -1775,7 +2076,7 @@ export function ReflectionCard({
               onClick={() => setIsExpanded(!isExpanded)}
               className="w-full py-2.5 flex items-center justify-center gap-1.5 text-xs text-slate-400 hover:text-[#f6e7b8] transition-colors border-t border-white/10 cursor-pointer metallic-panel rounded-xl mt-2 font-medium"
             >
-              <span>Collapse to Journal Memo Only</span>
+              <span>{domain === 'Email Drafting' ? 'Collapse to Email Prompt Only' : 'Collapse to Journal Memo Only'}</span>
               <ChevronUp className="w-3.5 h-3.5 text-[#f6e7b8]" />
             </motion.button>
           </div>

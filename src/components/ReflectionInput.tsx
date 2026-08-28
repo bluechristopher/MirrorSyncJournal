@@ -279,15 +279,15 @@ export function ReflectionInput({
   const isEmailCategoryTab = selectedCategory === 'Email Drafting';
 
   return (
-    <div className="relative rounded-2xl metallic-card p-5 sm:p-7 space-y-4 shadow-2xl transition-all duration-300">
+    <div className="relative rounded-xl sm:rounded-2xl metallic-card p-3.5 sm:p-7 space-y-3 sm:space-y-4 shadow-2xl transition-all duration-300">
       {/* Mode Switcher: Only display switcher if NOT already inside the dedicated Email Drafting category tab */}
       {!isEmailCategoryTab && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pb-3 border-b border-white/10">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-2.5 pb-2.5 sm:pb-3 border-b border-white/10">
           <div className="grid grid-cols-2 sm:flex items-center gap-1.5 p-1 rounded-xl metallic-panel border border-white/10">
             <button
               type="button"
               onClick={() => setMode('journal')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 mode === 'journal'
                   ? 'metallic-gold-button text-[#070d1e] shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
@@ -300,7 +300,7 @@ export function ReflectionInput({
             <button
               type="button"
               onClick={() => setMode('email')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 mode === 'email'
                   ? 'bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 text-slate-950 shadow-[0_0_12px_rgba(52,211,153,0.3)]'
                   : 'text-slate-400 hover:text-emerald-300'
@@ -314,7 +314,7 @@ export function ReflectionInput({
           <button
             type="button"
             onClick={onOpenPersonaModal}
-            className="text-[#f6e7b8] hover:brightness-110 text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-lg metallic-gold-panel self-end sm:self-auto"
+            className="text-[#f6e7b8] hover:brightness-110 text-[11px] sm:text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer px-2.5 py-1 sm:py-1.5 rounded-lg metallic-gold-panel self-end sm:self-auto"
           >
             <span>Calibrate Lens</span>
             <ArrowUpRight className="w-3 h-3 text-[#f6e7b8]" />
@@ -453,7 +453,7 @@ export function ReflectionInput({
           </div>
 
           {/* Input Form */}
-          <form onSubmit={handleSaveAndReflect} className="space-y-4">
+          <form onSubmit={handleSaveAndReflect} className="space-y-3 sm:space-y-4">
             <div className="relative">
               <textarea
                 id="reflection-textarea"
@@ -464,26 +464,26 @@ export function ReflectionInput({
                   if (localError) setLocalError(null);
                 }}
                 placeholder={`Log your daily stream of consciousness, personal well-being, creative breakthrough, or operational thoughts...\nYour entry is preserved safely first, with friendly & uplifting coaching generated in the background! ✨`}
-                className="w-full metallic-silver-textarea text-slate-100 placeholder-slate-400/75 font-sans text-sm sm:text-base rounded-xl p-4 sm:p-5 pb-14 sm:pb-12 transition-all resize-y min-h-[130px] leading-relaxed"
+                className="w-full metallic-silver-textarea text-slate-100 placeholder-slate-400/75 font-sans text-xs sm:text-base rounded-xl p-3.5 sm:p-5 pb-13 sm:pb-12 transition-all resize-y min-h-[120px] sm:min-h-[130px] leading-relaxed"
               />
 
               {/* Action buttons inside textarea area */}
-              <div className="absolute bottom-3 right-3 sm:bottom-3.5 sm:right-3.5 flex items-center gap-2">
+              <div className="absolute bottom-2.5 right-2.5 sm:bottom-3.5 sm:right-3.5 flex items-center gap-1.5 sm:gap-2">
                 {/* Location Pin Button - Attach Location */}
                 <button
                   type="button"
                   id="location-picker-btn"
                   onClick={() => setIsLocationModalOpen(true)}
                   title={locationPin ? `Attached: ${locationPin.name}` : 'Attach Location'}
-                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm ${
                     locationPin
                       ? 'metallic-gold-panel text-[#f6e7b8] shadow-[0_0_12px_rgba(246,231,184,0.2)]'
                       : 'metallic-panel text-slate-300 hover:text-[#f6e7b8]'
                   }`}
                 >
-                  <MapPin className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                  <span className="text-[11px] font-medium">
-                    {locationPin ? locationPin.name.slice(0, 15) : '📍 Location'}
+                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#f6e7b8]" />
+                  <span className="text-[10px] sm:text-[11px] font-medium">
+                    {locationPin ? locationPin.name.slice(0, 12) : '📍 Location'}
                   </span>
                 </button>
 
@@ -493,14 +493,14 @@ export function ReflectionInput({
                   id="voice-dictation-btn"
                   onClick={handleToggleVoice}
                   title={isListening ? 'Stop Dictation' : 'Voice Dictation'}
-                  className={`p-2 sm:px-2.5 sm:py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                  className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm ${
                     isListening
                       ? 'bg-rose-500 text-white animate-pulse'
                       : 'metallic-panel text-slate-300 hover:text-white'
                   }`}
                 >
-                  {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                  <span className="text-[11px] hidden sm:inline">{isListening ? 'Listening...' : 'Voice'}</span>
+                  {isListening ? <MicOff className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <Mic className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+                  <span className="text-[10px] sm:text-[11px] hidden sm:inline">{isListening ? 'Listening...' : 'Voice'}</span>
                 </button>
               </div>
             </div>

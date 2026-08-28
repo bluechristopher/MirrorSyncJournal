@@ -203,37 +203,37 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
   };
 
   return (
-    <div className={`p-4 rounded-2xl metallic-card border border-[#f6e7b8]/30 space-y-3.5 shadow-2xl bg-black/60 ${className}`}>
+    <div className={`p-4 rounded-2xl bg-gradient-to-br from-[#1a0b2e]/95 via-[#120520]/98 to-[#250d3d]/95 border border-purple-400/45 space-y-3.5 shadow-2xl backdrop-blur-xl ${className}`}>
       {/* Header bar: Title, Audio Visualizer & Close */}
-      <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/10">
+      <div className="flex items-center justify-between gap-3 pb-2 border-b border-purple-500/20">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#f6e7b8]/15 border border-[#f6e7b8]/30 flex items-center justify-center text-[#f6e7b8] shadow-sm">
-            <Headphones className="w-4 h-4" />
+          <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-200 shadow-sm">
+            <Headphones className="w-4 h-4 text-purple-300" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-xs text-[#f6e7b8] uppercase tracking-wider">
+              <span className="font-semibold text-xs text-purple-200 uppercase tracking-wider">
                 Voice Audio Reader
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30">
-                Natural TTS
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-200 font-mono border border-purple-400/30">
+                Natural Voice
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-purple-200/70">
               Listen to your thoughts, reflection summary, and AI coaching.
             </p>
           </div>
         </div>
 
         {/* Dynamic Animated Soundwave Bars when active */}
-        <div className="flex items-center gap-1 h-5 px-2 py-1 rounded-lg bg-black/40 border border-white/10">
+        <div className="flex items-center gap-1 h-5 px-2 py-1 rounded-lg bg-black/50 border border-purple-500/30">
           {[0.4, 0.9, 0.6, 1.0, 0.7, 0.5, 0.8].map((height, i) => (
             <span
               key={i}
               className={`w-1 rounded-full transition-all duration-200 ${
                 isPlaying
-                  ? 'bg-[#f6e7b8] animate-pulse'
-                  : 'bg-slate-600'
+                  ? 'bg-purple-400 animate-pulse shadow-[0_0_6px_#c084fc]'
+                  : 'bg-purple-900/60'
               }`}
               style={{
                 height: isPlaying ? `${Math.max(4, height * 18)}px` : '4px',
@@ -246,14 +246,14 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
 
       {/* Scope Selector: Full Reflection vs Journal Only vs Coaching Only */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-1 p-1 rounded-xl metallic-panel border border-white/10">
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-black/40 border border-purple-500/25">
           <button
             type="button"
             onClick={() => handleScopeChange('full')}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
               readScope === 'full'
-                ? 'metallic-gold-button text-[#070d1e] font-semibold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-purple-600/80 text-white font-semibold border border-purple-400/60 shadow-xs'
+                : 'text-purple-200/70 hover:text-white'
             }`}
           >
             Full Reflection
@@ -263,8 +263,8 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
             onClick={() => handleScopeChange('journal')}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
               readScope === 'journal'
-                ? 'metallic-gold-button text-[#070d1e] font-semibold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-purple-600/80 text-white font-semibold border border-purple-400/60 shadow-xs'
+                : 'text-purple-200/70 hover:text-white'
             }`}
           >
             Journal Only
@@ -275,8 +275,8 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
               onClick={() => handleScopeChange('coaching')}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
                 readScope === 'coaching'
-                  ? 'metallic-gold-button text-[#070d1e] font-semibold'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-purple-600/80 text-white font-semibold border border-purple-400/60 shadow-xs'
+                  : 'text-purple-200/70 hover:text-white'
               }`}
             >
               Coaching Only
@@ -286,8 +286,8 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
 
         {/* Speed Selection */}
         <div className="flex items-center gap-1 text-[11px] text-slate-300">
-          <Gauge className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-slate-400">Speed:</span>
+          <Gauge className="w-3.5 h-3.5 text-purple-300" />
+          <span className="text-purple-200/80">Speed:</span>
           {[0.9, 1.0, 1.25, 1.5].map((speed) => (
             <button
               key={speed}
@@ -295,8 +295,8 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
               onClick={() => handleChangeSpeed(speed)}
               className={`px-2 py-0.5 rounded-md text-[11px] font-mono transition-colors cursor-pointer ${
                 playbackSpeed === speed
-                  ? 'bg-[#f6e7b8]/20 border border-[#f6e7b8]/40 text-[#f6e7b8] font-bold'
-                  : 'text-slate-400 hover:text-white bg-white/5'
+                  ? 'bg-purple-500/30 border border-purple-400/50 text-purple-100 font-bold'
+                  : 'text-purple-200/60 hover:text-white bg-white/5'
               }`}
             >
               {speed}x
@@ -307,13 +307,13 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
 
       {/* Progress Bar & Word Teleprompter */}
       <div className="space-y-1.5 pt-1">
-        <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+        <div className="w-full bg-black/40 rounded-full h-1.5 overflow-hidden border border-purple-500/20">
           <div
-            className="bg-gradient-to-r from-amber-400 via-[#f6e7b8] to-emerald-400 h-1.5 transition-all duration-150 rounded-full"
+            className="bg-gradient-to-r from-purple-500 via-[#c084fc] to-pink-400 h-1.5 transition-all duration-150 rounded-full shadow-[0_0_8px_#c084fc]"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+        <div className="flex items-center justify-between text-[10px] text-purple-200/70 font-mono">
           <span className="truncate max-w-[200px]">
             {isPlaying && currentSpokenWord ? `Reading: "${currentSpokenWord}"` : isPaused ? 'Paused' : 'Ready to listen'}
           </span>
@@ -329,18 +329,18 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
             <button
               type="button"
               onClick={handlePlay}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#f6e7b8] via-[#e5d298] to-[#f6e7b8] text-[#070d1e] font-semibold text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(246,231,184,0.3)] hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl metallic-purple-button text-white font-bold text-xs flex items-center gap-2 shadow-[0_0_16px_rgba(192,132,252,0.4)] hover:brightness-115 active:scale-95 transition-all cursor-pointer"
             >
-              <Play className="w-4 h-4 fill-[#070d1e]" />
+              <Play className="w-4 h-4 fill-white" />
               <span>{isPaused ? 'Resume Playback' : 'Play Narration'}</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={handlePause}
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.3)] active:scale-95 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-2 shadow-[0_0_16px_rgba(192,132,252,0.4)] active:scale-95 transition-all cursor-pointer"
             >
-              <Pause className="w-4 h-4 fill-slate-950" />
+              <Pause className="w-4 h-4 fill-white" />
               <span>Pause</span>
             </button>
           )}
@@ -349,7 +349,7 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
             type="button"
             onClick={handleStop}
             disabled={!isPlaying && !isPaused && progressPercent === 0}
-            className="p-2 rounded-xl metallic-titanium-button text-slate-300 hover:text-white disabled:opacity-40 transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-black/40 text-purple-200 hover:text-white border border-purple-500/30 hover:border-purple-400 disabled:opacity-40 transition-colors cursor-pointer"
             title="Stop & Reset"
           >
             <Square className="w-3.5 h-3.5" />
@@ -361,7 +361,7 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
               handleStop();
               handlePlay();
             }}
-            className="p-2 rounded-xl metallic-titanium-button text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-black/40 text-purple-200 hover:text-white border border-purple-500/30 hover:border-purple-400 transition-colors cursor-pointer"
             title="Replay from Beginning"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -371,7 +371,7 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
             type="button"
             onClick={() => setIsMuted(!isMuted)}
             className={`p-2 rounded-xl transition-colors cursor-pointer ${
-              isMuted ? 'bg-rose-500/20 text-rose-300' : 'metallic-titanium-button text-slate-300 hover:text-white'
+              isMuted ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-black/40 text-purple-200 hover:text-white border border-purple-500/30 hover:border-purple-400'
             }`}
             title={isMuted ? 'Unmute' : 'Mute'}
           >
@@ -385,12 +385,12 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
             <select
               value={selectedVoiceURI}
               onChange={(e) => setSelectedVoiceURI(e.target.value)}
-              className="metallic-panel text-[11px] text-slate-200 rounded-xl px-2.5 py-1.5 border border-white/10 focus:outline-none focus:border-[#f6e7b8] max-w-[160px] truncate"
+              className="bg-[#120722] text-[11px] text-purple-200 rounded-xl px-2.5 py-1.5 border border-purple-500/30 focus:outline-none focus:border-purple-400 max-w-[160px] truncate"
             >
               {voices
                 .filter((v) => v.lang.startsWith('en'))
                 .map((v) => (
-                  <option key={v.voiceURI} value={v.voiceURI} className="bg-slate-900 text-slate-200">
+                  <option key={v.voiceURI} value={v.voiceURI} className="bg-[#0e041d] text-purple-200">
                     {v.name} ({v.lang})
                   </option>
                 ))}

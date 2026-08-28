@@ -52,7 +52,7 @@ import {
 import { reflectEntryAPI, clusterTopicsAPI } from './services/api';
 import { generateLocalSemanticTopics, classifyContentDomain } from './utils/topicClustering';
 import type { UserPersona, JournalEntry, DomainCategory, LocationPin, DynamicTopicCategory } from './types';
-import { Sparkles, Shield, Compass, BrainCircuit, AlertCircle, CheckCircle2, RotateCw, Copy, Check, X, BookOpen, Cloud, UserCheck, Trash2, PenTool } from 'lucide-react';
+import { Sparkles, Shield, Compass, BrainCircuit, AlertCircle, CheckCircle2, RotateCw, Copy, Check, X, BookOpen, List, Cloud, UserCheck, Trash2, PenTool } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const DEFAULT_PERSONA: UserPersona = {
@@ -345,6 +345,7 @@ export default function App() {
   const [isThreatModalOpen, setIsThreatModalOpen] = useState(false);
   const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false);
   const [isConfirmingClearAll, setIsConfirmingClearAll] = useState(false);
+  const [isLoginWelcomeOpen, setIsLoginWelcomeOpen] = useState(false);
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState<boolean>(() => {
     try {
       const hasChosen = localStorage.getItem('mirrorsync_welcome_chosen');
@@ -360,6 +361,8 @@ export default function App() {
     } catch {}
     setIsWelcomeModalOpen(false);
     showToast('✨ Welcome to MirrorSync! Exploring in Demo Mode.');
+    // Trigger fresh re-cluster for guest entries
+    triggerFullRecluster(entries);
   };
 
   const handleWelcomeSignInGoogle = async () => {
@@ -368,6 +371,14 @@ export default function App() {
     } catch {}
     setIsWelcomeModalOpen(false);
     await handleSignInGoogle();
+  };
+
+  // Re-cluster all domains helper
+  const triggerFullRecluster = (currentEntries: JournalEntry[]) => {
+    const ALL_DOMAINS: ('All' | DomainCategory)[] = ['All', 'Personal', 'Work', 'Creative', 'Email Drafting'];
+    for (const cat of ALL_DOMAINS) {
+      reclusterCategoryTopics(cat, currentEntries, false);
+    }
   };
 
   const handleClearAllPosts = async () => {
@@ -408,13 +419,31 @@ export default function App() {
     }
   }, [entries, user]);
 
+  // Ref to track if auth state is the first background mount or an active user sign-in
+  const hasInitializedAuthRef = useRef(false);
+  const previousUserUidRef = useRef<string | null>(null);
+
   // Firebase Auth State Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      const isFirstCheck = !hasInitializedAuthRef.current;
+      hasInitializedAuthRef.current = true;
+      const prevUid = previousUserUidRef.current;
+      previousUserUidRef.current = currentUser ? currentUser.uid : null;
+
       setUser(currentUser);
+
       if (currentUser) {
         try {
           await currentUser.getIdToken();
+
+          // Only trigger 3-second welcome popup if this is an explicit new login transition (not background page refresh)
+          if (!isFirstCheck && prevUid !== currentUser.uid) {
+            setIsLoginWelcomeOpen(true);
+            setTimeout(() => {
+              setIsLoginWelcomeOpen(false);
+            }, 3000);
+          }
 
           // 1. Fetch or initialize user persona in Firestore
           const userDoc = await getUserPersona(currentUser.uid);
@@ -477,19 +506,19 @@ export default function App() {
         }
       } else {
         // Switched to guest mode: restore local guest vault
+        let guestEntriesToLoad = SEED_ENTRIES;
         try {
           const saved = localStorage.getItem(GUEST_STORAGE_KEY);
           if (saved) {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setEntries(parsed);
-              return;
+              guestEntriesToLoad = parsed;
             }
           }
         } catch (e) {
           console.warn('Guest vault parse error:', e);
         }
-        setEntries(SEED_ENTRIES);
+        setEntries(guestEntriesToLoad);
       }
     });
 
@@ -635,31 +664,12 @@ export default function App() {
       return;
     }
 
-    if (selectedCategory === targetCategory && showNotification) {
+    if (selectedCategory === targetCategory) {
       setIsLoadingTopics(true);
     }
 
-    // 1. Generate local semantic clusters
-    const localTopics = generateLocalSemanticTopics(domainEntries, targetCategory);
-    if (selectedCategory === targetCategory && !showNotification) {
-      setDynamicTopics(localTopics);
-    }
-
-    setCachedClusters((prev) => {
-      const updated = { ...prev, [targetCategory]: localTopics };
-      try {
-        localStorage.setItem(TOPIC_CLUSTERS_CACHE_KEY, JSON.stringify(updated));
-      } catch (e) {
-        console.warn('Topic cluster cache storage warning:', e);
-      }
-      return updated;
-    });
-
-    // 2. Run AI topic clustering asynchronously
+    // Run AI topic clustering asynchronously without flashing local default dummy topics
     try {
-      if (selectedCategory === targetCategory) {
-        setIsLoadingTopics(true);
-      }
       const { topics } = await clusterTopicsAPI(
         domainEntries.map((e) => ({
           id: e.id,
@@ -812,7 +822,8 @@ export default function App() {
       prev.map((entry) => (entry.id === entryId ? { ...entry, ...updates } : entry))
     );
 
-    if (user) {
+    // Only persist to Firestore if the user is authenticated and this is a real user document (not a static seed demo post)
+    if (user && !entryId.startsWith('seed-')) {
       try {
         await updateJournalEntry(user.uid, entryId, updates);
       } catch (err) {
@@ -911,7 +922,7 @@ export default function App() {
     setSelectedTopicId(null);
   };
 
-  // Load saved dynamic topics for selectedCategory from persistent cache without re-reading or querying AI
+  // Load saved dynamic topics for selectedCategory from persistent cache without showing default dummy topics
   useEffect(() => {
     const domainEntries = entries.filter(
       (e) => selectedCategory === 'All' || e.category?.domain === selectedCategory
@@ -923,7 +934,7 @@ export default function App() {
       return;
     }
 
-    // 1. Check if saved clusters already exist in cache for this category
+    // 1. Check if AI clusters already exist in cache for this category
     const savedForCategory = cachedClusters[selectedCategory];
     if (savedForCategory && savedForCategory.length > 0) {
       // Sync entry IDs with active entries in case entries were modified/deleted
@@ -941,51 +952,32 @@ export default function App() {
       }
     }
 
-    // 2. If no saved clusters exist yet, compute local semantic topics and save them
-    const initialTopics = generateLocalSemanticTopics(domainEntries, selectedCategory);
-    setDynamicTopics(initialTopics);
-    setCachedClusters((prev) => {
-      const updated = { ...prev, [selectedCategory]: initialTopics };
-      try {
-        localStorage.setItem(TOPIC_CLUSTERS_CACHE_KEY, JSON.stringify(updated));
-      } catch (e) {
-        console.warn('Topic cache write error:', e);
-      }
-      return updated;
-    });
+    // 2. If no AI clusters exist yet, keep dynamicTopics empty and fetch AI clusters directly (do NOT generate default dummy topics)
+    setDynamicTopics([]);
   }, [selectedCategory, cachedClusters, entries]);
 
-  // First Visit Initializer: automatically cluster all categories on first load and cache them
-  const initialClusteringRanRef = useRef(false);
+  // Session First-Visit Initializer: clusters on brand-new first visit, persists through session refreshes
+  const SESSION_CLUSTERED_KEY = 'mirrorsync_session_clustered_v1';
   useEffect(() => {
     if (entries.length === 0) return;
-    if (initialClusteringRanRef.current) return;
-    initialClusteringRanRef.current = true;
+    
+    // Check if initial clustering already executed for this browser session
+    try {
+      const alreadyClusteredInSession = sessionStorage.getItem(SESSION_CLUSTERED_KEY);
+      if (alreadyClusteredInSession) {
+        // Page was refreshed within the same session: do not re-run full clustering queries
+        return;
+      }
+      sessionStorage.setItem(SESSION_CLUSTERED_KEY, 'true');
+    } catch {
+      // If sessionStorage unavailable, run once per component lifecycle
+      if (initialClusteringRanRef.current) return;
+      initialClusteringRanRef.current = true;
+    }
 
     const ALL_CATEGORY_KEYS: ('All' | DomainCategory)[] = ['All', 'Personal', 'Work', 'Creative', 'Email Drafting'];
 
-    // 1. Prepopulate local semantic clusters for all categories immediately
-    setCachedClusters((prev) => {
-      const updated = { ...prev };
-      let changed = false;
-      for (const cat of ALL_CATEGORY_KEYS) {
-        const catEntries = entries.filter((e) => cat === 'All' || e.category?.domain === cat);
-        if (catEntries.length > 0 && (!updated[cat] || updated[cat].length === 0)) {
-          updated[cat] = generateLocalSemanticTopics(catEntries, cat);
-          changed = true;
-        }
-      }
-      if (changed) {
-        try {
-          localStorage.setItem(TOPIC_CLUSTERS_CACHE_KEY, JSON.stringify(updated));
-        } catch (e) {
-          console.warn('Initial topic cache write warning:', e);
-        }
-      }
-      return updated;
-    });
-
-    // 2. Query initial AI topic clustering for all categories sequentially in background
+    // Query dynamic AI topic clustering for all categories on first session visit
     const initAllClusters = async () => {
       for (const cat of ALL_CATEGORY_KEYS) {
         const catEntries = entries.filter((e) => cat === 'All' || e.category?.domain === cat);
@@ -1018,7 +1010,7 @@ export default function App() {
               return updated;
             });
 
-            // If user is viewing this category, update dynamic topics in real-time
+            // If user is viewing this category, update dynamic topics immediately
             if (selectedCategory === cat) {
               setDynamicTopics(topics);
             }
@@ -1091,6 +1083,7 @@ export default function App() {
         onSignOut={handleSignOut}
         onClearAllPosts={() => setIsConfirmingClearAll(true)}
         totalEntriesCount={entries.length}
+        searchMatchCount={filteredEntries.length}
         isSigningIn={isSigningIn}
         isHistoryOpen={isHistorySidebarOpen}
         onToggleHistorySidebar={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
@@ -1178,11 +1171,13 @@ export default function App() {
           </div>
         )}
 
-        {/* Category Header Banner */}
-        <CategoryHeaderBanner
-          category={selectedCategory}
-          totalCount={filteredEntries.length}
-        />
+        {/* Category Header Banner (Suppressed for Email Drafting) */}
+        {selectedCategory !== 'Email Drafting' && (
+          <CategoryHeaderBanner
+            category={selectedCategory}
+            totalCount={filteredEntries.length}
+          />
+        )}
 
         {/* Dynamic AI Topic Category Cards (shown for domain category / entries) */}
         {domainEntries.length > 0 && (
@@ -1242,20 +1237,55 @@ export default function App() {
               onToggleViewMode={setViewMode}
               isGuest={!user}
               onSignInGoogle={handleSignInGoogle}
+              currentUser={user}
             />
           ) : (
             <div className="space-y-5">
-              <div className="flex items-center justify-between px-1 pb-1 border-b border-white/10 text-xs text-slate-400">
-                <span className="font-bold text-[#f6e7b8] uppercase tracking-wider">
-                  📜 Timeline Feed ({filteredEntries.length})
+              <div className="flex flex-wrap items-center justify-between gap-3 px-1 pb-2 border-b border-amber-900/30 text-xs">
+                <span className="font-bold text-[#f6e7b8] uppercase tracking-wider flex items-center gap-2">
+                  <span>📜</span>
+                  <span>Timeline Feed ({filteredEntries.length})</span>
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('book')}
-                  className="text-xs text-amber-300 hover:text-white font-semibold flex items-center gap-1 underline cursor-pointer"
-                >
-                  Switch to 📖 Book View
-                </button>
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center p-1 rounded-xl metallic-panel shadow-inner gap-1 border border-white/15">
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('book')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        viewMode === 'book'
+                          ? 'metallic-gold-panel text-[#f6e7b8] border-[#f6e7b8]/60 shadow-[0_0_12px_rgba(246,231,184,0.25)]'
+                          : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      }`}
+                      title="Single Page Book Journal Mode"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>Book View</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('feed')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        viewMode === 'feed'
+                          ? 'metallic-gold-panel text-[#f6e7b8] border-[#f6e7b8]/60 shadow-[0_0_12px_rgba(246,231,184,0.25)]'
+                          : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      }`}
+                      title="Vertical Scroll Feed Mode"
+                    >
+                      <List className="w-3.5 h-3.5" />
+                      <span>Feed View</span>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleScrollToComposer}
+                    className="px-3.5 py-2 rounded-xl metallic-sapphire-button font-bold text-xs flex items-center gap-1.5 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-md"
+                  >
+                    <span className="animate-star-emoji text-sm leading-none">✨</span>
+                    <span>New Post</span>
+                  </button>
+                </div>
               </div>
               <div className="space-y-6">
                 {filteredEntries.map((entry, idx) => (
@@ -1271,6 +1301,7 @@ export default function App() {
                       persona={persona}
                       isFocused={entry.id === activeEntryId}
                       isGuest={!user}
+                      currentUser={user}
                       onSignInGoogle={handleSignInGoogle}
                       onToggleActionItem={handleToggleActionItem}
                       onToggleBookmark={handleToggleBookmark}
@@ -1401,6 +1432,50 @@ export default function App() {
         onContinueGuest={handleWelcomeContinueGuest}
         isSigningIn={isSigningIn}
       />
+
+      {/* Momentary 3-Second Successful Login Welcome Popup (Bottom-Left Corner) */}
+      {isLoginWelcomeOpen && user && (
+        <div className="fixed bottom-5 left-5 sm:bottom-6 sm:left-6 z-50 pointer-events-none">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20, x: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15, x: -10 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="w-80 sm:w-96 p-4 rounded-2xl bg-gradient-to-br from-[#022116]/98 via-[#063323]/98 to-[#01140d]/98 border border-emerald-400/80 shadow-[0_20px_50px_rgba(0,0,0,0.92),0_0_30px_rgba(52,211,153,0.35)] backdrop-blur-2xl flex items-center gap-3.5 pointer-events-auto"
+          >
+            <div className="relative shrink-0 w-11 h-11 rounded-xl p-0.5 bg-gradient-to-tr from-emerald-400 to-[#f6e7b8] shadow-md shadow-emerald-950/80">
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full rounded-[10px] object-cover"
+                />
+              ) : (
+                <div className="w-full h-full rounded-[10px] bg-emerald-900 flex items-center justify-center text-base text-emerald-200 font-bold">
+                  {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border border-emerald-950 flex items-center justify-center text-[8px] text-emerald-950 font-bold">
+                ✓
+              </span>
+            </div>
+
+            <div className="space-y-0.5 min-w-0 flex-1 text-left">
+              <div className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[9.5px] font-mono font-semibold">
+                <Sparkles className="w-2.5 h-2.5 text-emerald-400" />
+                <span>Logged In Successfully</span>
+              </div>
+              <h3 className="text-xs sm:text-sm font-extrabold text-white font-sans tracking-tight truncate">
+                Welcome, {user.displayName || 'Friend'}!
+              </h3>
+              <p className="text-[11px] text-slate-300 truncate">
+                Private Cloud Vault & AI Banners active.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Clear All Posts Confirmation Modal */}
       {isConfirmingClearAll && (

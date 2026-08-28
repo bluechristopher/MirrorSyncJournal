@@ -40,6 +40,33 @@ const MODEL_FALLBACK_LADDER = [
   'gemini-2.5-flash-lite'
 ];
 
+/**
+ * Universal text sanitizer:
+ * 1. Collapses runaway repeated emojis (e.g. ✨🌟🚀💛🎉🥳...)
+ * 2. Detects and cuts off degenerate looping repetitions (repeating phrase/word loops).
+ */
+function sanitizeRunawayContent(text: string): string {
+  if (!text || typeof text !== 'string') return '';
+
+  // 1. Emoji runaway cleaner
+  const emojiRegex = /([\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA70}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}][\s]*){3,}/gu;
+  let cleaned = text.replace(emojiRegex, (match) => {
+    const trimmed = match.trim();
+    return trimmed.length > 0 ? Array.from(trimmed)[0] + ' ' : '';
+  });
+
+  // 2. Loop & Degeneration cleaner:
+  // Detect phrases (3 to 60 characters) that repeat consecutively 3 or more times
+  const phraseRepeatRegex = /((?:[^\n\r]{3,60}?))\s*(?:\1\s*){2,}/gi;
+  cleaned = cleaned.replace(phraseRepeatRegex, '$1');
+
+  // Detect word loops (e.g. "insights insights insights" or "next steps next steps")
+  const wordRepeatRegex = /\b(\w{2,25}(?:\s+\w{2,25}){0,4})\s+(?:\1\s+){2,}/gi;
+  cleaned = cleaned.replace(wordRepeatRegex, '$1 ');
+
+  return cleaned.trim();
+}
+
 interface FallbackExecutionResult<T> {
   data: T;
   modelUsed: string;
@@ -757,13 +784,9 @@ Remove stiff, cold, or robotic corporate phrasing. Communicate with high energy,
 SENTIMENT ANALYSIS & EMOTIONAL CALIBRATION:
 Carefully analyze the user's emotional sentiments, tone, and underlying feelings from their entry:
 - Identify their core emotional state (e.g. "Joyful & Energetic" 🌟, "Proud & Victorious" 🎉, "Peaceful & Mindful" 🌱, "Curious & Inspired" 💡, "Stressed & Overwhelmed" 💛, "Tired & Seeking Rest" 🌙, "Determined & Ambitious" 🚀).
-- Always maintain an uplifting, positive, and encouraging spirit!
-- If the user is feeling excited, proud, or happy: Match and elevate their excitement with celebratory energy and joyful emojis (🎉, 🚀, 🌟, ✨, 🥳, 🔥)!
-- If the user is feeling stressed, tired, or overwhelmed: Meet them with deep compassionate warmth, validating their effort, and providing an uplifting, reassuring boost of comfort, hope, and gentle encouragement (💛, 🌱, 💫, 💪, ✨).
-
-EMOJIS & VIBRANT TONE:
-- Infuse suitable and lively emojis throughout your feedback, summary, and notes (e.g., ✨, 🌟, 🚀, 💛, 🎉, 🥳, 🌱, 💡, 🔥, 👏, 🌈)!
-- Make the tone enthusiastic, friendly, inspiring, and engaging!
+EMOJIS & TONE GUIDELINES:
+- Maintain an encouraging, warm, and engaging tone.
+- CRITICAL EMOJI CONSTRAINT: Use emojis sparingly and tastefully (at most 1 or 2 relevant emojis per paragraph/section). NEVER generate long repetitive strings, repeated clusters, or trailing chains of emojis (e.g. NEVER output "✨🌟🚀💛🎉🥳🌱💡🔥👏" or continuous rows of emojis). Keep text clean, readable, and professional.
 
 DOMAIN FOCUS & CLASSIFICATION RULES:
 ${hasExplicitDomain ? `The user has explicitly assigned this entry to the "${preferredDomain}" category. You MUST set the "domain" field to "${preferredDomain}".` : `Analyze the journal entry contents and automatically classify it into the most accurate domain. DO NOT default or assume it is Work unless the entry is explicitly about professional work, coding, company projects, or corporate deliverables:
@@ -942,17 +965,17 @@ ${rawText.replace(/"/g, '\\"')}
     const bannerPrompt = rawData.editorialArtPrompt || rawText;
     const bannerImageUrl = await generatePhotorealisticBanner(bannerPrompt, rawData.domain || 'Work', rawText);
 
-    const rawFirstLine = rawText.split('\n')[0].replace(/^[#*>\s]+/, '').trim();
-    const fallbackTitle = rawFirstLine.length > 55 ? rawFirstLine.slice(0, 55).trim() + '...' : rawFirstLine || 'Journal Reflection';
+    const cleanSummary = sanitizeRunawayContent(rawData.summary || rawData.reflectionSummary || '');
+    const cleanCoaching = sanitizeRunawayContent(rawData.coaching || rawData.adaptiveResponse || '');
 
     const enrichedReflection = {
       title: rawData.title || fallbackTitle,
       domain: rawData.domain || 'Work',
-      summary: rawData.summary || rawData.reflectionSummary || '',
-      coaching: rawData.coaching || rawData.adaptiveResponse || '',
+      summary: cleanSummary,
+      coaching: cleanCoaching,
       // Backward compatibility bindings
-      reflectionSummary: rawData.summary || rawData.reflectionSummary || '',
-      adaptiveResponse: rawData.coaching || rawData.adaptiveResponse || '',
+      reflectionSummary: cleanSummary,
+      adaptiveResponse: cleanCoaching,
       category: {
         domain: rawData.domain || 'Work',
         primaryTag: rawData.category?.primaryTag || rawData.category?.projectTags?.[0] || (rawData.domain === 'Email Drafting' ? 'EmailDraft' : 'General'),
@@ -1078,7 +1101,11 @@ When the user shares sentiments or thoughts in regular chat:
 
     const systemInstruction = `You are MirrorSync's Interactive Cognitive Companion.
 You are continuing a multi-turn dialogue with the user about their journal entry or email draft.
-Communicate with vibrant energy, authentic excitement, uplifting cheer, deep emotional intelligence, and suitable emojis (✨, 🌟, 🚀, 💛, 🎉, 🥳, 🌱, 💡, 🔥, 👏)!
+Communicate with thoughtful warmth, insightful clarity, and emotional intelligence.
+
+EMOJI USAGE RULES:
+- Use emojis sparingly and tastefully (at most 1 emoji per response or section).
+- STRICT RULE: NEVER output long repeating chains, continuous sequences, or trailing clusters of emojis (e.g. NEVER output "✨🌟🚀💛🎉🥳🌱💡🔥👏"). Keep all responses clean, focused, and readable.
 
 ACTIVE DOMAIN & TONE:
 ${toneGuide}
@@ -1089,7 +1116,7 @@ Coaching Tone: ${persona?.coachingTone || 'Productivity Partner'}
 Communication Style: ${persona?.communicationStyle || 'encouraging & clear'}
 
 ACTION CHIP & MERGING SPECIFICS:
-- Always use energetic, positive, and friendly phrasing with appropriate emojis!
+- Always use positive, clear, and friendly phrasing.
 - When actionType is "propose_update":
   You are enriching the user's journal entry by meaningfully integrating all thoughts, sentiments, emotions, context, and ideas from the conversation into the original post:
   * "mergedRawText": Write a rich, immersive, expanded first-person journal entry (2 to 4 detailed paragraphs). Seamlessly weave together the original text with the new sentiments, feelings, and details shared in the conversation. Write it completely from the user's first-person perspective ("I", "my") as an authentic, expressive reflective journal entry. NEVER output raw button titles (such as "Propose Enriched Journal Writeup") or robotic labels like "*Refined Reflection & Insights:*". Instead, write genuine, insightful narrative paragraphs that capture their complete journey!
@@ -1328,18 +1355,52 @@ Respond warmly according to your tone instructions and output valid JSON.`;
         }))
       : [];
 
+    const cleanReplyContent = sanitizeRunawayContent(data.replyContent || '');
+    let cleanSuggestedUpdate = data.suggestedUpdate || (data.emailDraft ? {
+      emailSubject: data.emailDraft.subject,
+      emailBody: data.emailDraft.body,
+      recipient: data.emailDraft.recipient,
+      refinedSummary: `Refined Email Draft: ${data.emailDraft.subject || ''}`
+    } : undefined);
+
+    if (cleanSuggestedUpdate) {
+      if (cleanSuggestedUpdate.refinedSummary) {
+        cleanSuggestedUpdate.refinedSummary = sanitizeRunawayContent(cleanSuggestedUpdate.refinedSummary);
+      }
+      if (cleanSuggestedUpdate.refinedAdaptiveResponse) {
+        cleanSuggestedUpdate.refinedAdaptiveResponse = sanitizeRunawayContent(cleanSuggestedUpdate.refinedAdaptiveResponse);
+      }
+      if (cleanSuggestedUpdate.mergedRawText) {
+        cleanSuggestedUpdate.mergedRawText = sanitizeRunawayContent(cleanSuggestedUpdate.mergedRawText);
+      }
+      if (cleanSuggestedUpdate.emailBody) {
+        cleanSuggestedUpdate.emailBody = sanitizeRunawayContent(cleanSuggestedUpdate.emailBody);
+      }
+    }
+
+    let cleanEmailDraft = data.emailDraft;
+    if (cleanEmailDraft) {
+      cleanEmailDraft = {
+        ...cleanEmailDraft,
+        subject: sanitizeRunawayContent(cleanEmailDraft.subject || ''),
+        body: sanitizeRunawayContent(cleanEmailDraft.body || ''),
+        recipient: sanitizeRunawayContent(cleanEmailDraft.recipient || ''),
+        tone: sanitizeRunawayContent(cleanEmailDraft.tone || '')
+      };
+    }
+
     res.json({
       success: true,
       message: {
         id: `msg-${Date.now()}`,
         role: 'assistant',
-        content: data.replyContent,
+        content: cleanReplyContent,
         timestamp: Date.now(),
         quickActionType: actionType,
         extractedActionItems: extractedActionItems.length > 0 ? extractedActionItems : undefined,
-        suggestedUpdate: data.suggestedUpdate || undefined,
-        emailDraft: data.emailDraft || undefined,
-        promptFollowUp: data.promptFollowUp || 'Would you like to apply this to your reflection or supply more info?',
+        suggestedUpdate: cleanSuggestedUpdate || undefined,
+        emailDraft: cleanEmailDraft || undefined,
+        promptFollowUp: sanitizeRunawayContent(data.promptFollowUp || 'Would you like to apply this to your reflection or supply more info?'),
         quickSuggestions: data.quickSuggestions || (domainName === 'Email Drafting' ? ['Make more concise', 'Make tone more executive', 'Add a clear CTA'] : ['Apply updates', 'Supply more info', 'Refine tone'])
       },
       telemetry: {

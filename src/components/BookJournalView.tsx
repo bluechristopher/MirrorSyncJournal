@@ -12,6 +12,7 @@ import {
   Trash2
 } from 'lucide-react';
 import type { JournalEntry, UserPersona } from '../types';
+import type { User } from 'firebase/auth';
 import { ReflectionCard } from './ReflectionCard';
 
 interface BookJournalViewProps {
@@ -30,6 +31,7 @@ interface BookJournalViewProps {
   onToggleViewMode: (mode: 'book' | 'feed') => void;
   isGuest?: boolean;
   onSignInGoogle?: () => void;
+  currentUser?: User | null;
 }
 
 export function BookJournalView({
@@ -47,21 +49,38 @@ export function BookJournalView({
   viewMode,
   onToggleViewMode,
   isGuest = false,
-  onSignInGoogle
+  onSignInGoogle,
+  currentUser
 }: BookJournalViewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<number>(0); // -1 for prev, 1 for next
 
-  // Sync index when activeEntryId changes externally without forcing scroll
+  // Smoothly scroll to the top of the post card beneath the sticky header
+  const scrollToPostTop = useCallback(() => {
+    setTimeout(() => {
+      const el = document.getElementById('journal-reader-section');
+      if (el) {
+        const yOffset = -70; // Offset for sticky top navbar
+        const yPosition = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({
+          top: Math.max(0, yPosition),
+          behavior: 'smooth'
+        });
+      }
+    }, 40);
+  }, []);
+
+  // Sync index when activeEntryId changes externally
   useEffect(() => {
     if (activeEntryId && entries.length > 0) {
       const idx = entries.findIndex(e => e.id === activeEntryId);
       if (idx !== -1 && idx !== currentIndex) {
         setDirection(idx > currentIndex ? 1 : -1);
         setCurrentIndex(idx);
+        scrollToPostTop();
       }
     }
-  }, [activeEntryId, entries]);
+  }, [activeEntryId, entries, scrollToPostTop]);
 
   // Keep index in valid range when entries length changes
   useEffect(() => {
@@ -76,8 +95,9 @@ export function BookJournalView({
       const nextIdx = currentIndex + 1;
       setCurrentIndex(nextIdx);
       onSelectEntry?.(entries[nextIdx].id);
+      scrollToPostTop();
     }
-  }, [currentIndex, entries, onSelectEntry]);
+  }, [currentIndex, entries, onSelectEntry, scrollToPostTop]);
 
   const handlePrevPage = useCallback(() => {
     if (currentIndex > 0) {
@@ -85,14 +105,16 @@ export function BookJournalView({
       const prevIdx = currentIndex - 1;
       setCurrentIndex(prevIdx);
       onSelectEntry?.(entries[prevIdx].id);
+      scrollToPostTop();
     }
-  }, [currentIndex, entries, onSelectEntry]);
+  }, [currentIndex, entries, onSelectEntry, scrollToPostTop]);
 
   const handleJumpToPage = (idx: number) => {
     if (idx >= 0 && idx < entries.length && idx !== currentIndex) {
       setDirection(idx > currentIndex ? 1 : -1);
       setCurrentIndex(idx);
       onSelectEntry?.(entries[idx].id);
+      scrollToPostTop();
     }
   };
 
@@ -120,7 +142,7 @@ export function BookJournalView({
     return null;
   }
 
-  const currentEntry = entries[currentIndex];
+  const currentEntry = entries[currentIndex] || entries[0];
   const bookmarkedEntries = entries.filter((e) => e.bookmarked);
 
   // Pure Horizontal Swipe & Slide Animation Variants
@@ -160,9 +182,9 @@ export function BookJournalView({
       emoji: '💼'
     },
     Personal: {
-      active: 'bg-gradient-to-b from-emerald-600 via-emerald-700 to-emerald-950 text-emerald-100 border-emerald-400 -translate-y-1 z-10 shadow-[0_-4px_14px_rgba(52,211,153,0.5)]',
-      inactive: 'bg-[#082015] text-emerald-300 hover:text-white border-t border-x border-emerald-600/50 hover:bg-[#0d3322] hover:border-emerald-400',
-      dot: 'bg-emerald-400 shadow-[0_0_6px_#34d399]',
+      active: 'bg-gradient-to-b from-amber-600 via-amber-700 to-amber-950 text-amber-100 border-amber-400 -translate-y-1 z-10 shadow-[0_-4px_14px_rgba(245,158,11,0.5)]',
+      inactive: 'bg-[#221307] text-amber-300 hover:text-white border-t border-x border-amber-600/50 hover:bg-[#341d0b] hover:border-amber-400',
+      dot: 'bg-amber-400 shadow-[0_0_6px_#f59e0b]',
       emoji: '🎾'
     },
     Creative: {
@@ -172,9 +194,9 @@ export function BookJournalView({
       emoji: '🎨'
     },
     'Email Drafting': {
-      active: 'bg-gradient-to-b from-teal-600 via-teal-700 to-teal-950 text-teal-100 border-teal-400 -translate-y-1 z-10 shadow-[0_-4px_14px_rgba(45,212,191,0.5)]',
-      inactive: 'bg-[#062022] text-teal-300 hover:text-white border-t border-x border-teal-600/50 hover:bg-[#0d3134] hover:border-teal-400',
-      dot: 'bg-teal-400 shadow-[0_0_6px_#2dd4bf]',
+      active: 'bg-gradient-to-b from-emerald-600 via-emerald-700 to-emerald-950 text-emerald-100 border-emerald-400 -translate-y-1 z-10 shadow-[0_-4px_14px_rgba(52,211,153,0.5)]',
+      inactive: 'bg-[#082015] text-emerald-300 hover:text-white border-t border-x border-emerald-600/50 hover:bg-[#0d3322] hover:border-emerald-400',
+      dot: 'bg-emerald-400 shadow-[0_0_6px_#34d399]',
       emoji: '✉️'
     }
   };
@@ -256,7 +278,7 @@ export function BookJournalView({
         ) : (
           bookmarkedEntries.map((entry) => {
             const originalIdx = entries.findIndex((e) => e.id === entry.id);
-            const isActive = entry.id === currentEntry.id;
+            const isActive = currentEntry ? entry.id === currentEntry.id : false;
             const domain = entry.category?.domain || 'Work';
             const style = DOMAIN_RIBBON_STYLES[domain] || DOMAIN_RIBBON_STYLES.Work;
 
@@ -376,6 +398,7 @@ export function BookJournalView({
                     isFocused={currentEntry.id === activeEntryId}
                     isGuest={isGuest}
                     onSignInGoogle={onSignInGoogle}
+                    currentUser={currentUser}
                     onToggleActionItem={onToggleActionItem}
                     onToggleBookmark={onToggleBookmark}
                     onDeleteEntry={onDeleteEntry}
