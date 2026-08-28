@@ -136,47 +136,6 @@ options:
 
 ---
 
-## 📋 Social Challenge Submission Kit
-
-### Required Submission Fields
-
-- **Project / Service Name**: MirrorSync
-- **Cloud Run Deployed URL**: `https://mirrorsync-217104786977.us-central1.run.app` (or your live Cloud Run URL)
-- **Public Repository Link**: `https://github.com/bluechristopher/MirrorSyncJournal`
-- **Demo Social Post Link**: `https://www.linkedin.com/posts/<YOUR_POST_ID>` (or X / Medium post)
-- **Required Hashtag**: `#AccelerateAIwithCloudRun`
-
-### Ready-to-Use Social Post Template (LinkedIn / X)
-
-> 🚀 Excited to showcase **MirrorSync** built for the Google Cloud GenAI Academy APAC Edition (#AccelerateAIwithCloudRun)!
->
-> 🪞 **What is MirrorSync?**
-> A persona-adaptive cognitive reflection intelligence engine that transforms unstructured thoughts into high-leverage clarity, executive actions, and mindful growth.
->
-> 🛠️ **GCP Tech Stack & AI Tooling:**
-> • **AI Development Journey**: Initial system prompt & schema design prototyped in **Google AI Studio**, iteratively architected & security-hardened in **Google Antigravity**.
-> • **Google Cloud Run**: Containerized serverless deployment with automated scaling.
-> • **Google Cloud Build**: Native Continuous Deployment (CD) automatically listening to GitHub pushes.
-> • **Google Gemini 3.7 Flash & Google GenAI SDK**: Multi-tier model fallback ladder with structured JSON schema reasoning.
-> • **Cloud Firestore & Firebase Auth**: Strict per-user path isolation (`/users/{uid}/**`) ensuring multi-tenant privacy.
-> • **Google Maps Platform**: Spatial memory grounding with interactive maps & pins.
->
-> ✨ **Unique Features Beyond Starter Template:**
-> 1. 🧠 Dynamic Persona Extraction & Tone Calibration
-> 2. 📖 Dual-View Mode (Book Flip Journal vs. Feed View)
-> 3. 📍 Double-Height Google Maps Spatial Grounding
-> 4. 🔮 Dynamic AI Topic Clustering & Unsupervised Categorization
-> 5. ✉️ Interactive Email Drafting Studio
-> 6. 🎧 Natural Voice Audio Reader & Teleprompter
-> 7. 🛡️ 5-Zone Threat Model & OWASP LLM Mitigation Inspector
->
-> 🔗 Live Cloud Run App: https://mirrorsync-217104786977.us-central1.run.app
-> 📂 GitHub Repo: https://github.com/bluechristopher/MirrorSyncJournal
->
-> #AccelerateAIwithCloudRun #GoogleCloud #Gemini #CloudRun #Firebase #GoogleAIStudio #Antigravity #BuildWithAI
-
----
-
 ## 📂 Project Structure
 
 `
