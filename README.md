@@ -292,28 +292,6 @@ options:
 
 ---
 
-## 💻 Local Development Setup
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/bluechristopher/MirrorSyncJournal.git
-cd MirrorSyncJournal
-
-# 2. Install dependencies
-npm install
-
-# 3. Create .env.local file with your Gemini API key & Firebase credentials
-cp .env.example .env.local
-
-# 4. Start full-stack development server (Backend + Vite Frontend)
-npm run dev
-
-# 5. Build production bundle
-npm run build
-```
-
----
-
 ## 📂 Project Structure
 
 ```
