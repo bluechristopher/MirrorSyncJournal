@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import type { User } from 'firebase/auth';
 import type { UserPersona, DomainCategory } from '../types';
-import { logoImg } from '../assets/bannerAssets';
+import { logoImg, fountainPenImg } from '../assets/bannerAssets';
 
 const CATEGORY_ITEMS: Array<{
   id: 'All' | DomainCategory;
@@ -113,88 +113,60 @@ export function Header({
           : 'bg-gradient-to-r from-transparent via-[#fae8a8]/80 to-transparent'
       }`} />
 
-      <div className="max-w-5xl mx-auto px-2.5 sm:px-6 py-2 sm:py-2.5 space-y-2 sm:space-y-2.5 relative z-10">
+      <div className="max-w-5xl mx-auto px-2 sm:px-6 py-1.5 sm:py-2.5 space-y-1.5 sm:space-y-2.5 relative z-10">
         {/* Top Navbar Row */}
-        <div className="flex items-center justify-between gap-2 sm:gap-3">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-3">
           
           {/* LEFT: Brand Identity & Mode Badge */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 min-w-0">
             <div 
-              className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer" 
+              className="flex items-center gap-1.5 sm:gap-2.5 group cursor-pointer" 
               onClick={() => { onSelectCategory('All'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             >
               <div className="relative shrink-0">
-                <div className={`absolute -inset-1 rounded-xl bg-gradient-to-r opacity-70 blur-xs group-hover:opacity-100 transition duration-300 ${
+                <div className={`absolute -inset-0.5 sm:-inset-1 rounded-lg sm:rounded-xl bg-gradient-to-r opacity-80 blur-xs group-hover:opacity-100 transition duration-300 ${
                   user ? 'from-[#34d399] via-[#6EE7B7] to-[#f6e7b8]' : 'from-[#fae8a8] via-[#38bdf8] to-[#c084fc]'
                 }`} />
                 <img
                   src={logoImg}
                   alt="MirrorSync Logo"
                   referrerPolicy="no-referrer"
-                  className={`relative w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg sm:rounded-xl object-cover border-2 shadow-lg shadow-black/80 group-hover:scale-105 transition-transform ${
-                    user ? 'border-emerald-400' : 'border-[#f6e7b8]'
-                  }`}
+                  className="relative w-6 h-6 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-md sm:rounded-xl object-cover shadow-md shadow-black/80 group-hover:scale-105 transition-transform"
                 />
               </div>
 
               <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <span className="font-extrabold tracking-tight text-sm sm:text-lg md:text-xl text-white flex items-center gap-0.5 leading-none">
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <span className="font-extrabold tracking-tight text-xs sm:text-lg md:text-xl text-white flex items-center gap-0.5 leading-none">
                     <span>Mirror</span>
                     <span className={user ? "text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.6)]" : "text-[#f6e7b8] drop-shadow-[0_0_10px_rgba(246,231,184,0.5)]"}>Sync</span>
                   </span>
 
-                  {/* Mode Badge with 3D Metallic Sheen & Horizontally Wide 3-Line Floating Tooltip */}
+                  {/* Mode Badge */}
                   {user ? (
                     <div className="relative group/mode cursor-help">
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full metallic-badge-3d-pro text-[10px] sm:text-[11px] font-black tracking-wider uppercase cursor-pointer">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_#34d399] animate-pulse" />
+                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-full metallic-badge-3d-pro text-[9px] sm:text-[11px] font-black tracking-wider uppercase cursor-pointer">
+                        <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_#34d399] animate-pulse" />
                         <span>PRO</span>
                       </div>
 
-                      {/* Horizontally Wide Floating Translucent Tooltip (Ultra-Compact Vertically) */}
-                      <div className="absolute top-full left-0 mt-1.5 w-[320px] sm:w-[420px] md:w-[480px] px-3 py-1.5 rounded-xl bg-[#021d13]/92 border border-emerald-400/60 shadow-[0_12px_32px_rgba(0,0,0,0.92),0_0_20px_rgba(52,211,153,0.3)] backdrop-blur-2xl z-[100] pointer-events-none opacity-0 translate-y-1 group-hover/mode:opacity-100 group-hover/mode:translate-y-0 transition-all duration-150 leading-tight">
-                        {/* Line 1: Header title */}
+                      {/* Horizontally Wide Floating Translucent Tooltip */}
+                      <div className="absolute top-full left-0 mt-1.5 w-[290px] sm:w-[420px] md:w-[480px] px-3 py-1.5 rounded-xl bg-[#021d13]/92 border border-emerald-400/60 shadow-[0_12px_32px_rgba(0,0,0,0.92),0_0_20px_rgba(52,211,153,0.3)] backdrop-blur-2xl z-[100] pointer-events-none opacity-0 translate-y-1 group-hover/mode:opacity-100 group-hover/mode:translate-y-0 transition-all duration-150 leading-tight">
                         <div className="flex items-center justify-between text-[11px] font-bold text-emerald-300 pb-0.5 border-b border-emerald-500/30">
                           <span>✨ Pro Workspace (Google Cloud)</span>
                           <span className="text-[9.5px] font-mono text-emerald-400 font-normal">All Unlocked</span>
                         </div>
-                        {/* Line 2: Features overview */}
                         <div className="text-[10px] text-slate-200 truncate pt-0.5">
                           <span className="text-emerald-400 font-bold mr-1">✓</span>
-                          <span><strong>Unlocked:</strong> Firestore Cloud Sync, AI Banners & Google Maps</span>
-                        </div>
-                        {/* Line 3: Persona statement */}
-                        <div className="text-[9.5px] text-emerald-300/90 truncate">
-                          <span className="text-emerald-400 font-bold mr-1">✓</span>
-                          <span><strong>Personalised:</strong> Tailored coaching tone & cognitive profile active</span>
+                          <span><strong>Unlocked:</strong> Firestore Cloud Sync, AI Banners & Maps</span>
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div className="relative group/mode cursor-help">
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full metallic-badge-3d-demo text-[10px] sm:text-[11px] font-black tracking-wider uppercase cursor-pointer">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_#fbbf24] animate-pulse" />
+                      <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-full metallic-badge-3d-demo text-[9px] sm:text-[11px] font-black tracking-wider uppercase cursor-pointer">
+                        <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_#fbbf24] animate-pulse" />
                         <span>DEMO</span>
-                      </div>
-
-                      {/* Horizontally Wide Floating Translucent Tooltip (Ultra-Compact Vertically) */}
-                      <div className="absolute top-full left-0 mt-1.5 w-[330px] sm:w-[440px] md:w-[500px] px-3 py-1.5 rounded-xl bg-[#1c0d04]/92 border border-amber-400/60 shadow-[0_12px_32px_rgba(0,0,0,0.92),0_0_20px_rgba(245,158,11,0.3)] backdrop-blur-2xl z-[100] pointer-events-none opacity-0 translate-y-1 group-hover/mode:opacity-100 group-hover/mode:translate-y-0 transition-all duration-150 leading-tight">
-                        {/* Line 1: Header title */}
-                        <div className="flex items-center justify-between text-[11px] font-bold text-amber-300 pb-0.5 border-b border-amber-500/30">
-                          <span>🧪 Demo Mode (Shared Space)</span>
-                          <span className="text-[9.5px] font-mono text-amber-400 font-normal">🌐 Shared Sandbox</span>
-                        </div>
-                        {/* Line 2: What is included / limitations */}
-                        <div className="text-[10px] text-slate-200 truncate pt-0.5">
-                          <span className="text-amber-400 font-bold mr-1">⚠️</span>
-                          <span><strong>Shared Space:</strong> 🎨 No post banner generation • 🗺️ No Google Maps integration</span>
-                        </div>
-                        {/* Line 3: Upgrade prompt */}
-                        <div className="text-[9.5px] text-emerald-300 truncate">
-                          <span className="text-emerald-400 font-bold mr-1">💡</span>
-                          <span><strong>Private Access:</strong> Sign in with Google to unlock personal cloud storage, AI banners & Maps!</span>
-                        </div>
                       </div>
                     </div>
                   )}
@@ -209,26 +181,26 @@ export function Header({
             </div>
           </div>
 
-          {/* CENTER: View Journal Posts Button (Sleek Integrated Metallic Emerald Capsule) */}
+          {/* CENTER: View Journal Posts Button */}
           {!isHistoryOpen && (
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 id="header-history-toggle-btn"
                 type="button"
                 onClick={onToggleHistorySidebar}
-                className="group relative px-2.5 sm:px-4 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer bg-gradient-to-r from-[#031d13]/90 via-[#073625]/90 to-[#021810]/90 text-emerald-100 hover:text-white border border-emerald-400/40 hover:border-emerald-300 shadow-[0_4px_16px_rgba(4,30,20,0.6),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:shadow-[0_0_24px_rgba(52,211,153,0.5),inset_0_1px_2px_rgba(255,255,255,0.4)] active:scale-95 backdrop-blur-md"
+                className="group relative px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold flex items-center gap-1 sm:gap-2 transition-all cursor-pointer bg-gradient-to-r from-[#031d13]/90 via-[#073625]/90 to-[#021810]/90 text-emerald-100 hover:text-white border border-emerald-400/40 hover:border-emerald-300 shadow-[0_2px_12px_rgba(4,30,20,0.5),inset_0_1px_1px_rgba(255,255,255,0.25)] active:scale-95 backdrop-blur-md"
                 title="View Journal Vault & Posts"
               >
-                <div className="w-5 h-5 rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 group-hover:bg-emerald-400/30 group-hover:text-white transition-colors">
-                  <Undo2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md sm:rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 group-hover:bg-emerald-400/30 group-hover:text-white transition-colors">
+                  <Undo2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
                 </div>
-                <span className="font-extrabold tracking-tight text-[11px] sm:text-xs text-emerald-100 group-hover:text-white hidden sm:inline">
+                <span className="font-extrabold tracking-tight text-[11px] sm:text-xs text-emerald-100 group-hover:text-white hidden md:inline">
                   View Journal Posts
                 </span>
-                <span className="font-extrabold tracking-tight text-[11px] sm:text-xs text-emerald-100 sm:hidden inline">
+                <span className="font-extrabold tracking-tight text-[10px] sm:text-xs text-emerald-100 hidden sm:inline md:hidden">
                   Posts
                 </span>
-                <span className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-mono font-bold bg-black/40 text-emerald-300 border border-emerald-400/40 group-hover:border-emerald-300 group-hover:text-emerald-200 shadow-inner">
+                <span className="text-[9px] sm:text-[11px] px-1 sm:px-1.5 py-0.2 rounded-full font-mono font-bold bg-black/40 text-emerald-300 border border-emerald-400/40 group-hover:border-emerald-300 shadow-inner">
                   {totalEntriesCount}
                 </span>
               </button>
@@ -237,14 +209,14 @@ export function Header({
 
           {/* RIGHT: Action Tools & Auth Profile */}
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            {/* Settings Logo Button (Persona & Coaching Settings) */}
+            {/* Settings Logo Button */}
             <button
               id="header-persona-btn"
               onClick={onOpenPersonaModal}
               title="Profile & Coaching Persona Settings"
               className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl metallic-panel text-slate-300 hover:text-[#f6e7b8] transition-all cursor-pointer shadow-sm border border-white/10 hover:border-white/20"
             >
-              <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-300" />
+              <Sliders className="w-3.5 h-3.5 text-slate-300" />
             </button>
 
             {/* Insights & Analytics */}
@@ -252,7 +224,7 @@ export function Header({
               id="header-insights-btn"
               onClick={onOpenInsightsModal}
               title="View Insights & Journal Stats"
-              className="px-1.5 sm:px-2.5 py-1.5 rounded-lg sm:rounded-xl metallic-panel text-slate-300 hover:text-[#f6e7b8] transition-all flex items-center gap-1 sm:gap-1.5 text-xs font-medium cursor-pointer shadow-sm border border-white/10 hover:border-white/20"
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg sm:rounded-xl metallic-panel text-slate-300 hover:text-[#f6e7b8] transition-all flex items-center gap-1 sm:gap-1.5 text-xs font-medium cursor-pointer shadow-sm border border-white/10 hover:border-white/20"
             >
               <BarChart3 className="w-3.5 h-3.5 text-[#f6e7b8]" />
               <span className="hidden lg:inline">Insights</span>
@@ -263,7 +235,7 @@ export function Header({
               id="header-threat-btn"
               onClick={onOpenThreatModal}
               title="Privacy, Security & Data Safety"
-              className="px-1.5 sm:px-2.5 py-1.5 rounded-lg sm:rounded-xl metallic-panel text-slate-300 hover:text-emerald-300 transition-all flex items-center gap-1 sm:gap-1.5 text-xs font-medium cursor-pointer shadow-sm border border-white/10 hover:border-white/20"
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg sm:rounded-xl metallic-panel text-slate-300 hover:text-emerald-300 transition-all flex items-center gap-1 sm:gap-1.5 text-xs font-medium cursor-pointer shadow-sm border border-white/10 hover:border-white/20"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               <span className="hidden lg:inline">Privacy</span>
@@ -275,17 +247,17 @@ export function Header({
                 <button
                   id="user-profile-btn"
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-1.5 sm:gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-emerald-950/90 border border-emerald-400/40 text-xs text-slate-100 hover:border-emerald-300 transition-all cursor-pointer shadow-md hover:shadow-[0_0_15px_rgba(52,211,153,0.2)]"
+                  className="flex items-center gap-1 sm:gap-2 p-1 sm:pl-1.5 sm:pr-2.5 sm:py-1 rounded-full bg-emerald-950/90 border border-emerald-400/40 text-xs text-slate-100 hover:border-emerald-300 transition-all cursor-pointer shadow-md"
                 >
                   {user.photoURL ? (
                     <img
                       src={user.photoURL}
                       alt={user.displayName || 'User'}
                       referrerPolicy="no-referrer"
-                      className="w-6 h-6 rounded-full object-cover border border-emerald-400/60"
+                      className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover border border-emerald-400/60"
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-slate-950 text-[10px] font-bold">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-slate-950 text-[9px] sm:text-[10px] font-bold">
                       {(user.displayName || user.email || 'U')[0].toUpperCase()}
                     </div>
                   )}
@@ -297,7 +269,7 @@ export function Header({
                       <Cloud className="w-2.5 h-2.5" /> Synced
                     </span>
                   </div>
-                  <ChevronDown className="w-3 h-3 text-emerald-300/70 ml-0.5" />
+                  <ChevronDown className="w-3 h-3 text-emerald-300/70 hidden sm:inline ml-0.5" />
                 </button>
 
                 {/* Dropdown Menu (Floats Fully Above Everything on Page) */}

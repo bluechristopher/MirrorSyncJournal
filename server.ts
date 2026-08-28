@@ -1798,15 +1798,16 @@ app.post('/api/cluster-topics', async (req: Request, res: Response) => {
 
     const systemInstruction = `You are MirrorSync's Cognitive Categorization Engine.
 Analyze the provided journal entries (which may belong to domain "${domainFilter}").
-Dynamically group and cluster these entries into 2 to 6 general, human-friendly topic categories (such as "Sports & Fitness", "Leisure & Downtime", "Shopping & Gear", "Personal Growth & Recovery", "System Architecture", "Leadership & Comms", "Creative Studio", "Travel & Adventure", etc.).
+Dynamically group and cluster these entries into 2 to 4 general, human-friendly topic categories (maximum 4 clusters total) such as "Sports & Fitness", "Leisure & Downtime", "Shopping & Gear", "Personal Growth & Recovery", "System Architecture", "Leadership & Comms", "Creative Studio", "Travel & Adventure", etc.
 
 RULES:
-1. "name": A concise, engaging category title (e.g. "Sports & Fitness", "Personal Growth", "Leisure & Downtime", "Shopping & Gear", "Architecture & Latency", "Creative Sandbox").
-2. "emoji": A single relevant emoji (e.g. "🏃", "🌱", "☕", "🛍️", "🏗️", "🎨", "🧘", "✈️", "👔").
-3. "iconName": Pick one from ["Dumbbell", "Heart", "Coffee", "ShoppingBag", "Briefcase", "Sparkles", "Palette", "Mail", "Compass", "Trees", "BookOpen", "Flame", "Trophy", "Layers", "Smile"].
-4. "description": A short, elegant 1-sentence summary describing the common thread.
-5. "entryIds": Array of matching entry ID strings belonging to this topic. Ensure all entries are accounted for.
-6. "accentColor": Pick from ["amber", "emerald", "blue", "purple", "rose", "indigo", "cyan"].
+1. MAXIMUM 4 CLUSTERS: Output at most 4 category objects in "categories" array.
+2. "name": A concise, engaging category title (e.g. "Sports & Fitness", "Personal Growth", "Leisure & Downtime", "Shopping & Gear", "Architecture & Latency", "Creative Sandbox").
+3. "emoji": A single relevant emoji (e.g. "🏃", "🌱", "☕", "🛍️", "🏗️", "🎨", "🧘", "✈️", "👔").
+4. "iconName": Pick one from ["Dumbbell", "Heart", "Coffee", "ShoppingBag", "Briefcase", "Sparkles", "Palette", "Mail", "Compass", "Trees", "BookOpen", "Flame", "Trophy", "Layers", "Smile"].
+5. "description": A short, elegant 1-sentence summary describing the common thread.
+6. "entryIds": Array of matching entry ID strings belonging to this topic. Ensure all entries are accounted for.
+7. "accentColor": Pick from ["amber", "emerald", "blue", "purple", "rose", "indigo", "cyan"].
 
 Strictly follow the JSON schema.`;
 
@@ -1857,22 +1858,22 @@ Please cluster them into cohesive, user-friendly dynamic topic category cards.`;
 
     try {
       const result = await generateContentWithFallback<any>(systemInstruction, userPrompt, topicSchema);
-      const generatedCategories = (result.data?.categories || []).map((cat: any, idx: number) => ({
-        id: cat.id || `topic-${idx}-${Date.now()}`,
-        name: cat.name,
-        emoji: cat.emoji || '✨',
-        iconName: cat.iconName || 'Sparkles',
-        description: cat.description || 'Curated topic collection.',
-        entryIds: Array.isArray(cat.entryIds) ? cat.entryIds : [],
-        count: Array.isArray(cat.entryIds) ? cat.entryIds.length : 0,
-        domain: domainFilter,
-        accentColor: cat.accentColor || 'amber'
-      })).filter((c: any) => c.entryIds.length > 0);
+      if (result && result.data && Array.isArray(result.data.categories) && result.data.categories.length > 0) {
+        const parsedTopics = result.data.categories.slice(0, 4).map((cat: any, idx: number) => ({
+          id: `ai-topic-${Date.now()}-${idx}`,
+          name: cat.name || `Topic ${idx + 1}`,
+          emoji: cat.emoji || '✨',
+          iconName: cat.iconName || 'Sparkles',
+          description: cat.description || '',
+          entryIds: Array.isArray(cat.entryIds) ? cat.entryIds : [],
+          count: Array.isArray(cat.entryIds) ? cat.entryIds.length : 0,
+          domain: domainFilter,
+          accentColor: cat.accentColor || 'amber'
+        }));
 
-      if (generatedCategories.length > 0) {
         return res.json({
           success: true,
-          topics: generatedCategories,
+          topics: parsedTopics,
           telemetry: {
             modelUsed: result.modelUsed,
             attemptedModels: result.attemptedModels,

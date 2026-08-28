@@ -53,7 +53,7 @@ import { StreamingMarkdown } from './StreamingMarkdown';
 import { sendChatMessageAPI } from '../services/api';
 import { JournalVoicePlayer } from './JournalVoicePlayer';
 import { getRelativeTimeInfo } from '../utils/dateUtils';
-import { logoImg } from '../assets/bannerAssets';
+import { logoImg, fountainPenImg } from '../assets/bannerAssets';
 
 function extractInquisitiveQuestions(adaptiveResponse: string, rawText: string = ''): string {
   if (!adaptiveResponse) {
@@ -500,7 +500,8 @@ export function ReflectionCard({
       else if (actionType === 'refine_tone') displayPrompt = '✨ Refine & Polish Reflection';
       else if (actionType === 'brainstorm') displayPrompt = '💡 Brainstorm Ideas & Next Steps';
       else if (actionType === 'draft_email') displayPrompt = '✉️ Draft Executive Email';
-      else if (actionType === 'shorten_email') displayPrompt = '✂️ Make Email Shorter & Punchier';
+      else if (actionType === 'expand_email') displayPrompt = '📖 Expand Email with Context & Detail';
+      else if (actionType === 'shorten_email') displayPrompt = '✂️ Make Email Shorter & Concise';
       else if (actionType === 'formalize_email') displayPrompt = '👔 Formalize Tone for Leadership';
       else if (actionType === 'add_cta') displayPrompt = '🎯 Add Clear Call to Action';
       else if (actionType === 'refine_email_tone') displayPrompt = '✨ Refine Tone & Clarity';
@@ -676,100 +677,103 @@ export function ReflectionCard({
       }`}
     >
       {/* 1. Header Row with Prominent Date Time & Unified When | Category Bubble */}
-      <div className="p-3.5 sm:p-5 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3.5 bg-white/[0.02]">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+      <div className="p-2.5 sm:p-5 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-2 sm:gap-3.5 bg-white/[0.02]">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-4">
           {/* Prominent Clear Date & Time */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <span className="text-xs sm:text-base font-bold text-slate-100 font-sans tracking-tight drop-shadow-xs">
               {timeInfo.fullFormattedDate}
             </span>
           </div>
 
           {/* Unified Bubble: When | Category */}
-          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold border border-white/20 metallic-panel shadow-sm bg-black/40">
-            <span className="flex items-center gap-1 sm:gap-1.5 text-sky-200">
-              <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-400 shrink-0" />
+          <div className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold border border-white/20 metallic-panel shadow-sm bg-black/40">
+            <span className="flex items-center gap-1 text-sky-200">
+              <Clock className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-sky-400 shrink-0" />
               <span>{timeInfo.relativeLabel}</span>
             </span>
 
             <span className="text-white/30 font-light select-none">|</span>
 
-            <span className="flex items-center gap-1 sm:gap-1.5 uppercase tracking-wider text-amber-200 font-bold">
-              <DomainIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" />
+            <span className="flex items-center gap-1 uppercase tracking-wider text-amber-200 font-bold">
+              <DomainIcon className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" />
               <span>{domain}</span>
             </span>
           </div>
+
           {entry.category?.departmentOrContext && (
-            <span className="text-xs text-slate-300 font-medium px-2.5 py-1 rounded-lg metallic-panel truncate max-w-[200px] border border-white/10">
+            <span className="text-[10px] sm:text-xs text-slate-300 font-medium px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg metallic-panel truncate max-w-[140px] sm:max-w-[200px] border border-white/10 hidden xs:inline">
               {entry.category.departmentOrContext}
             </span>
           )}
 
-          {/* Location Pin Badge (Silver Gray with 📍 Emoji, full untruncated name) */}
+          {/* Location Pin Badge */}
           {entry.location && (
             <button
               type="button"
               onClick={() => setShowMap(!showMap)}
-              className="text-xs text-slate-200 bg-gradient-to-r from-slate-800/90 via-slate-700/85 to-slate-800/90 hover:from-slate-700 hover:to-slate-750 px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:text-white transition-all cursor-pointer shadow-md border border-slate-400/40 hover:border-slate-300"
+              className="text-[10px] sm:text-xs text-slate-200 bg-gradient-to-r from-slate-800/90 via-slate-700/85 to-slate-800/90 hover:from-slate-700 hover:to-slate-750 px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-lg sm:rounded-xl flex items-center gap-1 hover:text-white transition-all cursor-pointer shadow-md border border-slate-400/40"
               title="Toggle Map View"
             >
               <span className="text-xs select-none">📍</span>
-              <span className="font-semibold whitespace-normal">{entry.location.name}</span>
+              <span className="font-semibold truncate max-w-[120px] sm:max-w-none">{entry.location.name}</span>
             </button>
           )}
         </div>
 
-        {/* Action Controls (Read Aloud & View Details first, followed by Edit, Bookmark, Copy, Delete with 3D Metallic Sheen) */}
-        <div className="flex items-center flex-wrap gap-2 text-slate-300 self-stretch sm:self-auto justify-between sm:justify-end md:self-center">
+        {/* Action Controls */}
+        <div className="flex items-center gap-1 sm:gap-1.5 text-slate-300 self-stretch sm:self-auto justify-between sm:justify-end md:self-center">
           
-          {/* 1. Read Aloud Audio Player Toggle with Obvious 3D Violet Metallic Sheen */}
-          <button
-            type="button"
-            onClick={() => setShowVoicePlayer(!showVoicePlayer)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-              showVoicePlayer
-                ? 'metallic-btn-3d-violet ring-2 ring-purple-300/80 brightness-115'
-                : 'metallic-btn-3d-violet'
-            }`}
-            title="Read aloud journal & reflection with natural voice audio narration"
-          >
-            <Volume2 className="w-3.5 h-3.5 text-purple-200 shrink-0" />
-            <span>{showVoicePlayer ? 'Hide Audio' : 'Read Aloud'}</span>
-          </button>
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            {/* 1. Read Aloud Audio Player Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowVoicePlayer(!showVoicePlayer)}
+              className={`p-1.5 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+                showVoicePlayer
+                  ? 'metallic-btn-3d-violet ring-2 ring-purple-300/80 brightness-115'
+                  : 'metallic-btn-3d-violet'
+              }`}
+              title="Read aloud journal & reflection with voice narration"
+            >
+              <Volume2 className="w-3.5 h-3.5 text-purple-200 shrink-0" />
+              <span className="hidden sm:inline">{showVoicePlayer ? 'Hide Audio' : 'Read Aloud'}</span>
+            </button>
 
-          {/* 2. Expand / Collapse Details Button with Obvious 3D Blue/Gold Metallic Sheen */}
-          <button
-            type="button"
-            onClick={() => {
-              const next = !isExpanded;
-              setIsExpanded(next);
-              if (next) {
-                scrollToCardTop();
-              }
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-              isExpanded
-                ? 'metallic-gold-button text-[#070d1e] shadow-[0_0_16px_rgba(246,231,184,0.4)]'
-                : 'metallic-btn-3d-blue'
-            }`}
-            title={isExpanded ? 'Collapse to sleek overview' : 'Expand full reflection details'}
-          >
-            {isExpanded ? (
-              <>
-                <span>Collapse</span>
-                <ChevronUp className="w-3.5 h-3.5 text-[#070d1e]" />
-              </>
-            ) : (
-              <>
-                <Eye className="w-3.5 h-3.5 text-sky-200" />
-                <span>View Details</span>
-                <ChevronDown className="w-3.5 h-3.5 text-sky-200" />
-              </>
-            )}
-          </button>
+            {/* 2. Expand / Collapse Details Button */}
+            <button
+              type="button"
+              onClick={() => {
+                const next = !isExpanded;
+                setIsExpanded(next);
+                if (next) {
+                  scrollToCardTop();
+                }
+              }}
+              className={`p-1.5 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+                isExpanded
+                  ? 'metallic-gold-button text-[#070d1e] shadow-[0_0_16px_rgba(246,231,184,0.4)]'
+                  : 'metallic-btn-3d-blue'
+              }`}
+              title={isExpanded ? 'Collapse view' : 'Expand full reflection details'}
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5 text-[#070d1e]" />
+                  <span className="hidden sm:inline">Collapse</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3.5 h-3.5 text-sky-200" />
+                  <span className="hidden sm:inline">View Details</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-sky-200 hidden sm:inline" />
+                </>
+              )}
+            </button>
+          </div>
 
-          {/* 3. Utility Actions Group: Edit, Bookmark, Copy, Delete with 3D Metallic Sheen */}
-          <div className="flex items-center gap-1.5">
+          {/* 3. Utility Actions Group: Edit, Bookmark, Copy, Delete */}
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Edit Entry Button */}
             <button
               type="button"
@@ -778,7 +782,7 @@ export function ReflectionCard({
                 setEditText(entry.rawText);
                 setEditSummary(entry.reflectionSummary || '');
               }}
-              className={`p-2 rounded-xl cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer ${
                 isEditing 
                   ? 'metallic-btn-3d-blue ring-1 ring-sky-300 text-sky-100'
                   : 'metallic-btn-3d text-slate-300 hover:text-white'
@@ -792,7 +796,7 @@ export function ReflectionCard({
             <button
               type="button"
               onClick={() => onToggleBookmark(entry.id, !entry.bookmarked)}
-              className={`p-2 rounded-xl cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer ${
                 entry.bookmarked
                   ? 'metallic-btn-3d text-[#f6e7b8] border-amber-400/80 shadow-[0_0_12px_rgba(246,231,184,0.35)]'
                   : 'metallic-btn-3d text-slate-300 hover:text-[#f6e7b8]'
@@ -806,27 +810,27 @@ export function ReflectionCard({
             <button
               type="button"
               onClick={handleCopy}
-              className="p-2 rounded-xl metallic-btn-3d text-slate-300 hover:text-white cursor-pointer"
-              title="Copy Reflection to Clipboard"
+              className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl metallic-btn-3d text-slate-300 hover:text-white cursor-pointer"
+              title="Copy Reflection"
             >
               {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
 
-            {/* Delete Entry with Safe Confirmation */}
+            {/* Delete Entry */}
             {isConfirmingDelete ? (
-              <div className="flex items-center gap-1 bg-gradient-to-r from-rose-950 to-rose-900 p-1 rounded-xl border border-rose-500/70 shadow-lg animate-in fade-in-50 duration-150">
-                <span className="text-[10px] text-rose-200 font-bold px-1">Del?</span>
+              <div className="flex items-center gap-1 bg-gradient-to-r from-rose-950 to-rose-900 p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-rose-500/70 shadow-lg animate-in fade-in-50 duration-150">
+                <span className="text-[9px] sm:text-[10px] text-rose-200 font-bold px-1">Del?</span>
                 <button
                   type="button"
                   onClick={() => onDeleteEntry(entry.id)}
-                  className="px-2 py-0.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-extrabold transition-colors cursor-pointer shadow-xs"
+                  className="px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white text-[9px] sm:text-[10px] font-extrabold cursor-pointer"
                 >
                   Yes
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsConfirmingDelete(false)}
-                  className="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 text-[10px] transition-colors cursor-pointer"
+                  className="px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded bg-white/10 hover:bg-white/20 text-slate-200 text-[9px] sm:text-[10px] cursor-pointer"
                 >
                   No
                 </button>
@@ -835,7 +839,7 @@ export function ReflectionCard({
               <button
                 type="button"
                 onClick={() => setIsConfirmingDelete(true)}
-                className="p-2 rounded-xl metallic-btn-3d text-slate-300 hover:text-rose-400 hover:border-rose-500/60 cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl metallic-btn-3d text-slate-300 hover:text-rose-400 hover:border-rose-500/60 cursor-pointer"
                 title="Delete Journal Entry"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -1017,25 +1021,27 @@ export function ReflectionCard({
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.04 }}
-              className={`p-3.5 sm:p-4 rounded-xl ${memoThemeConfig.wrapper} shadow-[0_10px_28px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.7)] space-y-2.5 relative overflow-hidden`}
+              className={`p-2.5 sm:p-4 rounded-xl ${memoThemeConfig.wrapper} shadow-[0_10px_28px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.7)] space-y-2 relative overflow-hidden`}
             >
               {/* Subtle memo top washi tape / paper clip accent */}
-              <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-28 h-1.5 ${memoThemeConfig.tape} rounded-b-md shadow-xs`} />
+              <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-20 sm:w-28 h-1 sm:h-1.5 ${memoThemeConfig.tape} rounded-b-md shadow-xs`} />
 
-              <div className="flex items-center justify-between gap-2 text-xs font-semibold pt-0.5">
-                <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-lg ${memoThemeConfig.iconBox} flex items-center justify-center shadow-xs border`}>
-                    <PenTool className={`w-3.5 h-3.5 ${memoThemeConfig.iconText}`} />
-                  </div>
-                  <span className={`uppercase tracking-widest text-xs font-extrabold ${memoThemeConfig.titleText}`}>
+              <div className="flex items-center justify-between gap-1.5 text-xs font-semibold pt-0.5">
+                <div className="flex items-center gap-1.5">
+                  <img 
+                    src={fountainPenImg} 
+                    alt="Journal Memo Icon" 
+                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg object-cover shadow-xs border border-white/20" 
+                  />
+                  <span className={`uppercase tracking-widest text-[11px] sm:text-xs font-extrabold ${memoThemeConfig.titleText}`}>
                     {domain === 'Email Drafting'
                       ? (isEdited ? 'Edited Email Prompt' : 'initial email prompt')
                       : (isEdited ? 'Edited Journal Memo' : 'Journal Memo')}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[11px] ${memoThemeConfig.wordCountText} font-mono font-medium`}>
-                    {entry.rawText ? `${wordCount} words` : ''}
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-[10px] sm:text-[11px] ${memoThemeConfig.wordCountText} font-mono font-medium`}>
+                    {entry.rawText ? `${wordCount}w` : ''}
                   </span>
                   <button
                     type="button"
@@ -1044,7 +1050,7 @@ export function ReflectionCard({
                       setEditText(entry.rawText);
                       setEditSummary(entry.reflectionSummary || '');
                     }}
-                    className={`text-[11px] ${memoThemeConfig.editBtn} flex items-center gap-1 cursor-pointer transition-colors px-2 py-0.5 rounded-lg shadow-xs font-medium border`}
+                    className={`text-[10px] sm:text-[11px] ${memoThemeConfig.editBtn} flex items-center gap-1 cursor-pointer transition-colors px-1.5 sm:px-2 py-0.5 rounded-lg shadow-xs font-medium border`}
                     title={domain === 'Email Drafting' ? "Edit email prompt" : "Edit journal memo"}
                   >
                     <Pencil className="w-3 h-3 opacity-75" />
@@ -1052,7 +1058,7 @@ export function ReflectionCard({
                   </button>
                 </div>
               </div>
-              <div className={`px-3.5 py-3 sm:px-4 sm:py-3.5 rounded-lg ${memoThemeConfig.innerSheet} font-oregano text-lg sm:text-xl md:text-[21px] leading-relaxed tracking-wide whitespace-pre-wrap select-text shadow-xs`}>
+              <div className={`px-3 py-2.5 sm:px-4 sm:py-3.5 rounded-lg ${memoThemeConfig.innerSheet} font-oregano text-[15px] sm:text-lg md:text-[18.5px] leading-relaxed tracking-wide whitespace-pre-wrap select-text shadow-xs`}>
                 {entry.rawText}
               </div>
             </motion.div>
@@ -1060,30 +1066,30 @@ export function ReflectionCard({
 
           {/* CONDENSED VIEW FOOTER (Shown when isExpanded is false) */}
           {!isExpanded && (
-            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-white/10 text-xs">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${domainConfig.badgeBg}`}>
+            <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2.5 pt-1.5 sm:pt-2 border-t border-white/10 text-xs">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className={`px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold border ${domainConfig.badgeBg}`}>
                   {domain}
                 </span>
 
                 {domain === 'Work' && totalActionCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>{completedActionCount}/{totalActionCount} Actions</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                    <span>{completedActionCount}/{totalActionCount}</span>
                   </span>
                 )}
 
                 {chatMessageCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-sky-500/15 text-sky-300 border border-sky-400/30">
-                    <MessageSquare className="w-3.5 h-3.5 text-sky-400" />
-                    <span>{chatMessageCount} Follow-ups</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-sky-500/15 text-sky-300 border border-sky-400/30">
+                    <MessageSquare className="w-3 h-3 text-sky-400" />
+                    <span>{chatMessageCount} msgs</span>
                   </span>
                 )}
 
                 {entry.sentiment && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs metallic-panel text-[#f6e7b8] border border-white/10 font-medium">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs metallic-panel text-[#f6e7b8] border border-white/10 font-medium">
                     <span>{entry.sentiment.emoji || '✨'}</span>
-                    <span>{entry.sentiment.emotionalTone}</span>
+                    <span className="truncate max-w-[110px] sm:max-w-none">{entry.sentiment.emotionalTone}</span>
                   </span>
                 )}
               </div>
@@ -1093,11 +1099,11 @@ export function ReflectionCard({
                 onClick={() => {
                   setIsExpanded(true);
                 }}
-                className="px-4 py-2 rounded-xl metallic-gold-button text-[#070d1e] font-bold text-xs flex items-center gap-1.5 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-md ml-auto group"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl metallic-gold-button text-[#070d1e] font-bold text-[11px] sm:text-xs flex items-center gap-1 sm:gap-1.5 hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer shadow-md ml-auto group"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#070d1e] animate-pulse" />
-                <span>{domain === 'Email Drafting' ? 'View Email Draft' : 'Expand AI Coaching & Insights'}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#070d1e] group-hover:translate-y-0.5 transition-transform" />
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#070d1e] animate-pulse" />
+                <span>{domain === 'Email Drafting' ? 'View Email Draft' : 'Expand AI Coaching'}</span>
+                <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#070d1e] group-hover:translate-y-0.5 transition-transform" />
               </button>
             </div>
           )}
@@ -1326,16 +1332,16 @@ export function ReflectionCard({
                           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                           viewport={{ once: true, margin: '0px 0px -80px 0px' }}
                           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-                          className="p-4 sm:p-5 rounded-2xl metallic-card border border-emerald-500/40 space-y-3.5 shadow-xl"
+                          className="p-3 sm:p-5 rounded-xl sm:rounded-2xl metallic-card border border-emerald-500/40 space-y-2.5 sm:space-y-3.5 shadow-xl"
                         >
-                          <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-emerald-500/20">
-                            <div className="flex items-center gap-2 text-emerald-300 font-semibold text-xs uppercase tracking-wider">
-                              <Mail className="w-4 h-4 text-emerald-400" />
+                          <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 pb-2 sm:pb-2.5 border-b border-emerald-500/20">
+                            <div className="flex items-center gap-1.5 sm:gap-2 text-emerald-300 font-semibold text-xs uppercase tracking-wider">
+                              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
                               <span>EMAIL</span>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
                               {draft.tone && (
-                                <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-200 text-[10px] font-mono max-w-[280px] sm:max-w-md truncate" title={rawDraft?.tone || draft.tone}>
+                                <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-200 text-[9px] sm:text-[10px] font-mono max-w-[180px] sm:max-w-md truncate" title={rawDraft?.tone || draft.tone}>
                                   Tone: {draft.tone}
                                 </span>
                               )}
@@ -1350,11 +1356,11 @@ export function ReflectionCard({
                                       setEditEmailRecipient(draft.recipient || '');
                                       setEditEmailBody(draft.body || '');
                                     }}
-                                    className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-[11px] sm:text-xs flex items-center gap-1 transition-colors cursor-pointer"
                                     title="Edit Email"
                                   >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                    <span>Edit Email</span>
+                                    <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                    <span>Edit</span>
                                   </button>
                                   <button
                                     type="button"
@@ -1364,11 +1370,11 @@ export function ReflectionCard({
                                       setIsCopied(true);
                                       setTimeout(() => setIsCopied(false), 2000);
                                     }}
-                                    className="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-[11px] sm:text-xs flex items-center gap-1 transition-colors cursor-pointer"
                                     title="Copy Full Email"
                                   >
-                                    <Copy className="w-3.5 h-3.5" />
-                                    <span>{isCopied ? 'Copied!' : 'Copy Email'}</span>
+                                    <Copy className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                    <span>{isCopied ? 'Copied!' : 'Copy'}</span>
                                   </button>
                                 </>
                               ) : (
@@ -1397,7 +1403,7 @@ export function ReflectionCard({
                                         setIsSavingEmailEdit(false);
                                       }
                                     }}
-                                    className="px-3 py-1 rounded-lg bg-emerald-500 text-black font-bold hover:bg-emerald-400 text-xs flex items-center gap-1 shadow-md transition-all cursor-pointer disabled:opacity-50"
+                                    className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg bg-emerald-500 text-black font-bold hover:bg-emerald-400 text-[11px] sm:text-xs flex items-center gap-1 shadow-md transition-all cursor-pointer disabled:opacity-50"
                                   >
                                     <Save className="w-3.5 h-3.5" />
                                     <span>{isSavingEmailEdit ? 'Saving...' : 'Save'}</span>
@@ -1405,7 +1411,7 @@ export function ReflectionCard({
                                   <button
                                     type="button"
                                     onClick={() => setIsEditingEmail(false)}
-                                    className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-xs transition-colors cursor-pointer"
+                                    className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-[11px] sm:text-xs transition-colors cursor-pointer"
                                   >
                                     Cancel
                                   </button>
@@ -1932,15 +1938,37 @@ export function ReflectionCard({
                         <button
                           type="button"
                           disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('expand_email')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'expand_email' && isChatLoading
+                              ? 'metallic-gold-panel text-[#f6e7b8] border-sky-400/60 shadow-sm'
+                              : 'metallic-panel text-slate-200 hover:text-sky-300'
+                          } disabled:opacity-60`}
+                        >
+                          {isChatLoading && activeActionChip === 'expand_email' ? (
+                            <Loader2 className="w-4 h-4 text-sky-300 animate-spin shrink-0" />
+                          ) : (
+                            <span className="text-sm leading-none">📖</span>
+                          )}
+                          <span className="font-medium">{isChatLoading && activeActionChip === 'expand_email' ? 'Expanding Draft...' : '📖 Expand with Context'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
                           onClick={() => handleTriggerQuickAction('shorten_email')}
                           className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                            activeActionChip === 'shorten_email'
-                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                          }`}
+                            activeActionChip === 'shorten_email' && isChatLoading
+                              ? 'metallic-gold-panel text-[#f6e7b8] border-amber-400/60 shadow-sm'
+                              : 'metallic-panel text-slate-200 hover:text-amber-300'
+                          } disabled:opacity-60`}
                         >
-                          <Wand2 className="w-4 h-4 text-emerald-300 shrink-0" />
-                          <span className="font-medium">✂️ Make Shorter & Concise</span>
+                          {isChatLoading && activeActionChip === 'shorten_email' ? (
+                            <Loader2 className="w-4 h-4 text-amber-300 animate-spin shrink-0" />
+                          ) : (
+                            <span className="text-sm leading-none">✂️</span>
+                          )}
+                          <span className="font-medium">{isChatLoading && activeActionChip === 'shorten_email' ? 'Condensing Draft...' : '✂️ Make Concise & Direct'}</span>
                         </button>
 
                         <button
@@ -1948,12 +1976,16 @@ export function ReflectionCard({
                           disabled={isChatLoading}
                           onClick={() => handleTriggerQuickAction('formalize_email')}
                           className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                            activeActionChip === 'formalize_email'
+                            activeActionChip === 'formalize_email' && isChatLoading
                               ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
                               : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                          }`}
+                          } disabled:opacity-60`}
                         >
-                          <Briefcase className="w-4 h-4 text-blue-300 shrink-0" />
+                          {isChatLoading && activeActionChip === 'formalize_email' ? (
+                            <Loader2 className="w-4 h-4 text-blue-300 animate-spin shrink-0" />
+                          ) : (
+                            <Briefcase className="w-4 h-4 text-blue-300 shrink-0" />
+                          )}
                           <span className="font-medium">👔 Formalize for Leadership</span>
                         </button>
 
@@ -1962,27 +1994,17 @@ export function ReflectionCard({
                           disabled={isChatLoading}
                           onClick={() => handleTriggerQuickAction('add_cta')}
                           className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                            activeActionChip === 'add_cta'
+                            activeActionChip === 'add_cta' && isChatLoading
                               ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
                               : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                          }`}
+                          } disabled:opacity-60`}
                         >
-                          <CheckSquare className="w-4 h-4 text-[#f6e7b8] shrink-0" />
+                          {isChatLoading && activeActionChip === 'add_cta' ? (
+                            <Loader2 className="w-4 h-4 text-[#f6e7b8] animate-spin shrink-0" />
+                          ) : (
+                            <CheckSquare className="w-4 h-4 text-[#f6e7b8] shrink-0" />
+                          )}
                           <span className="font-medium">🎯 Add Call to Action</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={isChatLoading}
-                          onClick={() => handleTriggerQuickAction('refine_email_tone')}
-                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                            activeActionChip === 'refine_email_tone'
-                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                          }`}
-                        >
-                          <Sparkles className="w-4 h-4 text-purple-300 shrink-0" />
-                          <span className="font-medium">✨ Refine Tone & Clarity</span>
                         </button>
                       </div>
                     ) : (

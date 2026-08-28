@@ -102,6 +102,7 @@ export type QuickActionType =
   | 'refine_tone' 
   | 'brainstorm' 
   | 'draft_email'
+  | 'expand_email'
   | 'refine_email_tone'
   | 'shorten_email'
   | 'formalize_email'

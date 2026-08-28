@@ -922,7 +922,7 @@ export default function App() {
     setSelectedTopicId(null);
   };
 
-  // Load saved dynamic topics for selectedCategory from persistent cache without showing default dummy topics
+  // Load saved dynamic topics for selectedCategory from persistent cache or fetch AI clusters
   useEffect(() => {
     const domainEntries = entries.filter(
       (e) => selectedCategory === 'All' || e.category?.domain === selectedCategory
@@ -952,8 +952,8 @@ export default function App() {
       }
     }
 
-    // 2. If no AI clusters exist yet, keep dynamicTopics empty and fetch AI clusters directly (do NOT generate default dummy topics)
-    setDynamicTopics([]);
+    // 2. If no AI clusters exist in cache for this category, trigger authentic AI clustering
+    reclusterCategoryTopics(selectedCategory, entries);
   }, [selectedCategory, cachedClusters, entries]);
 
   // Session First-Visit Initializer: clusters on brand-new first visit, persists through session refreshes
@@ -1285,9 +1285,21 @@ export default function App() {
                     <span className="animate-star-emoji text-sm leading-none">✨</span>
                     <span>New Post</span>
                   </button>
+
+                  {entries.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsConfirmingClearAll(true)}
+                      title="Clear all journal posts from vault & Firestore cloud"
+                      className="px-3 py-2 rounded-xl metallic-titanium-button border-rose-500/40 text-rose-300 hover:text-rose-100 hover:border-rose-400 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:shadow-[0_0_12px_rgba(244,63,94,0.3)]"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                      <span className="hidden md:inline">Clear All</span>
+                    </button>
+                  )}
                 </div>
               </div>
-              <div className="space-y-6">
+              <div className="space-y-6 p-2.5 sm:p-5 rounded-2xl bg-[#14171f]/85 border border-white/10 shadow-2xl backdrop-blur-xl">
                 {filteredEntries.map((entry, idx) => (
                   <motion.div
                     key={entry.id}

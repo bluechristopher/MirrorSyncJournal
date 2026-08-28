@@ -532,25 +532,44 @@ export function EmailDraftingStudio({
 
               {/* Length Controls & Action Controls */}
               <div className="flex items-center gap-2">
-                {/* Length Modifier Pills with Emojis and Distinct Colors */}
+                {/* Length Modifier Pills with Emojis, Distinct Colors & Progress Spinner */}
                 <div className="flex items-center gap-1.5 p-1 rounded-xl metallic-panel border border-white/10 text-xs">
                   <button
                     type="button"
+                    disabled={isLoading}
                     onClick={() => handleQuickLengthToggle('expanded')}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-sky-950/40 text-sky-200 hover:text-white border border-sky-500/30 hover:border-sky-400/60 hover:bg-sky-900/50 transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                      lengthPreference === 'expanded' && isLoading
+                        ? 'bg-sky-500/30 text-white border border-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.35)]'
+                        : 'bg-sky-950/40 text-sky-200 hover:text-white border border-sky-500/30 hover:border-sky-400/60 hover:bg-sky-900/50'
+                    } disabled:opacity-50`}
                     title="Expand email with more detail and context"
                   >
-                    <span>📖</span>
-                    <span>Expand</span>
+                    {isLoading && lengthPreference === 'expanded' ? (
+                      <RotateCw className="w-3.5 h-3.5 text-sky-300 animate-spin" />
+                    ) : (
+                      <span>📖</span>
+                    )}
+                    <span>{isLoading && lengthPreference === 'expanded' ? 'Expanding...' : 'Expand'}</span>
                   </button>
+
                   <button
                     type="button"
+                    disabled={isLoading}
                     onClick={() => handleQuickLengthToggle('concise')}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-950/40 text-amber-200 hover:text-white border border-amber-500/30 hover:border-amber-400/60 hover:bg-amber-900/50 transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                      lengthPreference === 'concise' && isLoading
+                        ? 'bg-amber-500/30 text-white border border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.35)]'
+                        : 'bg-amber-950/40 text-amber-200 hover:text-white border border-amber-500/30 hover:border-amber-400/60 hover:bg-amber-900/50'
+                    } disabled:opacity-50`}
                     title="Make email shorter and more concise"
                   >
-                    <span>✂️</span>
-                    <span>Concise</span>
+                    {isLoading && lengthPreference === 'concise' ? (
+                      <RotateCw className="w-3.5 h-3.5 text-amber-300 animate-spin" />
+                    ) : (
+                      <span>✂️</span>
+                    )}
+                    <span>{isLoading && lengthPreference === 'concise' ? 'Condensing...' : 'Concise'}</span>
                   </button>
                 </div>
 

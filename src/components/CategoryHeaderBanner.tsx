@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import type { DomainCategory } from '../types';
 import { 
   logoImg, 
+  fountainPenImg,
   workBannerImg, 
   personalBannerImg, 
   creativeBannerImg, 
@@ -48,8 +49,8 @@ export function CategoryHeaderBanner({ category, totalCount }: CategoryHeaderBan
             <div className="relative shrink-0 group">
               <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-[#fae8a8] via-[#38bdf8] to-[#c084fc] opacity-75 blur-md group-hover:opacity-100 transition duration-500" />
               <img
-                src={logoImg}
-                alt="MirrorSync Logo"
+                src={fountainPenImg}
+                alt="MirrorSync Journal"
                 referrerPolicy="no-referrer"
                 className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl object-cover border-2 border-[#f6e7b8] shadow-2xl shadow-black/90 group-hover:scale-105 transition-transform"
               />

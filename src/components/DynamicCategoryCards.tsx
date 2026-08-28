@@ -196,11 +196,15 @@ export function DynamicCategoryCards({
   onRefreshTopics,
   totalEntriesCount
 }: DynamicCategoryCardsProps) {
-  const activeTopic = useMemo(() => {
-    return topics.find((t) => t.id === selectedTopicId) || null;
-  }, [topics, selectedTopicId]);
+  const displayedTopics = useMemo(() => {
+    return (topics || []).slice(0, 4);
+  }, [topics]);
 
-  if (topics.length === 0 && !isLoadingTopics) {
+  const activeTopic = useMemo(() => {
+    return displayedTopics.find((t) => t.id === selectedTopicId) || null;
+  }, [displayedTopics, selectedTopicId]);
+
+  if (displayedTopics.length === 0 && !isLoadingTopics) {
     return null;
   }
 
@@ -210,15 +214,15 @@ export function DynamicCategoryCards({
       className="space-y-3 animate-in fade-in-50 duration-200"
     >
       {/* Header bar for Dynamic Topics */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl metallic-gold-panel flex items-center justify-center text-[#f6e7b8] shadow-md border border-[#f6e7b8]/40">
-            <Sparkles className="w-4 h-4 text-[#f6e7b8] animate-pulse" />
-          </div>
-          <div>
-            <h3 className="text-sm sm:text-base font-extrabold text-[#f6e7b8] uppercase tracking-wider flex items-center gap-2 drop-shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <div className="flex items-center gap-2">
+          <span className="text-lg select-none" role="img" aria-label="Dynamic Clusters">
+            🪐
+          </span>
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 drop-shadow-xs">
               <span>Dynamic Topic Clusters</span>
-              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full metallic-panel text-slate-200 border border-white/10 lowercase">
+              <span className="text-[10px] font-medium px-2 py-0.2 rounded-full metallic-panel text-slate-400 border border-white/10 lowercase">
                 {selectedCategory === 'All' ? 'all domains' : selectedCategory}
               </span>
             </h3>
@@ -264,32 +268,57 @@ export function DynamicCategoryCards({
           {isLoadingTopics ? (
             <motion.div
               key="loading-skeleton"
-              initial={{ opacity: 0, scale: 0.98 }}
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.2 }}
-              className="py-8 px-4 rounded-2xl metallic-card border border-white/10 flex flex-col items-center justify-center gap-2.5 text-center"
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.25 }}
+              className="relative overflow-hidden py-10 px-6 rounded-2xl header-aurora-demo border border-amber-400/40 shadow-2xl flex flex-col items-center justify-center gap-3.5 text-center"
             >
-              <div className="w-9 h-9 rounded-xl metallic-gold-panel flex items-center justify-center border border-[#f6e7b8]/30 shadow-md">
-                <Loader2 className="w-4 h-4 text-[#f6e7b8] animate-spin" />
+              {/* Aurora background accent glow orbs */}
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-sky-500/20 rounded-full blur-3xl pointer-events-none animate-pulse delay-300" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Colorful Multi-Ring Animated Spinner with Floating Sparkles */}
+              <div className="relative flex items-center justify-center">
+                {/* Outer spinning color gradient halo ring */}
+                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-400 via-emerald-400 to-sky-400 animate-spin p-[2px] shadow-[0_0_24px_rgba(246,231,184,0.4)]">
+                  <div className="w-full h-full bg-[#080d1a] rounded-full flex items-center justify-center backdrop-blur-md">
+                    <span className="text-xl leading-none animate-bounce">🪐</span>
+                  </div>
+                </div>
+                {/* Orbital floating sparkle icon */}
+                <div className="absolute -top-1 -right-1 animate-spin duration-700">
+                  <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 drop-shadow-[0_0_8px_#fde047]" />
+                </div>
               </div>
-              <p className="text-xs font-bold text-[#f6e7b8] tracking-wide">
-                Re-clustering topic categories with AI...
-              </p>
-              <p className="text-[11px] text-slate-400 max-w-sm">
-                Distilling semantic clusters and executive themes across journal entries
-              </p>
+
+              {/* Larger, Clear Status Typography */}
+              <div className="space-y-1 relative z-10">
+                <h3 className="text-sm sm:text-base font-extrabold bg-gradient-to-r from-amber-200 via-[#f6e7b8] to-yellow-100 bg-clip-text text-transparent tracking-wide drop-shadow-[0_2px_10px_rgba(246,231,184,0.3)]">
+                  ✨ Discovering & Re-clustering Dynamic Topics...
+                </h3>
+                <p className="text-xs sm:text-[13px] text-slate-300 font-medium max-w-md mx-auto leading-relaxed">
+                  MirrorSync AI is synthesizing semantic themes, extracting cognitive threads, and distilling smart topic clusters across your journal entries.
+                </p>
+              </div>
+
+              {/* Status pill chip */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[10.5px] text-amber-200/90 font-mono shadow-inner">
+                <RotateCw className="w-3 h-3 text-amber-300 animate-spin" />
+                <span>Synthesizing cognitive clusters</span>
+              </div>
             </motion.div>
           ) : (
             <motion.div
-              key={`topics-grid-${selectedCategory}-${topics.map((t) => t.id).join('-')}`}
+              key={`topics-grid-${selectedCategory}-${displayedTopics.map((t) => t.id).join('-')}`}
               variants={CONTAINER_VARIANTS}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+              className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5"
             >
-              {topics.map((topic) => {
+              {displayedTopics.map((topic) => {
                 const isSelected = selectedTopicId === topic.id;
                 const hasAnySelection = selectedTopicId !== null;
                 const isDulled = hasAnySelection && !isSelected;
@@ -299,14 +328,14 @@ export function DynamicCategoryCards({
                 const IconComponent = ICON_MAP[topic.iconName || 'Sparkles'] || Sparkles;
 
                 const panelClass = {
-                  emerald: 'metallic-green-panel ring-2 ring-emerald-400 shadow-[0_0_32px_rgba(52,211,153,0.55),0_0_60px_rgba(52,211,153,0.25)] scale-[1.025]',
-                  blue: 'metallic-blue-panel ring-2 ring-sky-400 shadow-[0_0_32px_rgba(56,189,248,0.55),0_0_60px_rgba(56,189,248,0.25)] scale-[1.025]',
-                  purple: 'metallic-purple-panel ring-2 ring-purple-400 shadow-[0_0_32px_rgba(192,132,252,0.55),0_0_60px_rgba(192,132,252,0.25)] scale-[1.025]',
-                  amber: 'metallic-gold-panel ring-2 ring-[#f6e7b8] shadow-[0_0_32px_rgba(246,231,184,0.55),0_0_60px_rgba(246,231,184,0.25)] scale-[1.025]',
-                  rose: 'metallic-panel border-rose-400 ring-2 ring-rose-400 shadow-[0_0_32px_rgba(244,63,94,0.55),0_0_60px_rgba(244,63,94,0.25)] scale-[1.025]',
-                  indigo: 'metallic-blue-panel ring-2 ring-indigo-400 shadow-[0_0_32px_rgba(99,102,241,0.55),0_0_60px_rgba(99,102,241,0.25)] scale-[1.025]',
-                  cyan: 'metallic-blue-panel ring-2 ring-cyan-400 shadow-[0_0_32px_rgba(6,182,212,0.55),0_0_60px_rgba(6,182,212,0.25)] scale-[1.025]'
-                }[colorKey] || 'metallic-gold-panel ring-2 ring-[#f6e7b8] shadow-[0_0_32px_rgba(246,231,184,0.55),0_0_60px_rgba(246,231,184,0.25)] scale-[1.025]';
+                  emerald: 'metallic-green-panel ring-2 ring-emerald-400 shadow-[0_0_24px_rgba(52,211,153,0.55)] scale-[1.02]',
+                  blue: 'metallic-blue-panel ring-2 ring-sky-400 shadow-[0_0_24px_rgba(56,189,248,0.55)] scale-[1.02]',
+                  purple: 'metallic-purple-panel ring-2 ring-purple-400 shadow-[0_0_24px_rgba(192,132,252,0.55)] scale-[1.02]',
+                  amber: 'metallic-gold-panel ring-2 ring-[#f6e7b8] shadow-[0_0_24px_rgba(246,231,184,0.55)] scale-[1.02]',
+                  rose: 'metallic-panel border-rose-400 ring-2 ring-rose-400 shadow-[0_0_24px_rgba(244,63,94,0.55)] scale-[1.02]',
+                  indigo: 'metallic-blue-panel ring-2 ring-indigo-400 shadow-[0_0_24px_rgba(99,102,241,0.55)] scale-[1.02]',
+                  cyan: 'metallic-blue-panel ring-2 ring-cyan-400 shadow-[0_0_24px_rgba(6,182,212,0.55)] scale-[1.02]'
+                }[colorKey] || 'metallic-gold-panel ring-2 ring-[#f6e7b8] shadow-[0_0_24px_rgba(246,231,184,0.55)] scale-[1.02]';
 
                 const titleColorClass = {
                   emerald: 'text-emerald-200 group-hover:text-emerald-100',
@@ -324,13 +353,13 @@ export function DynamicCategoryCards({
                     id={`topic-card-${topic.id}`}
                     type="button"
                     variants={CARD_VARIANTS}
-                    whileHover={{ scale: isSelected ? 1.04 : 1.015 }}
+                    whileHover={{ scale: isSelected ? 1.03 : 1.015 }}
                     whileTap={{ scale: 0.985 }}
                     onClick={() => {
                       onSelectTopic(isSelected ? null : topic.id);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className={`text-left p-3.5 rounded-2xl border transition-all duration-300 cursor-pointer relative group flex flex-col justify-between gap-2.5 ${
+                    className={`text-left p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer relative group flex flex-col justify-between min-h-[155px] sm:min-h-[165px] ${
                       isSelected
                         ? `${panelClass} z-20`
                         : isDulled
@@ -338,49 +367,56 @@ export function DynamicCategoryCards({
                         : `metallic-card ${style.border} hover:brightness-105`
                     }`}
                   >
-                    {/* Top Row: Icon, Emoji, Entry Count */}
+                    {/* Top Row: Mini Category Icon & Count Badge */}
                     <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xl select-none transition-opacity ${isDulled ? 'opacity-30 group-hover:opacity-100' : ''}`} aria-hidden="true">
-                          {topic.emoji}
-                        </span>
-                        <div className={`p-1.5 rounded-lg ${isDulled ? 'bg-white/5 text-slate-500 border-white/5' : `${style.iconBg} ${style.iconText} border border-white/10`}`}>
-                          <IconComponent className="w-3.5 h-3.5" />
-                        </div>
+                      <div className={`p-1 rounded-md ${isDulled ? 'bg-white/5 text-slate-500' : `${style.iconBg} ${style.iconText} border border-white/10`}`}>
+                        <IconComponent className="w-3 h-3" />
                       </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${isDulled ? 'bg-white/5 text-slate-500 border-white/5' : `${style.badgeBg} ${style.badgeText} border border-white/10`}`}>
-                          {topic.count} {topic.count === 1 ? 'entry' : 'entries'}
+                      <div className="flex items-center gap-1">
+                        <span className={`text-[9.5px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded-full ${isDulled ? 'bg-white/5 text-slate-500 border-white/5' : `${style.badgeBg} ${style.badgeText} border border-white/10`}`}>
+                          {topic.count} {topic.count === 1 ? 'post' : 'posts'}
                         </span>
                         {isSelected && (
-                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] animate-pulse" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
                         )}
                       </div>
                     </div>
 
-                    {/* Title & Description */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className={`text-sm font-bold transition-colors ${isDulled ? 'text-slate-500 group-hover:text-slate-200' : titleColorClass}`}>
-                          {topic.name}
-                        </h4>
-                        <ChevronRight className={`w-3.5 h-3.5 transition-transform ${isSelected ? 'rotate-90 text-white' : isDulled ? 'text-slate-600' : 'text-slate-500 group-hover:text-slate-300 group-hover:translate-x-0.5'}`} />
-                      </div>
-                      <p className={`text-xs leading-relaxed line-clamp-2 font-light ${isDulled ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-300'}`}>
+                    {/* Middle: Prominent Extra-Large Center Emoji with Subtle External Glow & Slow Zoom + Bounce */}
+                    <div className="flex items-center justify-center py-1 relative">
+                      {/* Subtle ambient background glow ring */}
+                      <div className="absolute inset-0 m-auto w-8 h-8 rounded-full bg-gradient-to-r from-amber-300/15 via-sky-300/15 to-purple-300/15 blur-lg opacity-20 group-hover:opacity-50 group-hover:scale-135 transition-all duration-500 pointer-events-none" />
+                      
+                      <span 
+                        className={`relative text-4xl sm:text-[44px] leading-none select-none transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-120 group-hover:-translate-y-1 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] group-hover:drop-shadow-[0_0_10px_rgba(246,231,184,0.45)] ${
+                          isDulled ? 'opacity-30 group-hover:opacity-100' : ''
+                        }`} 
+                        aria-hidden="true"
+                      >
+                        {topic.emoji}
+                      </span>
+                    </div>
+
+                    {/* Bottom: Topic Title & Text Description (Reveals Full Text on Hover) */}
+                    <div className="space-y-0.5 w-full text-center">
+                      <h4 className={`text-xs sm:text-[13px] font-bold truncate transition-colors ${isDulled ? 'text-slate-500 group-hover:text-slate-200' : titleColorClass}`}>
+                        {topic.name}
+                      </h4>
+                      <p 
+                        title={topic.description}
+                        className={`text-[10px] sm:text-[11px] leading-snug line-clamp-2 group-hover:line-clamp-none font-light transition-all duration-200 ${
+                          isDulled ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-300/85 group-hover:text-slate-100'
+                        }`}
+                      >
                         {topic.description}
                       </p>
                     </div>
 
-                    {/* Action Hint */}
-                    <div className={`pt-1 border-t flex items-center justify-between text-[11px] ${isDulled ? 'border-white/5 text-slate-600 group-hover:text-slate-400' : 'border-white/10 text-slate-400'}`}>
-                      <span className={`font-medium ${isSelected ? 'text-emerald-300 font-bold' : isDulled ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-400 group-hover:text-slate-200'}`}>
-                        {isSelected ? '✓ Filter Active' : 'Tap to reveal entries'}
-                      </span>
-                      <span className={`${isSelected ? 'text-white' : isDulled ? 'text-slate-600 group-hover:text-slate-300' : 'text-slate-400 group-hover:text-white'} transition-colors font-medium`}>
-                        {isSelected ? 'Reset Filter ×' : 'View & Edit →'}
-                      </span>
-                    </div>
+                    {/* Active Bottom Indicator */}
+                    {isSelected && (
+                      <div className="w-7 h-0.5 rounded-full bg-emerald-400 mx-auto mt-1 shadow-[0_0_8px_#34d399]" />
+                    )}
                   </motion.button>
                 );
               })}
