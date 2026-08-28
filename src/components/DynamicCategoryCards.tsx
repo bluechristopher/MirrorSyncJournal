@@ -279,17 +279,17 @@ export function DynamicCategoryCards({
               <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-sky-500/20 rounded-full blur-3xl pointer-events-none animate-pulse delay-300" />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
 
-              {/* Colorful Multi-Ring Animated Spinner with Floating Sparkles */}
+              {/* Multi-Ring Halo with Gentle Wobble Planet Emoji */}
               <div className="relative flex items-center justify-center">
-                {/* Outer spinning color gradient halo ring */}
-                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-400 via-emerald-400 to-sky-400 animate-spin p-[2px] shadow-[0_0_24px_rgba(246,231,184,0.4)]">
+                {/* Outer glowing halo ring (pulsing softly, not spinning) */}
+                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-400/80 via-emerald-400/80 to-sky-400/80 p-[2px] shadow-[0_0_24px_rgba(246,231,184,0.4)] animate-pulse">
                   <div className="w-full h-full bg-[#080d1a] rounded-full flex items-center justify-center backdrop-blur-md">
-                    <span className="text-xl leading-none animate-bounce">🪐</span>
+                    <span className="text-2xl leading-none animate-wobble select-none">🪐</span>
                   </div>
                 </div>
-                {/* Orbital floating sparkle icon */}
-                <div className="absolute -top-1 -right-1 animate-spin duration-700">
-                  <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 drop-shadow-[0_0_8px_#fde047]" />
+                {/* Floating sparkle icon */}
+                <div className="absolute -top-1 -right-1">
+                  <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 drop-shadow-[0_0_8px_#fde047] animate-pulse" />
                 </div>
               </div>
 
@@ -359,7 +359,7 @@ export function DynamicCategoryCards({
                       onSelectTopic(isSelected ? null : topic.id);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className={`text-left p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer relative group flex flex-col justify-between min-h-[155px] sm:min-h-[165px] ${
+                    className={`text-left p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all duration-300 cursor-pointer relative group flex flex-col justify-between min-h-[168px] sm:min-h-[180px] ${
                       isSelected
                         ? `${panelClass} z-20`
                         : isDulled
@@ -374,7 +374,7 @@ export function DynamicCategoryCards({
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <span className={`text-[9.5px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded-full ${isDulled ? 'bg-white/5 text-slate-500 border-white/5' : `${style.badgeBg} ${style.badgeText} border border-white/10`}`}>
+                        <span className={`text-[10px] sm:text-[11px] font-bold px-1.5 py-0.2 rounded-full ${isDulled ? 'bg-white/5 text-slate-500 border-white/5' : `${style.badgeBg} ${style.badgeText} border border-white/10`}`}>
                           {topic.count} {topic.count === 1 ? 'post' : 'posts'}
                         </span>
                         {isSelected && (
@@ -399,14 +399,14 @@ export function DynamicCategoryCards({
                     </div>
 
                     {/* Bottom: Topic Title & Text Description (Reveals Full Text on Hover) */}
-                    <div className="space-y-0.5 w-full text-center">
-                      <h4 className={`text-xs sm:text-[13px] font-bold truncate transition-colors ${isDulled ? 'text-slate-500 group-hover:text-slate-200' : titleColorClass}`}>
+                    <div className="space-y-1 w-full text-center">
+                      <h4 className={`text-[13px] sm:text-sm font-bold truncate transition-colors ${isDulled ? 'text-slate-500 group-hover:text-slate-200' : titleColorClass}`}>
                         {topic.name}
                       </h4>
                       <p 
                         title={topic.description}
-                        className={`text-[10px] sm:text-[11px] leading-snug line-clamp-2 group-hover:line-clamp-none font-light transition-all duration-200 ${
-                          isDulled ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-300/85 group-hover:text-slate-100'
+                        className={`text-xs sm:text-[13px] leading-relaxed line-clamp-2 group-hover:line-clamp-none font-normal transition-all duration-200 ${
+                          isDulled ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-200/90 group-hover:text-white'
                         }`}
                       >
                         {topic.description}

@@ -1100,7 +1100,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+      <main className="max-w-5xl mx-auto px-2 sm:px-6 py-4 sm:py-8 space-y-6 sm:space-y-8">
         {/* Global Toast Notification (Dark Bronze Background for Clear Contrast) */}
         {toastMessage && (
           <div className="fixed bottom-20 right-6 z-50 px-4 py-3 rounded-2xl bg-gradient-to-br from-[#2a1a0a] via-[#1a1006] to-[#0f0a04] border border-[#d4a373]/50 text-[#fef6e4] text-xs shadow-[0_12px_36px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,230,190,0.25)] flex items-center gap-2.5 backdrop-blur-xl animate-in fade-in-50 slide-in-from-bottom-3 duration-200">
@@ -1299,7 +1299,7 @@ export default function App() {
                   )}
                 </div>
               </div>
-              <div className="space-y-6 p-2.5 sm:p-5 rounded-2xl bg-[#14171f]/85 border border-white/10 shadow-2xl backdrop-blur-xl">
+              <div className="space-y-6 p-1 sm:p-5 rounded-xl sm:rounded-2xl bg-[#14171f]/85 border border-white/10 shadow-2xl backdrop-blur-xl">
                 {filteredEntries.map((entry, idx) => (
                   <motion.div
                     key={entry.id}

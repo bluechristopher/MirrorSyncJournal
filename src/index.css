@@ -680,6 +680,47 @@
     0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+/* --- 6. DARK GRAY-BLUISH METALLIC ACTION CHIP --- */
+.metallic-dark-slate {
+  background: linear-gradient(180deg, #1e2638 0%, #131a28 50%, #0c121e 100%);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  box-shadow: 
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.65),
+    0 4px 12px rgba(0, 0, 0, 0.45);
+  color: #e2e8f0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metallic-dark-slate:hover {
+  background: linear-gradient(180deg, #243048 0%, #172235 50%, #0f1726 100%);
+  border-color: rgba(147, 197, 253, 0.50);
+  box-shadow: 
+    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.70),
+    0 6px 16px rgba(10, 22, 44, 0.60),
+    0 0 14px rgba(56, 189, 248, 0.22);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.metallic-dark-slate:active {
+  transform: translateY(1px);
+  background: linear-gradient(180deg, #0d1422 0%, #141c2c 100%);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.75),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.metallic-dark-slate-active {
+  background: linear-gradient(180deg, #1e3a5f 0%, #142844 50%, #0d1c30 100%) !important;
+  border-color: rgba(147, 197, 253, 0.75) !important;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.35),
+    0 0 16px rgba(56, 189, 248, 0.45) !important;
+  color: #f8fafc !important;
+}
+
 /* Light Gold AI Content Typography */
 .ai-gold-text {
   color: #f6e7b8 !important;
@@ -692,6 +733,30 @@
 .ai-gold-heading {
   color: #fae8b0;
   text-shadow: 0 1px 8px rgba(212, 175, 55, 0.25);
+}
+
+/* Wobble Animation for Emojis / Planet Icons */
+@keyframes emoji-wobble {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  20% {
+    transform: rotate(-14deg) translateY(-2px);
+  }
+  40% {
+    transform: rotate(12deg) translateY(1px);
+  }
+  60% {
+    transform: rotate(-8deg) translateY(-1px);
+  }
+  80% {
+    transform: rotate(6deg) translateY(0);
+  }
+}
+
+.animate-wobble {
+  animation: emoji-wobble 1.6s ease-in-out infinite;
+  display: inline-block;
 }
 
 /* ========================================================
@@ -1032,137 +1097,282 @@
 }
 
 /* ========================================================
-   AUTHENTIC TEXTURED MEMO PAPER EFFECT WITH CATEGORY TINTS
-   (Darkened Exterior Dot Texture for High Contrast)
+   AUTHENTIC LINED JOURNAL BOOK PAPER WITH HORIZONTAL RULES
    ======================================================== */
 
-/* Default / Personal: Rich Warm Earthy Brown / Sandstone Tone */
+/* Personal: Warm Rich Brown / Kraft Lined Journal Page */
 .memo-paper-texture,
 .memo-paper-personal {
-  background-color: #2b1d12;
+  background-color: #382012;
   background-image: 
-    radial-gradient(#5a3d24 0.75px, transparent 0.75px),
-    radial-gradient(#482f1b 0.75px, #2b1d12 0.75px);
-  background-size: 6px 6px;
-  background-position: 0 0, 3px 3px;
-  border-color: #5c3e26;
+    radial-gradient(rgba(200, 140, 80, 0.14) 0.8px, transparent 0.8px),
+    linear-gradient(145deg, #442717 0%, #2e180c 100%);
+  background-size: 6px 6px, 100% 100%;
+  border-color: #8c532b;
 }
 
 .memo-inner-sheet,
 .memo-inner-personal {
-  background-color: #faf6ee;
+  background-color: #dfc299;
   background-image: 
-    radial-gradient(#ded2be 0.55px, transparent 0.55px),
-    linear-gradient(rgba(215, 204, 188, 0.28) 1px, transparent 1px);
-  background-size: 7px 7px, 100% 30px;
-  background-position: 0 0, 0 8px;
-  border-color: #dfd4c0;
+    linear-gradient(to bottom, transparent 31px, rgba(90, 48, 16, 0.23) 31px, rgba(90, 48, 16, 0.23) 32px),
+    radial-gradient(rgba(80, 40, 10, 0.15) 0.85px, transparent 0.85px);
+  background-size: 100% 32px, 9px 9px;
+  background-position: 0 6px, 0 0;
+  background-attachment: local;
+  border-color: #bfa176;
+  color: #2b1406;
 }
 
-/* Work: Deep Midnight Navy / Slate Dot Textured Exterior */
+/* Work: Rich Distinct Blue Lined Journal Page */
 .memo-paper-work {
-  background-color: #0f2038;
+  background-color: #122b4e;
   background-image: 
-    radial-gradient(#244b7a 0.75px, transparent 0.75px),
-    radial-gradient(#1c3c64 0.75px, #0f2038 0.75px);
-  background-size: 6px 6px;
-  background-position: 0 0, 3px 3px;
-  border-color: #29578d;
+    radial-gradient(rgba(147, 197, 253, 0.14) 0.8px, transparent 0.8px),
+    linear-gradient(145deg, #173663 0%, #0d223e 100%);
+  background-size: 6px 6px, 100% 100%;
+  border-color: #3b82f6;
 }
 
 .memo-inner-work {
-  background-color: #edf5fc;
+  background-color: #bfdbfe;
   background-image: 
-    radial-gradient(#bfd7ed 0.55px, transparent 0.55px),
-    linear-gradient(rgba(147, 185, 222, 0.32) 1px, transparent 1px);
-  background-size: 7px 7px, 100% 30px;
-  background-position: 0 0, 0 8px;
-  border-color: #b9d5ee;
+    linear-gradient(to bottom, transparent 31px, rgba(29, 78, 216, 0.23) 31px, rgba(29, 78, 216, 0.23) 32px),
+    radial-gradient(rgba(20, 60, 180, 0.15) 0.85px, transparent 0.85px);
+  background-size: 100% 32px, 9px 9px;
+  background-position: 0 6px, 0 0;
+  background-attachment: local;
+  border-color: #93c5fd;
+  color: #0f2744;
 }
 
-/* Creative: Deep Velvet Violet / Royal Plum Dot Textured Exterior */
+/* Creative: Vibrant Lavender / Orchid Lined Journal Page */
 .memo-paper-creative {
-  background-color: #261038;
+  background-color: #36144e;
   background-image: 
-    radial-gradient(#562b7c 0.75px, transparent 0.75px),
-    radial-gradient(#452163 0.75px, #261038 0.75px);
-  background-size: 6px 6px;
-  background-position: 0 0, 3px 3px;
-  border-color: #63328e;
+    radial-gradient(rgba(216, 180, 254, 0.14) 0.8px, transparent 0.8px),
+    linear-gradient(145deg, #441a63 0%, #2a0e3e 100%);
+  background-size: 6px 6px, 100% 100%;
+  border-color: #a855f7;
 }
 
 .memo-inner-creative {
-  background-color: #f7f0fe;
+  background-color: #e9d5ff;
   background-image: 
-    radial-gradient(#dcc8f5 0.55px, transparent 0.55px),
-    linear-gradient(rgba(186, 153, 230, 0.32) 1px, transparent 1px);
-  background-size: 7px 7px, 100% 30px;
-  background-position: 0 0, 0 8px;
-  border-color: #dec9f7;
+    linear-gradient(to bottom, transparent 31px, rgba(126, 34, 206, 0.23) 31px, rgba(126, 34, 206, 0.23) 32px),
+    radial-gradient(rgba(100, 20, 170, 0.15) 0.85px, transparent 0.85px);
+  background-size: 100% 32px, 9px 9px;
+  background-position: 0 6px, 0 0;
+  background-attachment: local;
+  border-color: #d8b4fe;
+  color: #2e1052;
 }
 
-/* Email: Deep Forest Emerald / Pine Dot Textured Exterior */
+/* Email: Fresh Mint / Sage Lined Journal Page */
 .memo-paper-email {
-  background-color: #0c2618;
+  background-color: #0e3b22;
   background-image: 
-    radial-gradient(#1c5738 0.75px, transparent 0.75px),
-    radial-gradient(#15462c 0.75px, #0c2618 0.75px);
-  background-size: 6px 6px;
-  background-position: 0 0, 3px 3px;
-  border-color: #216742;
+    radial-gradient(rgba(134, 239, 172, 0.14) 0.8px, transparent 0.8px),
+    linear-gradient(145deg, #134b2c 0%, #0a2f1a 100%);
+  background-size: 6px 6px, 100% 100%;
+  border-color: #22c55e;
 }
 
 .memo-inner-email {
-  background-color: #eefbf4;
+  background-color: #bbf7d0;
   background-image: 
-    radial-gradient(#bee7cf 0.55px, transparent 0.55px),
-    linear-gradient(rgba(130, 202, 163, 0.32) 1px, transparent 1px);
-  background-size: 7px 7px, 100% 30px;
-  background-position: 0 0, 0 8px;
-  border-color: #b7e8cb;
+    linear-gradient(to bottom, transparent 31px, rgba(21, 128, 61, 0.23) 31px, rgba(21, 128, 61, 0.23) 32px),
+    radial-gradient(rgba(15, 100, 45, 0.15) 0.85px, transparent 0.85px);
+  background-size: 100% 32px, 9px 9px;
+  background-position: 0 6px, 0 0;
+  background-attachment: local;
+  border-color: #86efac;
+  color: #063319;
 }
 
 /* ========================================================
    AUTHENTIC RICH LEATHER JOURNAL TEXTURE & EMBOSSED STITCHING
+   (Desktop / Tablet Book Frame)
    ======================================================== */
-.leather-journal-exterior {
-  background-color: #120904;
-  background-image: 
-    linear-gradient(125deg, rgba(255, 230, 180, 0.04) 0%, rgba(210, 140, 70, 0.01) 35%, rgba(0, 0, 0, 0.8) 100%),
-    radial-gradient(ellipse at 40% 30%, rgba(42, 22, 10, 0.95) 0%, rgba(12, 6, 2, 0.99) 100%),
-    radial-gradient(circle at 1.5px 1.5px, rgba(165, 105, 55, 0.15) 0.8px, transparent 1.2px),
-    radial-gradient(circle at 5.5px 6.5px, rgba(130, 80, 40, 0.12) 0.8px, transparent 1.2px),
-    radial-gradient(circle at 8.5px 2.5px, rgba(0, 0, 0, 0.6) 1.2px, transparent 1.6px),
-    radial-gradient(circle at 3.5px 9.5px, rgba(0, 0, 0, 0.55) 1.2px, transparent 1.6px);
-  background-size: 100% 100%, 100% 100%, 10px 10px, 10px 10px, 10px 10px, 10px 10px;
-  box-shadow: 
-    inset 0 2px 4px 0 rgba(255, 220, 160, 0.15),
-    inset 0 -4px 6px 0 rgba(0, 0, 0, 0.95),
-    inset 2px 0 4px 0 rgba(255, 220, 160, 0.10),
-    inset -2px 0 6px 0 rgba(0, 0, 0, 0.95),
-    0 28px 72px -8px rgba(0, 0, 0, 0.98);
-  border: 1px solid rgba(180, 120, 60, 0.30);
+.leather-journal-desktop-cover {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .leather-journal-desktop-cover {
+    background-color: #26150b;
+    background-image: 
+      linear-gradient(125deg, rgba(255, 230, 180, 0.08) 0%, rgba(210, 140, 70, 0.03) 35%, rgba(0, 0, 0, 0.75) 100%),
+      radial-gradient(ellipse at 40% 30%, rgba(72, 40, 20, 0.95) 0%, rgba(28, 15, 7, 0.99) 100%),
+      radial-gradient(circle at 1.5px 1.5px, rgba(195, 135, 85, 0.20) 0.8px, transparent 1.2px),
+      radial-gradient(circle at 5.5px 6.5px, rgba(160, 110, 60, 0.16) 0.8px, transparent 1.2px),
+      radial-gradient(circle at 8.5px 2.5px, rgba(0, 0, 0, 0.5) 1.2px, transparent 1.6px),
+      radial-gradient(circle at 3.5px 9.5px, rgba(0, 0, 0, 0.45) 1.2px, transparent 1.6px);
+    background-size: 100% 100%, 100% 100%, 10px 10px, 10px 10px, 10px 10px, 10px 10px;
+    box-shadow: 
+      inset 0 2px 4px 0 rgba(255, 220, 160, 0.25),
+      inset 0 -4px 6px 0 rgba(0, 0, 0, 0.95),
+      inset 2px 0 4px 0 rgba(255, 220, 160, 0.18),
+      inset -2px 0 6px 0 rgba(0, 0, 0, 0.95),
+      0 28px 72px -8px rgba(0, 0, 0, 0.98),
+      0 0 40px rgba(68, 38, 20, 0.35);
+    border: 1.5px solid rgba(190, 130, 70, 0.45);
+    padding: 1.25rem;
+  }
 }
 
 .leather-spine-ribs {
   background: linear-gradient(
     90deg, 
-    #0a0502 0%, 
-    #1c0e06 25%, 
-    #2e170a 50%, 
-    #140a04 75%, 
-    #080301 100%
+    #120803 0%, 
+    #2a1408 25%, 
+    #42200d 50%, 
+    #221006 75%, 
+    #100602 100%
   );
   box-shadow: 
-    inset 0 1px 2px rgba(255, 230, 180, 0.18),
+    inset 0 1px 2px rgba(255, 230, 180, 0.25),
     inset 0 -1px 2px rgba(0, 0, 0, 0.9),
-    2px 0 8px rgba(0, 0, 0, 0.85);
-  border-right: 1px solid rgba(180, 120, 60, 0.25);
+    2px 0 10px rgba(0, 0, 0, 0.85);
+  border-right: 1px solid rgba(190, 130, 70, 0.4);
 }
 
 .leather-saddle-stitch {
-  border: 1.5px dashed rgba(190, 135, 75, 0.35);
+  border: 1.5px dashed rgba(210, 155, 95, 0.5);
   box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================================
+   3D LUXURY LEATHER & SATIN BOOKMARK RIBBON TABS
+   ======================================================== */
+.bookmark-tab-3d {
+  position: relative;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.bookmark-tab-work-active {
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 45%, #082f49 100%) !important;
+  border: 1.5px solid #7dd3fc !important;
+  border-bottom: none !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    0 -6px 16px rgba(56, 189, 248, 0.45),
+    0 0 12px rgba(56, 189, 248, 0.35) !important;
+  transform: translateY(-4px);
+  z-index: 20;
+}
+
+.bookmark-tab-work-inactive {
+  background: linear-gradient(180deg, #10243e 0%, #071526 60%, #030a14 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-bottom: none;
+  color: #93c5fd;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 -2px 8px rgba(0, 0, 0, 0.5);
+}
+.bookmark-tab-work-inactive:hover {
+  background: linear-gradient(180deg, #19385f 0%, #0b223d 60%, #051322 100%);
+  border-color: rgba(125, 211, 252, 0.7);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.bookmark-tab-personal-active {
+  background: linear-gradient(180deg, #fbbf24 0%, #d97706 45%, #451a03 100%) !important;
+  border: 1.5px solid #fde68a !important;
+  border-bottom: none !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    0 -6px 16px rgba(245, 158, 11, 0.45),
+    0 0 12px rgba(245, 158, 11, 0.35) !important;
+  transform: translateY(-4px);
+  z-index: 20;
+}
+
+.bookmark-tab-personal-inactive {
+  background: linear-gradient(180deg, #361c0c 0%, #201006 60%, #0f0702 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-bottom: none;
+  color: #fcd34d;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 -2px 8px rgba(0, 0, 0, 0.5);
+}
+.bookmark-tab-personal-inactive:hover {
+  background: linear-gradient(180deg, #4d2812 0%, #2f1709 60%, #170b04 100%);
+  border-color: rgba(253, 230, 138, 0.7);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.bookmark-tab-creative-active {
+  background: linear-gradient(180deg, #c084fc 0%, #9333ea 45%, #3b0764 100%) !important;
+  border: 1.5px solid #e9d5ff !important;
+  border-bottom: none !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    0 -6px 16px rgba(192, 132, 252, 0.45),
+    0 0 12px rgba(192, 132, 252, 0.35) !important;
+  transform: translateY(-4px);
+  z-index: 20;
+}
+
+.bookmark-tab-creative-inactive {
+  background: linear-gradient(180deg, #2d1145 0%, #1b072c 60%, #0d0216 100%);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  border-bottom: none;
+  color: #d8b4fe;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 -2px 8px rgba(0, 0, 0, 0.5);
+}
+.bookmark-tab-creative-inactive:hover {
+  background: linear-gradient(180deg, #421865 0%, #270a3f 60%, #150422 100%);
+  border-color: rgba(233, 213, 255, 0.7);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.bookmark-tab-email-active {
+  background: linear-gradient(180deg, #34d399 0%, #059669 45%, #022c22 100%) !important;
+  border: 1.5px solid #a7f3d0 !important;
+  border-bottom: none !important;
+  color: #ffffff !important;
+  box-shadow: 
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    0 -6px 16px rgba(52, 211, 153, 0.45),
+    0 0 12px rgba(52, 211, 153, 0.35) !important;
+  transform: translateY(-4px);
+  z-index: 20;
+}
+
+.bookmark-tab-email-inactive {
+  background: linear-gradient(180deg, #0d2e1f 0%, #071c13 60%, #020d09 100%);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-bottom: none;
+  color: #86efac;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 -2px 8px rgba(0, 0, 0, 0.5);
+}
+.bookmark-tab-email-inactive:hover {
+  background: linear-gradient(180deg, #14462f 0%, #0b2b1d 60%, #04160e 100%);
+  border-color: rgba(167, 243, 208, 0.7);
+  color: #ffffff;
+  transform: translateY(-2px);
 }
 
 /* ========================================================
@@ -1211,5 +1421,47 @@
 
 .aurora-orb-3 {
   animation: aurora-flow-3 9s ease-in-out infinite;
+}
+
+/* AI Feedback & Next Steps Rich Blue Card with Multicolor Aurora Glow */
+.ai-feedback-aurora-card {
+  position: relative;
+  background: linear-gradient(135deg, #091e3d 0%, #06152b 50%, #030b17 100%);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    0 12px 36px rgba(4, 16, 36, 0.65),
+    0 0 24px rgba(56, 189, 248, 0.15);
+  overflow: hidden;
+}
+
+/* Animated Silver & Celestial Blue Shimmer Gradient Text */
+@keyframes silver-blue-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.silver-blue-gradient-text {
+  background: linear-gradient(
+    90deg, 
+    #ffffff 0%, 
+    #cbd5e1 20%, 
+    #38bdf8 40%, 
+    #60a5fa 60%, 
+    #e2e8f0 80%, 
+    #ffffff 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: silver-blue-shimmer 4s ease infinite;
 }
 

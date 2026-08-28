@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, type Variants } from 'motion/react';
 import { 
   ChevronLeft, 
@@ -138,6 +138,41 @@ export function BookJournalView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleNextPage, handlePrevPage]);
 
+  // Touch swipe support for mobile without interfering with text selection / copying
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const diffX = touchStartXRef.current - e.changedTouches[0].clientX;
+    const diffY = touchStartYRef.current - e.changedTouches[0].clientY;
+
+    // Do not trigger page flip if user has active text selection
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+      return;
+    }
+
+    // Horizontal swipe threshold: at least 60px and predominantly horizontal
+    if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+      if (diffX > 0) {
+        handleNextPage();
+      } else {
+        handlePrevPage();
+      }
+    }
+
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+  };
+
   if (!entries || entries.length === 0) {
     return null;
   }
@@ -176,27 +211,27 @@ export function BookJournalView({
     emoji: string;
   }> = {
     Work: {
-      active: 'bg-gradient-to-b from-sky-600 via-sky-700 to-sky-950 text-sky-100 border-sky-400 -translate-y-1 z-10 shadow-[0_-4px_14px_rgba(56,189,248,0.5)]',
-      inactive: 'bg-[#091a2e] text-sky-300 hover:text-white border-t border-x border-sky-600/50 hover:bg-[#0f274a] hover:border-sky-400',
-      dot: 'bg-sky-400 shadow-[0_0_6px_#38bdf8]',
+      active: 'bookmark-tab-work-active',
+      inactive: 'bookmark-tab-work-inactive',
+      dot: 'bg-sky-300 shadow-[0_0_8px_#38bdf8]',
       emoji: '💼'
     },
     Personal: {
-      active: 'bg-gradient-to-b from-amber-600 via-amber-700 to-amber-950 text-amber-100 border-amber-400 -translate-y-1 z-10 shadow-[0_-4px_14px_rgba(245,158,11,0.5)]',
-      inactive: 'bg-[#221307] text-amber-300 hover:text-white border-t border-x border-amber-600/50 hover:bg-[#341d0b] hover:border-amber-400',
-      dot: 'bg-amber-400 shadow-[0_0_6px_#f59e0b]',
+      active: 'bookmark-tab-personal-active',
+      inactive: 'bookmark-tab-personal-inactive',
+      dot: 'bg-amber-300 shadow-[0_0_8px_#f59e0b]',
       emoji: '🎾'
     },
     Creative: {
-      active: 'bg-gradient-to-b from-purple-600 via-purple-700 to-purple-950 text-purple-100 border-purple-400 -translate-y-1 z-10 shadow-[0_-4px_14px_rgba(192,132,252,0.5)]',
-      inactive: 'bg-[#1e0a2e] text-purple-300 hover:text-white border-t border-x border-purple-600/50 hover:bg-[#2c1044] hover:border-purple-400',
-      dot: 'bg-purple-400 shadow-[0_0_6px_#c084fc]',
+      active: 'bookmark-tab-creative-active',
+      inactive: 'bookmark-tab-creative-inactive',
+      dot: 'bg-purple-300 shadow-[0_0_8px_#c084fc]',
       emoji: '🎨'
     },
     'Email Drafting': {
-      active: 'bg-gradient-to-b from-emerald-600 via-emerald-700 to-emerald-950 text-emerald-100 border-emerald-400 -translate-y-1 z-10 shadow-[0_-4px_14px_rgba(52,211,153,0.5)]',
-      inactive: 'bg-[#082015] text-emerald-300 hover:text-white border-t border-x border-emerald-600/50 hover:bg-[#0d3322] hover:border-emerald-400',
-      dot: 'bg-emerald-400 shadow-[0_0_6px_#34d399]',
+      active: 'bookmark-tab-email-active',
+      inactive: 'bookmark-tab-email-inactive',
+      dot: 'bg-emerald-300 shadow-[0_0_8px_#34d399]',
       emoji: '✉️'
     }
   };
@@ -261,9 +296,9 @@ export function BookJournalView({
       </div>
 
       {/* TOP BOOKMARK RIBBONS BAR (Only Bookmarked Entries with Category Colors) */}
-      <div className="relative pt-2 pb-1 px-1 overflow-x-auto scrollbar-none flex items-center gap-2 -mx-1">
-        <div className="text-[10px] font-mono text-amber-400/90 uppercase tracking-widest flex items-center gap-1.5 shrink-0 pr-2 border-r border-amber-900/40">
-          <Bookmark className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30" />
+      <div className="relative pt-2 pb-1 px-1 overflow-x-auto scrollbar-none flex items-center gap-2.5 -mx-1">
+        <div className="text-[11px] font-mono font-bold text-amber-300 uppercase tracking-widest flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-lg bg-black/40 border border-amber-500/35 shadow-inner">
+          <Bookmark className="w-3.5 h-3.5 text-amber-300 fill-amber-400/50 drop-shadow-[0_0_6px_rgba(245,158,11,0.5)]" />
           <span>Bookmarks:</span>
         </div>
 
@@ -286,20 +321,20 @@ export function BookJournalView({
               <motion.button
                 key={entry.id}
                 type="button"
-                whileHover={{ y: -2 }}
+                whileHover={{ y: -3, scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleJumpToPage(originalIdx)}
-                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-t-xl text-xs font-bold transition-all cursor-pointer shrink-0 shadow-md border-t-2 border-x ${
+                className={`bookmark-tab-3d relative flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold cursor-pointer shrink-0 ${
                   isActive ? style.active : style.inactive
                 }`}
                 title={`Jump to Page ${originalIdx + 1}: ${domain} - "${entry.reflectionSummary || entry.rawText.slice(0, 40)}"`}
               >
-                <span className="text-xs select-none" aria-hidden="true">
+                <span className="text-sm select-none drop-shadow-sm" aria-hidden="true">
                   {style.emoji}
                 </span>
-                <span className={`w-2 h-2 rounded-full ${isActive ? style.dot : 'bg-white/30'}`} />
-                <span className="font-mono text-[11px]">#{originalIdx + 1}</span>
-                <span className="truncate max-w-[90px] text-[11px] font-medium hidden sm:inline">
+                <span className={`w-2 h-2 rounded-full ${isActive ? style.dot : 'bg-white/40'}`} />
+                <span className="font-mono text-xs font-extrabold tracking-tight">#{originalIdx + 1}</span>
+                <span className="truncate max-w-[100px] text-[11.5px] font-semibold tracking-wide hidden sm:inline">
                   {domain}
                 </span>
               </motion.button>
@@ -308,23 +343,23 @@ export function BookJournalView({
         )}
       </div>
 
-      {/* TEXTURED RICH LEATHER JOURNAL BOOK CONTAINER WITH SADDLE STITCHING & SPINE */}
+      {/* TEXTURED RICH LEATHER JOURNAL BOOK CONTAINER WITH SADDLE STITCHING & SPINE (Desktop / Tablet) */}
       <div className="relative perspective-[1400px] w-full">
         
-        {/* Authentic Rich Leather Exterior Cover */}
-        <div className="relative p-1 sm:p-4 rounded-xl sm:rounded-2xl leather-journal-exterior flex items-stretch overflow-hidden">
+        {/* Authentic Rich Leather Exterior Cover on desktop, Clean & Simple Full Width on Mobile */}
+        <div className="relative rounded-none sm:rounded-2xl flex items-stretch overflow-hidden leather-journal-desktop-cover">
           
           {/* Subtle Saddle Stitch Perimeter Accent */}
-          <div className="absolute inset-1 sm:inset-2 rounded-lg sm:rounded-xl leather-saddle-stitch pointer-events-none z-10" />
+          <div className="hidden sm:block absolute inset-1 sm:inset-2 rounded-lg sm:rounded-xl leather-saddle-stitch pointer-events-none z-10" />
 
           {/* REALISTIC EMBOSSED LEATHER SPINE */}
-          <div className="w-2 sm:w-4.5 leather-spine-ribs shrink-0 z-20 relative select-none rounded-l-md sm:rounded-l-lg my-0.5 sm:my-1 shadow-lg" />
+          <div className="hidden sm:block w-2 sm:w-4.5 leather-spine-ribs shrink-0 z-20 relative select-none rounded-l-md sm:rounded-l-lg my-0.5 sm:my-1 shadow-lg" />
 
           {/* MAIN PAGE AREA */}
-          <div className="flex-1 min-w-0 pl-1 sm:pl-4 space-y-2 sm:space-y-3 z-10">
+          <div className="flex-1 min-w-0 pl-0 sm:pl-4 space-y-2 sm:space-y-3 z-10 w-full">
             
             {/* Page Header Bar inside Book */}
-            <div className="flex items-center justify-between px-2 sm:px-3 py-1.5 sm:py-2 border-b border-amber-900/30 text-xs text-amber-200/90">
+            <div className="flex items-center justify-between px-1 sm:px-3 py-1.5 sm:py-2 border-b border-amber-900/30 text-xs text-amber-200/90">
               <motion.button
                 type="button"
                 onClick={handlePrevPage}
@@ -381,16 +416,22 @@ export function BookJournalView({
                   exit="exit"
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.2}
-                  onDragEnd={(_e, { offset, velocity }) => {
-                    const swipeThreshold = 60;
-                    if (offset.x < -swipeThreshold || velocity.x < -350) {
-                      handleNextPage();
-                    } else if (offset.x > swipeThreshold || velocity.x > 350) {
-                      handlePrevPage();
+                  dragElastic={0.35}
+                  onDragEnd={(_e, info) => {
+                    const swipeThreshold = 35;
+                    const velocityThreshold = 120;
+
+                    if (info.offset.x < -swipeThreshold || info.velocity.x < -velocityThreshold) {
+                      if (currentIndex < entries.length - 1) {
+                        handleNextPage();
+                      }
+                    } else if (info.offset.x > swipeThreshold || info.velocity.x > velocityThreshold) {
+                      if (currentIndex > 0) {
+                        handlePrevPage();
+                      }
                     }
                   }}
-                  className="w-full transform-gpu cursor-grab active:cursor-grabbing"
+                  className="w-full transform-gpu"
                 >
                   <ReflectionCard
                     entry={currentEntry}
@@ -415,7 +456,7 @@ export function BookJournalView({
             </div>
 
             {/* Bottom Book Page Navigation Bar */}
-            <div className="flex items-center justify-between px-3 py-2 border-t border-amber-900/30 text-xs">
+            <div className="flex items-center justify-between px-1 sm:px-3 py-2 border-t border-amber-900/30 text-xs">
               <motion.button
                 type="button"
                 onClick={handlePrevPage}

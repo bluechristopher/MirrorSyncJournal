@@ -32,12 +32,30 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
   const [isMuted, setIsMuted] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
   const [currentSpokenWord, setCurrentSpokenWord] = useState('');
-  const [showSettings, setShowSettings] = useState(false);
 
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const textChunksRef = useRef<string[]>([]);
-  const currentChunkIndexRef = useRef<number>(0);
+  const playbackSpeedRef = useRef<number>(1.0);
+  const isMutedRef = useRef<boolean>(false);
   const fullTextRef = useRef<string>('');
+  const currentCharIndexRef = useRef<number>(0);
+  const progressTimerRef = useRef<number | null>(null);
+  const isTransitioningRef = useRef<boolean>(false);
+
+  // Sync refs with state
+  useEffect(() => {
+    playbackSpeedRef.current = playbackSpeed;
+  }, [playbackSpeed]);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
+
+  const clearTimer = () => {
+    if (progressTimerRef.current !== null) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+  };
 
   // Load available system voices
   useEffect(() => {
@@ -66,6 +84,7 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
     }
 
     return () => {
+      clearTimer();
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
@@ -100,30 +119,38 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
     return text;
   };
 
-  // Start speech synthesis
-  const handlePlay = () => {
+  // Robust speak engine starting from any character offset
+  const speakFromOffset = (startCharIndex: number, overrideSpeed?: number) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       alert('Speech synthesis is not supported in this browser window.');
       return;
     }
 
-    // If currently paused, resume
-    if (isPaused) {
-      window.speechSynthesis.resume();
-      setIsPaused(false);
-      setIsPlaying(true);
-      return;
-    }
-
+    isTransitioningRef.current = true;
+    clearTimer();
     window.speechSynthesis.cancel();
 
     const preparedText = getPreparedText();
     fullTextRef.current = preparedText;
-    
-    const utterance = new SpeechSynthesisUtterance(preparedText);
-    utterance.rate = playbackSpeed;
+
+    const clampedOffset = Math.max(0, Math.min(startCharIndex, preparedText.length - 1));
+    const textToSpeak = preparedText.slice(clampedOffset);
+
+    if (!textToSpeak.trim()) {
+      setProgressPercent(100);
+      setIsPlaying(false);
+      setIsPaused(false);
+      setCurrentSpokenWord('');
+      currentCharIndexRef.current = 0;
+      isTransitioningRef.current = false;
+      return;
+    }
+
+    const currentSpeed = overrideSpeed ?? playbackSpeedRef.current;
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.rate = currentSpeed;
     utterance.pitch = 1.0;
-    utterance.volume = isMuted ? 0 : 1;
+    utterance.volume = isMutedRef.current ? 0 : 1;
 
     // Apply chosen voice
     if (selectedVoiceURI && voices.length > 0) {
@@ -131,33 +158,70 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
       if (v) utterance.voice = v;
     }
 
+    const startTime = Date.now();
+    const startOffset = clampedOffset;
+    currentCharIndexRef.current = startOffset;
+
+    // Reading speed heuristic: ~15.5 characters per second at 1.0x rate
+    const charsPerSec = 15.5 * currentSpeed;
+
     utterance.onstart = () => {
+      isTransitioningRef.current = false;
       setIsPlaying(true);
       setIsPaused(false);
-      setProgressPercent(0);
+
+      // Start continuous interval timer to guarantee smooth progress
+      clearTimer();
+      progressTimerRef.current = window.setInterval(() => {
+        const elapsedSec = (Date.now() - startTime) / 1000;
+        const estimatedChar = Math.min(preparedText.length, Math.round(startOffset + elapsedSec * charsPerSec));
+        currentCharIndexRef.current = Math.max(currentCharIndexRef.current, estimatedChar);
+
+        const pct = Math.min(99, Math.round((currentCharIndexRef.current / preparedText.length) * 100));
+        setProgressPercent(pct);
+
+        const remaining = preparedText.slice(currentCharIndexRef.current);
+        const currentWord = remaining.split(/\s+/)[0] || '';
+        if (currentWord) {
+          setCurrentSpokenWord(currentWord.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, ''));
+        }
+      }, 120);
     };
 
     utterance.onboundary = (event) => {
-      if (event.name === 'word') {
-        const charIdx = event.charIndex;
-        const remaining = preparedText.slice(charIdx);
-        const word = remaining.split(/\s+/)[0] || '';
-        setCurrentSpokenWord(word);
+      if (event.name === 'word' || typeof event.charIndex === 'number') {
+        const actualCharIdx = Math.min(preparedText.length, startOffset + event.charIndex);
+        currentCharIndexRef.current = actualCharIdx;
 
-        const pct = Math.min(100, Math.round((charIdx / preparedText.length) * 100));
+        const remaining = preparedText.slice(actualCharIdx);
+        const word = remaining.split(/\s+/)[0] || '';
+        if (word) {
+          setCurrentSpokenWord(word.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, ''));
+        }
+
+        const pct = Math.min(99, Math.round((actualCharIdx / preparedText.length) * 100));
         setProgressPercent(pct);
       }
     };
 
     utterance.onend = () => {
+      if (isTransitioningRef.current) {
+        return;
+      }
+      clearTimer();
       setIsPlaying(false);
       setIsPaused(false);
       setProgressPercent(100);
       setCurrentSpokenWord('');
+      currentCharIndexRef.current = 0;
     };
 
     utterance.onerror = (e) => {
+      if (isTransitioningRef.current) {
+        return;
+      }
       console.warn('Speech synthesis playback ended or interrupted:', e);
+      clearTimer();
       setIsPlaying(false);
       setIsPaused(false);
     };
@@ -166,40 +230,84 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
     window.speechSynthesis.speak(utterance);
   };
 
-  const handlePause = () => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.pause();
-      setIsPaused(true);
-      setIsPlaying(false);
+  // Start / Resume speech synthesis
+  const handlePlay = () => {
+    const preparedText = getPreparedText();
+    if (isPaused && currentCharIndexRef.current > 0 && currentCharIndexRef.current < preparedText.length) {
+      speakFromOffset(currentCharIndexRef.current);
+      return;
     }
+    if (progressPercent >= 100) {
+      setProgressPercent(0);
+      currentCharIndexRef.current = 0;
+    }
+    speakFromOffset(currentCharIndexRef.current > 0 ? currentCharIndexRef.current : 0);
+  };
+
+  const handlePause = () => {
+    isTransitioningRef.current = true;
+    clearTimer();
+    const savedPos = currentCharIndexRef.current;
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    currentCharIndexRef.current = savedPos;
+    setIsPaused(true);
+    setIsPlaying(false);
+    setTimeout(() => {
+      isTransitioningRef.current = false;
+    }, 50);
   };
 
   const handleStop = () => {
+    isTransitioningRef.current = false;
+    clearTimer();
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      setIsPlaying(false);
-      setIsPaused(false);
-      setProgressPercent(0);
-      setCurrentSpokenWord('');
     }
+    setIsPlaying(false);
+    setIsPaused(false);
+    setProgressPercent(0);
+    setCurrentSpokenWord('');
+    currentCharIndexRef.current = 0;
   };
 
   const handleChangeSpeed = (speed: number) => {
     setPlaybackSpeed(speed);
+    playbackSpeedRef.current = speed;
+
     if (isPlaying) {
-      // Re-trigger with new speed
-      handleStop();
+      isTransitioningRef.current = true;
+      const currentPos = currentCharIndexRef.current;
+      speakFromOffset(currentPos, speed);
       setTimeout(() => {
-        handlePlay();
-      }, 100);
+        isTransitioningRef.current = false;
+      }, 50);
+    }
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+    
+    const preparedText = getPreparedText();
+    const targetCharIdx = Math.floor(ratio * preparedText.length);
+    setProgressPercent(Math.round(ratio * 100));
+
+    if (isPlaying) {
+      speakFromOffset(targetCharIdx);
+    } else {
+      currentCharIndexRef.current = targetCharIdx;
+      if (isPaused) {
+        setIsPaused(false);
+      }
     }
   };
 
   const handleScopeChange = (newScope: 'full' | 'journal' | 'coaching') => {
     setReadScope(newScope);
-    if (isPlaying || isPaused) {
-      handleStop();
-    }
+    handleStop();
   };
 
   return (
@@ -307,17 +415,21 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
 
       {/* Progress Bar & Word Teleprompter */}
       <div className="space-y-1.5 pt-1">
-        <div className="w-full bg-black/40 rounded-full h-1.5 overflow-hidden border border-purple-500/20">
+        <div 
+          onClick={handleSeek}
+          className="w-full bg-black/50 hover:bg-black/70 rounded-full h-2 overflow-hidden border border-purple-500/30 cursor-pointer relative group transition-all"
+          title="Click to jump to point in audio"
+        >
           <div
-            className="bg-gradient-to-r from-purple-500 via-[#c084fc] to-pink-400 h-1.5 transition-all duration-150 rounded-full shadow-[0_0_8px_#c084fc]"
+            className="bg-gradient-to-r from-purple-500 via-[#c084fc] to-pink-400 h-2 transition-all duration-150 rounded-full shadow-[0_0_10px_#c084fc] group-hover:brightness-125"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-[10px] text-purple-200/70 font-mono">
-          <span className="truncate max-w-[200px]">
-            {isPlaying && currentSpokenWord ? `Reading: "${currentSpokenWord}"` : isPaused ? 'Paused' : 'Ready to listen'}
+        <div className="flex items-center justify-between text-[10px] text-purple-200/80 font-mono font-medium">
+          <span className="truncate max-w-[240px]">
+            {isPlaying && currentSpokenWord ? `Reading: "${currentSpokenWord}"` : isPaused ? '⏸ Paused' : 'Ready to listen'}
           </span>
-          <span>{progressPercent}%</span>
+          <span className="text-purple-300 font-bold">{progressPercent}%</span>
         </div>
       </div>
 
@@ -329,18 +441,18 @@ export function JournalVoicePlayer({ entry, className = '', onClose }: JournalVo
             <button
               type="button"
               onClick={handlePlay}
-              className="px-4 py-2 rounded-xl metallic-purple-button text-white font-bold text-xs flex items-center gap-2 shadow-[0_0_16px_rgba(192,132,252,0.4)] hover:brightness-115 active:scale-95 transition-all cursor-pointer"
+              className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl metallic-purple-button text-white font-bold text-xs flex items-center gap-1.5 shadow-[0_0_14px_rgba(192,132,252,0.35)] hover:brightness-115 active:scale-95 transition-all cursor-pointer"
             >
-              <Play className="w-4 h-4 fill-white" />
-              <span>{isPaused ? 'Resume Playback' : 'Play Narration'}</span>
+              <Play className="w-3.5 h-3.5 fill-white" />
+              <span>{isPaused ? 'Resume' : 'Play'}</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={handlePause}
-              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-2 shadow-[0_0_16px_rgba(192,132,252,0.4)] active:scale-95 transition-all cursor-pointer"
+              className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-[0_0_14px_rgba(192,132,252,0.35)] active:scale-95 transition-all cursor-pointer"
             >
-              <Pause className="w-4 h-4 fill-white" />
+              <Pause className="w-3.5 h-3.5 fill-white" />
               <span>Pause</span>
             </button>
           )}

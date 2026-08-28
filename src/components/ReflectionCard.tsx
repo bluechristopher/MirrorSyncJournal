@@ -111,6 +111,29 @@ function getCleanCreativeSpark(spark?: string | null): string | null {
   return trimmed.replace(/^["']|["']$/g, '').trim();
 }
 
+function getCleanAiFeedback(adaptiveResponse?: string | null): string {
+  if (!adaptiveResponse) return '';
+  const lines = adaptiveResponse.split('\n');
+  const filtered: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    // If a section starts with "Questions to consider" or "Inquisitive Questions" or "Reflective prompts", break early
+    if (/^(#+\s*)?(inquisitive\s*questions?|questions?\s*to\s*(consider|reflect|explore)|reflective\s*(prompts?|questions?)):?/i.test(line)) {
+      break;
+    }
+    // If line is a trailing question bullet point towards the end of the text
+    if (/^[•\-\*]\s*.*\?$/.test(line) && i >= lines.length - 4) {
+      continue;
+    }
+    filtered.push(lines[i]);
+  }
+
+  const result = filtered.join('\n').trim();
+  // Strip trailing "What do you think?" or similar closing question sentence if present at the very end
+  return result.replace(/\n*(\b(what\s*(are|do|would|could)\s*you\s*(think|do|feel|explore|takeaway)|how\s*(would|could|do|might)\s*you)\b[^.?!]*\?)\s*$/i, '').trim();
+}
+
 interface ReflectionCardProps {
   key?: string;
   entry: JournalEntry;
@@ -373,8 +396,8 @@ export function ReflectionCard({
 
   const memoThemeConfig = {
     Work: {
-      wrapper: 'memo-paper-work border-[#29578d]',
-      innerSheet: 'memo-inner-work border-[#b9d5ee] text-[#162740]',
+      wrapper: 'memo-paper-work border-[#2563eb]',
+      innerSheet: 'memo-inner-work border-[#93c5fd] text-[#0f2744]',
       tape: 'bg-gradient-to-r from-sky-600/40 via-sky-400/60 to-sky-600/40',
       iconBox: 'bg-sky-950/80 border-sky-400/50 text-sky-300',
       iconText: 'text-sky-300',
@@ -383,8 +406,8 @@ export function ReflectionCard({
       editBtn: 'bg-sky-900/60 hover:bg-sky-800/80 text-sky-100 border-sky-400/50',
     },
     Personal: {
-      wrapper: 'memo-paper-personal border-[#5c3e26]',
-      innerSheet: 'memo-inner-personal border-[#dfd4c0] text-[#24272c]',
+      wrapper: 'memo-paper-personal border-[#784724]',
+      innerSheet: 'memo-inner-personal border-[#cbb592] text-[#2c1808]',
       tape: 'bg-gradient-to-r from-amber-600/40 via-amber-400/60 to-amber-600/40',
       iconBox: 'bg-[#1e1208] border-amber-400/50 text-amber-300',
       iconText: 'text-amber-300',
@@ -393,8 +416,8 @@ export function ReflectionCard({
       editBtn: 'bg-amber-950/70 hover:bg-amber-900/80 text-amber-100 border-amber-400/50',
     },
     Creative: {
-      wrapper: 'memo-paper-creative border-[#63328e]',
-      innerSheet: 'memo-inner-creative border-[#dec9f7] text-[#2a1b3d]',
+      wrapper: 'memo-paper-creative border-[#7e22ce]',
+      innerSheet: 'memo-inner-creative border-[#d8b4fe] text-[#2e1052]',
       tape: 'bg-gradient-to-r from-purple-600/40 via-purple-400/60 to-purple-600/40',
       iconBox: 'bg-purple-950/80 border-purple-400/50 text-purple-300',
       iconText: 'text-purple-300',
@@ -403,8 +426,8 @@ export function ReflectionCard({
       editBtn: 'bg-purple-900/60 hover:bg-purple-800/80 text-purple-100 border-purple-400/50',
     },
     'Email Drafting': {
-      wrapper: 'memo-paper-email border-[#216742]',
-      innerSheet: 'memo-inner-email border-[#b7e8cb] text-[#123020]',
+      wrapper: 'memo-paper-email border-[#16a34a]',
+      innerSheet: 'memo-inner-email border-[#86efac] text-[#063319]',
       tape: 'bg-gradient-to-r from-emerald-600/40 via-emerald-400/60 to-emerald-600/40',
       iconBox: 'bg-emerald-950/80 border-emerald-400/50 text-emerald-300',
       iconText: 'text-emerald-300',
@@ -413,8 +436,8 @@ export function ReflectionCard({
       editBtn: 'bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-100 border-emerald-400/50',
     },
   }[domain] || {
-    wrapper: 'memo-paper-personal border-[#5c3e26]',
-    innerSheet: 'memo-inner-personal border-[#dfd4c0] text-[#24272c]',
+    wrapper: 'memo-paper-personal border-[#784724]',
+    innerSheet: 'memo-inner-personal border-[#cbb592] text-[#2c1808]',
     tape: 'bg-gradient-to-r from-amber-600/40 via-amber-400/60 to-amber-600/40',
     iconBox: 'bg-[#1e1208] border-amber-400/50 text-amber-300',
     iconText: 'text-amber-300',
@@ -495,6 +518,7 @@ export function ReflectionCard({
     let displayPrompt = customPrompt || '';
     if (!displayPrompt) {
       if (actionType === 'propose_update') displayPrompt = '📝 Update Journal Post (with conversation insights)';
+      else if (actionType === 'improve_fluency') displayPrompt = '✨ Improve Language Fluency & Grammar Flow';
       else if (actionType === 'structure_notes') displayPrompt = '📋 Structure Notes (Headers & Bullets)';
       else if (actionType === 'extract_checklist') displayPrompt = '✅ Extract Action Checklist';
       else if (actionType === 'refine_tone') displayPrompt = '✨ Refine & Polish Reflection';
@@ -722,14 +746,14 @@ export function ReflectionCard({
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-1 sm:gap-1.5 text-slate-300 self-stretch sm:self-auto justify-between sm:justify-end md:self-center">
+        <div className="flex items-center gap-1 sm:gap-1.5 text-slate-300 shrink-0 self-auto justify-end md:self-center">
           
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {/* 1. Read Aloud Audio Player Toggle */}
             <button
               type="button"
               onClick={() => setShowVoicePlayer(!showVoicePlayer)}
-              className={`p-1.5 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+              className={`h-8 sm:h-8.5 px-2.5 sm:px-3 rounded-lg sm:rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap transition-all ${
                 showVoicePlayer
                   ? 'metallic-btn-3d-violet ring-2 ring-purple-300/80 brightness-115'
                   : 'metallic-btn-3d-violet'
@@ -750,7 +774,7 @@ export function ReflectionCard({
                   scrollToCardTop();
                 }
               }}
-              className={`p-1.5 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+              className={`h-8 sm:h-8.5 px-2.5 sm:px-3 rounded-lg sm:rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap transition-all ${
                 isExpanded
                   ? 'metallic-gold-button text-[#070d1e] shadow-[0_0_16px_rgba(246,231,184,0.4)]'
                   : 'metallic-btn-3d-blue'
@@ -759,44 +783,25 @@ export function ReflectionCard({
             >
               {isExpanded ? (
                 <>
-                  <ChevronUp className="w-3.5 h-3.5 text-[#070d1e]" />
+                  <ChevronUp className="w-3.5 h-3.5 text-[#070d1e] shrink-0" />
                   <span className="hidden sm:inline">Collapse</span>
                 </>
               ) : (
                 <>
-                  <Eye className="w-3.5 h-3.5 text-sky-200" />
+                  <Eye className="w-3.5 h-3.5 text-sky-200 shrink-0" />
                   <span className="hidden sm:inline">View Details</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-sky-200 hidden sm:inline" />
                 </>
               )}
             </button>
           </div>
 
-          {/* 3. Utility Actions Group: Edit, Bookmark, Copy, Delete */}
+          {/* 3. Utility Actions Group: Bookmark & Delete */}
           <div className="flex items-center gap-1 sm:gap-1.5">
-            {/* Edit Entry Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditing(!isEditing);
-                setEditText(entry.rawText);
-                setEditSummary(entry.reflectionSummary || '');
-              }}
-              className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer ${
-                isEditing 
-                  ? 'metallic-btn-3d-blue ring-1 ring-sky-300 text-sky-100'
-                  : 'metallic-btn-3d text-slate-300 hover:text-white'
-              }`}
-              title="Edit Journal Text"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
-
             {/* Bookmark Button */}
             <button
               type="button"
               onClick={() => onToggleBookmark(entry.id, !entry.bookmarked)}
-              className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl cursor-pointer ${
+              className={`h-8 sm:h-8.5 w-8 sm:w-8.5 rounded-lg sm:rounded-xl flex items-center justify-center cursor-pointer transition-all ${
                 entry.bookmarked
                   ? 'metallic-btn-3d text-[#f6e7b8] border-amber-400/80 shadow-[0_0_12px_rgba(246,231,184,0.35)]'
                   : 'metallic-btn-3d text-slate-300 hover:text-[#f6e7b8]'
@@ -806,31 +811,21 @@ export function ReflectionCard({
               <Bookmark className={`w-3.5 h-3.5 ${entry.bookmarked ? 'fill-[#f6e7b8] text-[#f6e7b8]' : ''}`} />
             </button>
 
-            {/* Copy Reflection */}
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl metallic-btn-3d text-slate-300 hover:text-white cursor-pointer"
-              title="Copy Reflection"
-            >
-              {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            </button>
-
             {/* Delete Entry */}
             {isConfirmingDelete ? (
-              <div className="flex items-center gap-1 bg-gradient-to-r from-rose-950 to-rose-900 p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-rose-500/70 shadow-lg animate-in fade-in-50 duration-150">
-                <span className="text-[9px] sm:text-[10px] text-rose-200 font-bold px-1">Del?</span>
+              <div className="h-8 sm:h-8.5 flex items-center gap-1 bg-gradient-to-r from-rose-950 to-rose-900 px-2 rounded-lg sm:rounded-xl border border-rose-500/70 shadow-lg animate-in fade-in-50 duration-150">
+                <span className="text-[9px] sm:text-[10px] text-rose-200 font-bold px-0.5">Del?</span>
                 <button
                   type="button"
                   onClick={() => onDeleteEntry(entry.id)}
-                  className="px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white text-[9px] sm:text-[10px] font-extrabold cursor-pointer"
+                  className="px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white text-[9px] sm:text-[10px] font-extrabold cursor-pointer"
                 >
                   Yes
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsConfirmingDelete(false)}
-                  className="px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded bg-white/10 hover:bg-white/20 text-slate-200 text-[9px] sm:text-[10px] cursor-pointer"
+                  className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-slate-200 text-[9px] sm:text-[10px] cursor-pointer"
                 >
                   No
                 </button>
@@ -839,7 +834,7 @@ export function ReflectionCard({
               <button
                 type="button"
                 onClick={() => setIsConfirmingDelete(true)}
-                className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl metallic-btn-3d text-slate-300 hover:text-rose-400 hover:border-rose-500/60 cursor-pointer"
+                className="h-8 sm:h-8.5 w-8 sm:w-8.5 rounded-lg sm:rounded-xl flex items-center justify-center metallic-btn-3d text-slate-300 hover:text-rose-400 hover:border-rose-500/60 cursor-pointer transition-all"
                 title="Delete Journal Entry"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -943,7 +938,9 @@ export function ReflectionCard({
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.04 }}
-              className="p-5 rounded-2xl metallic-card border border-blue-400/40 space-y-4 shadow-xl"
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              className="p-5 rounded-2xl metallic-card border border-blue-400/40 space-y-4 shadow-xl select-text"
             >
               <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                 <div className="flex items-center gap-2 text-xs font-semibold text-blue-300">
@@ -964,8 +961,8 @@ export function ReflectionCard({
                 <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  rows={5}
-                  className="w-full p-4 rounded-xl bg-[#fdfbf7] text-[#24272c] placeholder-stone-400 font-oregano text-lg sm:text-xl border border-[#e2dcd0] focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all leading-relaxed shadow-inner"
+                  rows={6}
+                  className={`w-full px-3.5 sm:px-4 py-3 rounded-xl ${memoThemeConfig.innerSheet} placeholder-stone-500 font-oregano text-[18px] sm:text-[19px] leading-[32px] border focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all shadow-inner select-text`}
                   placeholder="Write your journal thoughts here..."
                 />
               </div>
@@ -976,7 +973,7 @@ export function ReflectionCard({
                   type="text"
                   value={editSummary}
                   onChange={(e) => setEditSummary(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 text-[#f6e7b8] text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-blue-400/30 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/50 text-[#f6e7b8] text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-blue-400/30 transition-all select-text"
                   placeholder="Core summary takeaway..."
                 />
               </div>
@@ -1021,7 +1018,9 @@ export function ReflectionCard({
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.04 }}
-              className={`p-2.5 sm:p-4 rounded-xl ${memoThemeConfig.wrapper} shadow-[0_10px_28px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.7)] space-y-2 relative overflow-hidden`}
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              className={`p-2.5 sm:p-4 rounded-xl ${memoThemeConfig.wrapper} shadow-[0_10px_28px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.7)] space-y-2 relative overflow-hidden select-text`}
             >
               {/* Subtle memo top washi tape / paper clip accent */}
               <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-20 sm:w-28 h-1 sm:h-1.5 ${memoThemeConfig.tape} rounded-b-md shadow-xs`} />
@@ -1039,10 +1038,32 @@ export function ReflectionCard({
                       : (isEdited ? 'Edited Journal Memo' : 'Journal Memo')}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-[10px] sm:text-[11px] ${memoThemeConfig.wordCountText} font-mono font-medium`}>
-                    {entry.rawText ? `${wordCount}w` : ''}
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className={`text-[10px] sm:text-[11px] ${memoThemeConfig.wordCountText} font-mono font-medium px-1`}>
+                    {entry.rawText ? `${wordCount} ${wordCount === 1 ? 'word' : 'words'}` : ''}
                   </span>
+
+                  {/* Copy Journal Text Button */}
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className={`text-[10px] sm:text-[11px] ${memoThemeConfig.editBtn} flex items-center gap-1 cursor-pointer transition-colors px-2 py-0.5 rounded-lg shadow-xs font-medium border`}
+                    title="Copy journal text"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400 font-semibold">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3 opacity-75" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Edit Journal Memo Button */}
                   <button
                     type="button"
                     onClick={() => {
@@ -1050,7 +1071,7 @@ export function ReflectionCard({
                       setEditText(entry.rawText);
                       setEditSummary(entry.reflectionSummary || '');
                     }}
-                    className={`text-[10px] sm:text-[11px] ${memoThemeConfig.editBtn} flex items-center gap-1 cursor-pointer transition-colors px-1.5 sm:px-2 py-0.5 rounded-lg shadow-xs font-medium border`}
+                    className={`text-[10px] sm:text-[11px] ${memoThemeConfig.editBtn} flex items-center gap-1 cursor-pointer transition-colors px-2 py-0.5 rounded-lg shadow-xs font-medium border`}
                     title={domain === 'Email Drafting' ? "Edit email prompt" : "Edit journal memo"}
                   >
                     <Pencil className="w-3 h-3 opacity-75" />
@@ -1058,7 +1079,12 @@ export function ReflectionCard({
                   </button>
                 </div>
               </div>
-              <div className={`px-3 py-2.5 sm:px-4 sm:py-3.5 rounded-lg ${memoThemeConfig.innerSheet} font-oregano text-[15px] sm:text-lg md:text-[18.5px] leading-relaxed tracking-wide whitespace-pre-wrap select-text shadow-xs`}>
+              <div 
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className={`px-3.5 sm:px-4 py-3 rounded-lg ${memoThemeConfig.innerSheet} font-oregano text-[18px] sm:text-[19px] leading-[32px] tracking-wide whitespace-pre-wrap select-text cursor-text shadow-xs min-h-[96px]`}
+              >
                 {entry.rawText}
               </div>
             </motion.div>
@@ -1203,13 +1229,13 @@ export function ReflectionCard({
                     const cleanSpark = getCleanCreativeSpark(entry.creativeSpark);
                     return (
                       <div className={`grid grid-cols-1 ${cleanSpark ? 'md:grid-cols-2' : ''} gap-3.5`}>
-                        {/* Card 1: Friendly Highlights Card (Cyan/Emerald Theme) */}
+                        {/* Card 1: Friendly Highlights Card (Lush Emerald / Green Theme) */}
                         <motion.div 
                           initial={{ opacity: 0, y: 35, filter: 'blur(4px)' }}
                           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                           viewport={{ once: true, margin: '0px 0px -80px 0px', amount: 0.2 }}
                           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-                          className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#06241b] via-[#041a13] to-[#020e0b] border border-emerald-500/40 space-y-2 shadow-md flex flex-col justify-between"
+                          className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#063b28] via-[#042a1d] to-[#021810] border border-emerald-400/60 space-y-2 shadow-[0_8px_24px_rgba(4,42,27,0.5),inset_0_1px_1px_rgba(52,211,153,0.3)] flex flex-col justify-between"
                         >
                           <div className="space-y-2">
                             <div className="flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-emerald-300">
@@ -1485,15 +1511,22 @@ export function ReflectionCard({
                     })()
                   )}
 
-                  {/* Coaching Guidance & Comments (Sapphire Blue Background with Gold Text) */}
+                  {/* Coaching Guidance & Comments (Sapphire Blue Background with Aurora Glow & Gold Text) */}
                   <motion.div 
                     initial={{ opacity: 0, y: 35, filter: 'blur(4px)' }}
                     whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                     viewport={{ once: true, margin: '0px 0px -90px 0px', amount: 0.15 }}
                     transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.12 }}
-                    className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0c2347] via-[#081830] to-[#040e1d] border border-sky-400/35 shadow-[0_10px_32px_rgba(8,24,48,0.55),inset_0_1px_1px_rgba(56,189,248,0.2)] space-y-3"
+                    className="p-5 sm:p-6 rounded-2xl ai-feedback-aurora-card space-y-3 relative"
                   >
-                    <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#f6e7b8]">
+                    {/* Multicolor Aurora Flow Effect with Cyan, Emerald, Purple & Sky Blue */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl opacity-65">
+                      <div className="absolute -top-10 -left-10 w-60 h-60 bg-gradient-to-br from-cyan-500/25 via-sky-400/20 to-transparent rounded-full blur-3xl aurora-orb-1" />
+                      <div className="absolute -bottom-12 -right-10 w-64 h-64 bg-gradient-to-tl from-purple-500/25 via-emerald-400/20 to-transparent rounded-full blur-3xl aurora-orb-2" />
+                      <div className="absolute top-1/4 right-1/3 w-48 h-48 bg-gradient-to-r from-blue-600/20 via-teal-400/18 to-indigo-500/20 rounded-full blur-2xl aurora-orb-3" />
+                    </div>
+
+                    <div className="relative z-10 flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#f6e7b8]">
                       <div className="w-6 h-6 rounded-lg bg-sky-950/80 border border-sky-400/40 flex items-center justify-center text-[#f6e7b8] shadow-xs">
                         <Compass className="w-3.5 h-3.5 text-[#f6e7b8]" />
                       </div>
@@ -1507,8 +1540,8 @@ export function ReflectionCard({
                           : '✉️ Email Insights & Guidance'}
                       </span>
                     </div>
-                    <div className="font-ai-response text-xs sm:text-sm text-slate-100 leading-relaxed space-y-2.5 pl-3.5 border-l-2 border-[#f6e7b8]/70 selection:bg-amber-400/30 selection:text-white">
-                      <StreamingMarkdown content={entry.adaptiveResponse || ''} />
+                    <div className="relative z-10 font-ai-response text-xs sm:text-sm text-slate-100 leading-relaxed space-y-2.5 pl-3.5 border-l-2 border-[#f6e7b8]/70 selection:bg-amber-400/30 selection:text-white">
+                      <StreamingMarkdown content={getCleanAiFeedback(entry.adaptiveResponse)} />
                     </div>
                   </motion.div>
                 </motion.div>
@@ -1583,19 +1616,20 @@ export function ReflectionCard({
                   transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
                   className="pt-3 border-t border-white/10 space-y-3"
                 >
-                  <div className="flex items-center justify-between text-xs text-slate-300">
-                    <span className="flex items-center gap-2 font-semibold text-[#f6e7b8]">
-                      <MessageSquare className="w-3.5 h-3.5 text-[#f6e7b8]" />
-                      <span>
-                        {domain === 'Personal' 
-                          ? '💬 Reflection & Sentiment Assistant' 
-                          : domain === 'Work' 
-                          ? '💬 Coaching & Action Assistant'
-                          : domain === 'Creative'
-                          ? '💬 Creative Spark & Ideas Assistant'
-                          : '💬 Email Refinement Assistant'}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-white/10">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xl sm:text-2xl select-none filter drop-shadow-[0_2px_8px_rgba(246,231,184,0.4)]" aria-hidden="true">
+                        💬
                       </span>
-                    </span>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-extrabold silver-blue-gradient-text tracking-wide drop-shadow-[0_0_14px_rgba(56,189,248,0.35)]">
+                          Chat More
+                        </h3>
+                        <p className="text-[11px] sm:text-xs text-slate-300/80 font-normal">
+                          Explore deeper reflections, ask questions, or polish your thoughts together.
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Integrated Inquisitive Leading Questions Banner */}
@@ -1615,9 +1649,9 @@ export function ReflectionCard({
                     </div>
                   </motion.div>
 
-                  {/* Messages Feed */}
+                  {/* Messages Feed (Naturally flows downwards without fixed scrollbar) */}
                   {entry.messages && entry.messages.length > 0 && (
-                    <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                    <div className="space-y-3">
                       {entry.messages.map((msg, msgIdx) => {
                         const isUser = msg.role === 'user';
                         const isLatestAssistant = !isUser && msgIdx === entry.messages!.length - 1;
@@ -1827,7 +1861,7 @@ export function ReflectionCard({
                                     key={sIdx}
                                     type="button"
                                     onClick={() => handleTriggerQuickAction('custom', suggestion)}
-                                    className="px-2.5 py-1 rounded-lg metallic-panel text-slate-300 hover:text-[#f6e7b8] text-[11px] transition-all cursor-pointer"
+                                    className="px-2.5 py-1 rounded-lg metallic-dark-slate text-[11px] transition-all cursor-pointer shadow-xs hover:border-sky-400/60"
                                   >
                                     {suggestion}
                                   </button>
@@ -1914,128 +1948,199 @@ export function ReflectionCard({
                       <span className="text-[11px] text-slate-400">Click to automatically generate & update</span>
                     </div>
 
-                    {/* Primary Trigger: Update Post with Conversation */}
-                    <button
-                      type="button"
-                      disabled={isChatLoading}
-                      onClick={() => handleTriggerQuickAction('propose_update')}
-                      className="w-full p-2.5 sm:p-3 rounded-xl border border-[#f6e7b8]/40 text-left flex items-center justify-between gap-3 text-xs transition-all cursor-pointer metallic-proposal-card hover:border-[#f6e7b8]/70 text-[#f6e7b8] shadow-lg disabled:opacity-50"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Sparkles className="w-4 h-4 text-[#f6e7b8] shrink-0 animate-pulse" />
-                        <div>
-                          <span className="font-bold text-sm block text-[#f6e7b8]">✨ Update Post with Conversation</span>
-                          <span className="text-[11px] text-slate-300">Combines your original post with our chat into an updated entry you can review & save</span>
-                        </div>
-                      </div>
-                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-[#f6e7b8]/15 border border-[#f6e7b8]/35 font-semibold uppercase tracking-wider shrink-0 hidden sm:inline text-[#f6e7b8]">
-                        Update Post
-                      </span>
-                    </button>
-
                     {domain === 'Email Drafting' ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {/* 1. Update with Chat */}
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('propose_update')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'propose_update' && isChatLoading
+                              ? 'metallic-dark-slate-active'
+                              : 'metallic-dark-slate'
+                          } disabled:opacity-60`}
+                        >
+                          {isChatLoading && activeActionChip === 'propose_update' ? (
+                            <Loader2 className="w-4 h-4 text-sky-300 animate-spin shrink-0" />
+                          ) : (
+                            <span className="text-sm select-none">💬</span>
+                          )}
+                          <span className="font-semibold text-slate-100">Update with Chat</span>
+                        </button>
+
+                        {/* 2. Improve Fluency & Grammar */}
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('improve_fluency')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'improve_fluency' && isChatLoading
+                              ? 'metallic-dark-slate-active'
+                              : 'metallic-dark-slate'
+                          } disabled:opacity-60`}
+                        >
+                          {isChatLoading && activeActionChip === 'improve_fluency' ? (
+                            <Loader2 className="w-4 h-4 text-emerald-300 animate-spin shrink-0" />
+                          ) : (
+                            <span className="text-sm select-none">✍️</span>
+                          )}
+                          <span className="font-semibold text-slate-100">Improve Fluency</span>
+                        </button>
+
+                        {/* 3. Expand with Context */}
                         <button
                           type="button"
                           disabled={isChatLoading}
                           onClick={() => handleTriggerQuickAction('expand_email')}
                           className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
                             activeActionChip === 'expand_email' && isChatLoading
-                              ? 'metallic-gold-panel text-[#f6e7b8] border-sky-400/60 shadow-sm'
-                              : 'metallic-panel text-slate-200 hover:text-sky-300'
+                              ? 'metallic-dark-slate-active'
+                              : 'metallic-dark-slate'
                           } disabled:opacity-60`}
                         >
                           {isChatLoading && activeActionChip === 'expand_email' ? (
                             <Loader2 className="w-4 h-4 text-sky-300 animate-spin shrink-0" />
                           ) : (
-                            <span className="text-sm leading-none">📖</span>
+                            <span className="text-sm select-none">📖</span>
                           )}
-                          <span className="font-medium">{isChatLoading && activeActionChip === 'expand_email' ? 'Expanding Draft...' : '📖 Expand with Context'}</span>
+                          <span className="font-semibold text-slate-100">Expand with Context</span>
                         </button>
 
+                        {/* 4. Make Concise & Direct */}
                         <button
                           type="button"
                           disabled={isChatLoading}
                           onClick={() => handleTriggerQuickAction('shorten_email')}
                           className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
                             activeActionChip === 'shorten_email' && isChatLoading
-                              ? 'metallic-gold-panel text-[#f6e7b8] border-amber-400/60 shadow-sm'
-                              : 'metallic-panel text-slate-200 hover:text-amber-300'
+                              ? 'metallic-dark-slate-active'
+                              : 'metallic-dark-slate'
                           } disabled:opacity-60`}
                         >
                           {isChatLoading && activeActionChip === 'shorten_email' ? (
                             <Loader2 className="w-4 h-4 text-amber-300 animate-spin shrink-0" />
                           ) : (
-                            <span className="text-sm leading-none">✂️</span>
+                            <span className="text-sm select-none">✂️</span>
                           )}
-                          <span className="font-medium">{isChatLoading && activeActionChip === 'shorten_email' ? 'Condensing Draft...' : '✂️ Make Concise & Direct'}</span>
+                          <span className="font-semibold text-slate-100">Make Concise</span>
                         </button>
 
+                        {/* 5. Formalize for Leadership */}
                         <button
                           type="button"
                           disabled={isChatLoading}
                           onClick={() => handleTriggerQuickAction('formalize_email')}
                           className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
                             activeActionChip === 'formalize_email' && isChatLoading
-                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
+                              ? 'metallic-dark-slate-active'
+                              : 'metallic-dark-slate'
                           } disabled:opacity-60`}
                         >
                           {isChatLoading && activeActionChip === 'formalize_email' ? (
                             <Loader2 className="w-4 h-4 text-blue-300 animate-spin shrink-0" />
                           ) : (
-                            <Briefcase className="w-4 h-4 text-blue-300 shrink-0" />
+                            <span className="text-sm select-none">👔</span>
                           )}
-                          <span className="font-medium">👔 Formalize for Leadership</span>
+                          <span className="font-semibold text-slate-100">Formalize Tone</span>
                         </button>
 
+                        {/* 6. Add Call to Action */}
                         <button
                           type="button"
                           disabled={isChatLoading}
                           onClick={() => handleTriggerQuickAction('add_cta')}
                           className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
                             activeActionChip === 'add_cta' && isChatLoading
-                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
+                              ? 'metallic-dark-slate-active'
+                              : 'metallic-dark-slate'
                           } disabled:opacity-60`}
                         >
                           {isChatLoading && activeActionChip === 'add_cta' ? (
                             <Loader2 className="w-4 h-4 text-[#f6e7b8] animate-spin shrink-0" />
                           ) : (
-                            <CheckSquare className="w-4 h-4 text-[#f6e7b8] shrink-0" />
+                            <span className="text-sm select-none">🎯</span>
                           )}
-                          <span className="font-medium">🎯 Add Call to Action</span>
+                          <span className="font-semibold text-slate-100">Add Call to Action</span>
                         </button>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {/* 1. Update Post with Conversation */}
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('propose_update')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'propose_update' && isChatLoading
+                              ? 'metallic-dark-slate-active'
+                              : 'metallic-dark-slate'
+                          } disabled:opacity-60`}
+                        >
+                          {isChatLoading && activeActionChip === 'propose_update' ? (
+                            <Loader2 className="w-4 h-4 text-sky-300 animate-spin shrink-0" />
+                          ) : (
+                            <span className="text-sm select-none">💬</span>
+                          )}
+                          <span className="font-semibold text-slate-100">Update with Chat</span>
+                        </button>
+
+                        {/* 2. Improve Fluency & Grammar */}
+                        <button
+                          type="button"
+                          disabled={isChatLoading}
+                          onClick={() => handleTriggerQuickAction('improve_fluency')}
+                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
+                            activeActionChip === 'improve_fluency' && isChatLoading
+                              ? 'metallic-dark-slate-active'
+                              : 'metallic-dark-slate'
+                          } disabled:opacity-60`}
+                        >
+                          {isChatLoading && activeActionChip === 'improve_fluency' ? (
+                            <Loader2 className="w-4 h-4 text-emerald-300 animate-spin shrink-0" />
+                          ) : (
+                            <span className="text-sm select-none">✍️</span>
+                          )}
+                          <span className="font-semibold text-slate-100">Improve Fluency</span>
+                        </button>
+
+                        {/* 3. Structure with Bullets */}
                         <button
                           type="button"
                           disabled={isChatLoading}
                           onClick={() => handleTriggerQuickAction('structure_notes')}
                           className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                            activeActionChip === 'structure_notes'
-                              ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                          }`}
+                            activeActionChip === 'structure_notes' && isChatLoading
+                              ? 'metallic-dark-slate-active'
+                              : 'metallic-dark-slate'
+                          } disabled:opacity-60`}
                         >
-                          <ListOrdered className="w-4 h-4 text-blue-300 shrink-0" />
-                          <span className="font-medium">📋 Structure with Bullets</span>
+                          {isChatLoading && activeActionChip === 'structure_notes' ? (
+                            <Loader2 className="w-4 h-4 text-blue-300 animate-spin shrink-0" />
+                          ) : (
+                            <span className="text-sm select-none">📋</span>
+                          )}
+                          <span className="font-semibold text-slate-100">Structure with Bullets</span>
                         </button>
 
+                        {/* 4. Domain Specific Action */}
                         {domain === 'Work' ? (
                           <button
                             type="button"
                             disabled={isChatLoading}
                             onClick={() => handleTriggerQuickAction('extract_checklist')}
                             className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                              activeActionChip === 'extract_checklist'
-                                ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                                : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                            }`}
+                              activeActionChip === 'extract_checklist' && isChatLoading
+                                ? 'metallic-dark-slate-active'
+                                : 'metallic-dark-slate'
+                            } disabled:opacity-60`}
                           >
-                            <CheckSquare className="w-4 h-4 text-emerald-300 shrink-0" />
-                            <span className="font-medium">✅ Extract Action Items</span>
+                            {isChatLoading && activeActionChip === 'extract_checklist' ? (
+                              <Loader2 className="w-4 h-4 text-emerald-300 animate-spin shrink-0" />
+                            ) : (
+                              <span className="text-sm select-none">✅</span>
+                            )}
+                            <span className="font-semibold text-slate-100">Extract Action Items</span>
                           </button>
                         ) : (
                           <button
@@ -2043,13 +2148,17 @@ export function ReflectionCard({
                             disabled={isChatLoading}
                             onClick={() => handleTriggerQuickAction('brainstorm')}
                             className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all cursor-pointer ${
-                              activeActionChip === 'brainstorm'
-                                ? 'metallic-gold-panel text-[#f6e7b8] shadow-sm'
-                              : 'metallic-panel text-slate-200 hover:text-[#f6e7b8]'
-                            }`}
+                              activeActionChip === 'brainstorm' && isChatLoading
+                                ? 'metallic-dark-slate-active'
+                                : 'metallic-dark-slate'
+                            } disabled:opacity-60`}
                           >
-                            <Lightbulb className="w-4 h-4 text-purple-300 shrink-0" />
-                            <span className="font-medium">💡 Brainstorm Perspectives</span>
+                            {isChatLoading && activeActionChip === 'brainstorm' ? (
+                              <Loader2 className="w-4 h-4 text-purple-300 animate-spin shrink-0" />
+                            ) : (
+                              <span className="text-sm select-none">💡</span>
+                            )}
+                            <span className="font-semibold text-slate-100">Brainstorm Perspectives</span>
                           </button>
                         )}
                       </div>

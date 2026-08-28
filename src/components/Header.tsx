@@ -124,14 +124,14 @@ export function Header({
               onClick={() => { onSelectCategory('All'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             >
               <div className="relative shrink-0">
-                <div className={`absolute -inset-0.5 sm:-inset-1 rounded-lg sm:rounded-xl bg-gradient-to-r opacity-80 blur-xs group-hover:opacity-100 transition duration-300 ${
-                  user ? 'from-[#34d399] via-[#6EE7B7] to-[#f6e7b8]' : 'from-[#fae8a8] via-[#38bdf8] to-[#c084fc]'
+                <div className={`absolute -inset-0.5 sm:-inset-1 rounded-lg sm:rounded-xl bg-gradient-to-r opacity-65 blur-xs group-hover:opacity-90 transition duration-300 ${
+                  user ? 'from-[#34d399]/40 via-[#6EE7B7]/30 to-[#38bdf8]/30' : 'from-sky-400/40 via-blue-500/30 to-indigo-500/25'
                 }`} />
                 <img
                   src={logoImg}
                   alt="MirrorSync Logo"
                   referrerPolicy="no-referrer"
-                  className="relative w-6 h-6 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-md sm:rounded-xl object-cover shadow-md shadow-black/80 group-hover:scale-105 transition-transform"
+                  className="relative w-6 h-6 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-md sm:rounded-xl object-cover shadow-md shadow-black/80 group-hover:scale-105 transition-transform border border-sky-400/30"
                 />
               </div>
 
@@ -331,18 +331,22 @@ export function Header({
                 id="google-signin-btn"
                 onClick={onSignInGoogle}
                 disabled={isSigningIn}
-                className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl metallic-gold-button text-[#070d1e] font-bold text-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-md disabled:opacity-50"
+                className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-xl metallic-gold-button text-[#070d1e] font-bold text-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-md disabled:opacity-50"
                 title="Sign in with Google to sync your journals securely"
               >
                 {isSigningIn ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 text-[#070d1e] animate-spin" />
+                    <Loader2 className="w-4 h-4 text-[#070d1e] animate-spin" />
                     <span className="hidden sm:inline">Signing In...</span>
                   </>
                 ) : (
                   <>
-                    <LogIn className="w-3.5 h-3.5 text-[#070d1e]" />
-                    <span>Sign In</span>
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/250px-Google_Favicon_2025.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"
+                      alt="Google"
+                      className="w-4 h-4 object-contain"
+                    />
+                    <span className="hidden sm:inline">Sign In</span>
                   </>
                 )}
               </button>

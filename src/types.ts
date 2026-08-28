@@ -100,6 +100,7 @@ export type QuickActionType =
   | 'structure_notes' 
   | 'extract_checklist' 
   | 'refine_tone' 
+  | 'improve_fluency'
   | 'brainstorm' 
   | 'draft_email'
   | 'expand_email'

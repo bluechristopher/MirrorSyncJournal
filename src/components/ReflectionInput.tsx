@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type FormEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, type FormEvent } from 'react';
 import { 
   Sparkles, 
   ArrowUpRight, 
@@ -18,7 +18,8 @@ import {
   Zap,
   Briefcase,
   Heart,
-  Palette
+  Palette,
+  Square
 } from 'lucide-react';
 import type { UserPersona, SynthesisStatusStage, LocationPin, DomainCategory, JournalEntry, EmailDraft, ChatMessage } from '../types';
 import { LocationPickerModal } from './LocationPickerModal';
@@ -73,6 +74,17 @@ export function ReflectionInput({
 
   const [text, setText] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [isVoiceDetected, setIsVoiceDetected] = useState(false);
+  const [graceSecondsLeft, setGraceSecondsLeft] = useState<number | null>(null);
+  const [interimText, setInterimText] = useState('');
+
+  const recognitionRef = useRef<any>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isListeningRef = useRef(false);
+  const textBeforeVoiceRef = useRef('');
+  const finalTranscriptRef = useRef('');
+
   const [stage, setStage] = useState<SynthesisStatusStage>('idle');
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [locationPin, setLocationPin] = useState<LocationPin | null>(null);
@@ -227,6 +239,22 @@ export function ReflectionInput({
     setLocalError(null);
   };
 
+  const stopVoiceDictation = () => {
+    isListeningRef.current = false;
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+    }
+    setIsListening(false);
+    setGraceSecondsLeft(null);
+    setIsVoiceDetected(false);
+    setInterimText('');
+    setStatusMessage('');
+  };
+
   const handleToggleVoice = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -239,40 +267,132 @@ export function ReflectionInput({
     }
 
     if (isListening) {
-      setIsListening(false);
+      stopVoiceDictation();
       return;
     }
 
     try {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+
+      textBeforeVoiceRef.current = text;
+      finalTranscriptRef.current = '';
+      setInterimText('');
+      setGraceSecondsLeft(null);
+      setIsVoiceDetected(false);
+
       const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognitionRef.current = recognition;
+      recognition.continuous = true;
+      recognition.interimResults = true;
       recognition.lang = 'en-US';
 
+      const startGraceTimer = () => {
+        if (!isListeningRef.current) return;
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+
+        setIsVoiceDetected(false);
+        let seconds = 3;
+        setGraceSecondsLeft(3);
+
+        countdownIntervalRef.current = setInterval(() => {
+          seconds -= 1;
+          if (seconds <= 0) {
+            if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+            stopVoiceDictation();
+          } else {
+            setGraceSecondsLeft(seconds);
+          }
+        }, 1000);
+      };
+
+      const resetSilenceTimer = () => {
+        if (!isListeningRef.current) return;
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+        setGraceSecondsLeft(null);
+        setIsVoiceDetected(true);
+
+        // After 2.5s of silence, begin the 3-second grace countdown
+        silenceTimerRef.current = setTimeout(() => {
+          startGraceTimer();
+        }, 2500);
+      };
+
       recognition.onstart = () => {
+        isListeningRef.current = true;
         setIsListening(true);
-        setStatusMessage('Voice recognition active: Speak your thoughts...');
+        setStatusMessage('Voice recognition active');
+        resetSilenceTimer();
       };
+
+      recognition.onspeechstart = () => {
+        resetSilenceTimer();
+      };
+
+      recognition.onsoundstart = () => {
+        resetSilenceTimer();
+      };
+
+      recognition.onspeechend = () => {
+        setIsVoiceDetected(false);
+      };
+
+      recognition.onsoundend = () => {
+        setIsVoiceDetected(false);
+      };
+
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setText(prev => (prev ? `${prev} ${transcript}` : transcript));
-        setIsListening(false);
-        setStatusMessage('');
+        resetSilenceTimer();
+
+        let interim = '';
+        let newFinalChunk = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const item = event.results[i];
+          if (item.isFinal) {
+            newFinalChunk += item[0].transcript + ' ';
+          } else {
+            interim += item[0].transcript;
+          }
+        }
+
+        if (newFinalChunk) {
+          finalTranscriptRef.current += newFinalChunk;
+        }
+
+        setInterimText(interim);
+
+        const currentSpoken = (finalTranscriptRef.current + interim).trim();
+        const base = textBeforeVoiceRef.current.trim();
+        const combined = base ? `${base} ${currentSpoken}` : currentSpoken;
+        setText(combined);
       };
+
       recognition.onerror = (e: any) => {
-        setIsListening(false);
-        setStatusMessage('');
-        console.warn('Speech recognition warning:', e);
+        if (e.error !== 'no-speech') {
+          console.warn('Speech recognition notice:', e.error);
+        }
       };
+
       recognition.onend = () => {
-        setIsListening(false);
-        setStatusMessage('');
+        if (isListeningRef.current) {
+          // Seamless restart for browsers that auto-cycle continuous streams
+          try {
+            recognition.start();
+          } catch {
+            stopVoiceDictation();
+          }
+        } else {
+          stopVoiceDictation();
+        }
       };
 
       recognition.start();
     } catch (e: any) {
       console.error('Speech recognition error:', e);
-      setIsListening(false);
+      stopVoiceDictation();
     }
   };
 
@@ -504,6 +624,65 @@ export function ReflectionInput({
                 </button>
               </div>
             </div>
+
+            {/* Live Continuous Voice Dictation Status & 3-Second Grace Countdown Banner */}
+            {isListening && (
+              <div className={`p-3 rounded-xl border flex flex-wrap items-center justify-between gap-2.5 transition-all animate-in fade-in-50 duration-200 shadow-md ${
+                graceSecondsLeft !== null
+                  ? 'bg-amber-950/60 border-amber-400/60 text-amber-200'
+                  : isVoiceDetected
+                  ? 'bg-emerald-950/60 border-emerald-400/60 text-emerald-200'
+                  : 'bg-sky-950/60 border-sky-400/50 text-sky-200'
+              }`}>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  {/* Visual Sound Wave / Pulse Icon */}
+                  <div className="flex items-center gap-0.5 h-4 shrink-0">
+                    {isVoiceDetected ? (
+                      <>
+                        <span className="w-1 h-3.5 bg-emerald-400 rounded-full animate-pulse" style={{ animationDuration: '0.4s' }} />
+                        <span className="w-1 h-4 bg-emerald-300 rounded-full animate-pulse" style={{ animationDuration: '0.3s', animationDelay: '0.1s' }} />
+                        <span className="w-1 h-2.5 bg-emerald-400 rounded-full animate-pulse" style={{ animationDuration: '0.5s', animationDelay: '0.2s' }} />
+                        <span className="w-1 h-3.5 bg-emerald-300 rounded-full animate-pulse" style={{ animationDuration: '0.35s', animationDelay: '0.15s' }} />
+                      </>
+                    ) : (
+                      <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping shrink-0" />
+                    )}
+                  </div>
+
+                  <div className="text-xs">
+                    {graceSecondsLeft !== null ? (
+                      <span className="font-bold flex items-center gap-1.5 text-amber-300">
+                        <span>⏳ Silence detected</span>
+                        <span className="bg-amber-500/30 px-1.5 py-0.5 rounded-md font-mono text-[11px] border border-amber-400/50">
+                          stopping in {graceSecondsLeft}s
+                        </span>
+                        <span className="text-[11px] text-amber-200/80 font-normal hidden sm:inline">(speak to continue)</span>
+                      </span>
+                    ) : isVoiceDetected ? (
+                      <span className="font-bold flex items-center gap-1.5 text-emerald-300">
+                        <span>🎙️ Voice detected:</span>
+                        <span className="text-slate-100 font-normal italic truncate max-w-[200px] sm:max-w-xs">
+                          {interimText ? `"${interimText}"` : 'Listening across sentences...'}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="font-medium text-sky-200">
+                        🎙️ Listening continuously... Speak naturally across multiple thoughts.
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={stopVoiceDictation}
+                  className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-xs ml-auto"
+                >
+                  <Square className="w-3 h-3 fill-white" />
+                  <span>Done Dictating</span>
+                </button>
+              </div>
+            )}
 
             {/* Attached Location Pill (Narrow, Compact Dark Blue) */}
             {locationPin && (

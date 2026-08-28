@@ -45,14 +45,14 @@ export function CategoryHeaderBanner({ category, totalCount }: CategoryHeaderBan
 
         <div className="relative flex flex-col sm:flex-row items-center justify-between gap-6 md:gap-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-5 sm:gap-6 text-center sm:text-left">
-            {/* Prominent Larger Logo with Glowing Halo */}
+            {/* Prominent Header Picture with Subtle Bluish Glow */}
             <div className="relative shrink-0 group">
-              <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-[#fae8a8] via-[#38bdf8] to-[#c084fc] opacity-75 blur-md group-hover:opacity-100 transition duration-500" />
+              <div className="absolute -inset-1.5 sm:-inset-2 rounded-3xl bg-gradient-to-r from-sky-400/40 via-blue-500/30 to-indigo-500/25 opacity-70 blur-md group-hover:opacity-95 transition duration-500" />
               <img
                 src={fountainPenImg}
                 alt="MirrorSync Journal"
                 referrerPolicy="no-referrer"
-                className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl object-cover border-2 border-[#f6e7b8] shadow-2xl shadow-black/90 group-hover:scale-105 transition-transform"
+                className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl object-cover border border-sky-300/40 shadow-[0_0_20px_rgba(56,189,248,0.22)] shadow-black/80 group-hover:scale-105 transition-transform"
               />
             </div>
 

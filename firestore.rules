@@ -1,6 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Core Authentication & Ownership Helpers
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -9,18 +11,34 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Authenticated user profile and isolated data subcollections
-    match /users/{userId} {
-      allow read, write: if isOwner(userId);
+    // Payload validation helpers
+    function isValidEntry() {
+      // Ensure incoming entries do not exceed safe payload boundaries
+      return request.resource.data.rawText is string
+        && request.resource.data.rawText.size() <= 100000;
+    }
 
+    // 1. Authenticated User Profile Document (/users/{userId})
+    match /users/{userId} {
+      allow get, list, write: if isOwner(userId);
+
+      // 2. Isolated Journal Entries Subcollection (/users/{userId}/entries/{entryId})
       match /entries/{entryId} {
-        allow read, write: if isOwner(userId);
+        allow get, list, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidEntry();
       }
 
+      // 3. Fallback for any other user-owned nested subcollections
       match /{document=**} {
         allow read, write: if isOwner(userId);
       }
     }
+
+    // 4. Default Deny-All for any root or unmapped collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
+
 

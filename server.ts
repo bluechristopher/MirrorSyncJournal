@@ -862,7 +862,7 @@ ${rawText.replace(/"/g, '\\"')}
         },
         coaching: {
           type: Type.STRING,
-          description: '2 paragraphs of energetic, uplifting guidance, concluding with 2 hyper-specific inquisitive questions starting with "• " tailored to the exact context.'
+          description: '2 paragraphs of energetic, actionable, and constructive guidance and next steps. Do NOT include inquisitive questions or question bullet points in this section—provide direct, high-value insights, analysis, and concrete recommendations.'
         },
         initialConversationalPrompt: {
           type: Type.STRING,
@@ -1129,6 +1129,7 @@ ACTION CHIP & MERGING SPECIFICS:
 - If actionType is "refine_email_tone" or "shorten_email" or "formalize_email" or "add_cta": Rework the email accordingly. Provide the refined draft in replyContent, and set suggestedUpdate { emailSubject, emailBody, recipient, refinedSummary }.
 - If actionType is "structure_notes": Provide a beautifully formatted structured breakdown of their entry using Markdown with clear Headings (##), thematic sections, key takeaways, and bullet points.
 - If actionType is "extract_checklist": ONLY if domain is "Work", identify 2-5 actionable high-impact tasks. (For Personal, Creative, or Email Drafting, do NOT extract checklist unless explicitly requested by user).
+- If actionType is "improve_fluency": Carefully polish the journal entry by correcting all grammar, punctuation, phrasing, and language flow while preserving the user's authentic first-person voice and personal reflections. Populate "suggestedUpdate" with "mergedRawText" containing the corrected, beautifully flowing text, "refinedSummary", and explain the key fluency enhancements in "replyContent".
 - If actionType is "refine_tone": Provide a polished, refined version of the entry or insights, clarifying thoughts while preserving the author's authentic voice.
 - If actionType is "brainstorm": Offer 3-5 lateral ideas, creative next steps, unblocking angles, or thought experiments.
 
@@ -1143,6 +1144,8 @@ Ensure the output adheres to the JSON schema.`;
     let promptGoal = '';
     if (actionType === 'propose_update') {
       promptGoal = 'Synthesize all the user feelings, sentiments, and insights from this conversation thread and generate a proposed enriched journal writeup update.';
+    } else if (actionType === 'improve_fluency') {
+      promptGoal = 'Please automatically correct all grammar, improve sentence flow, and enhance language fluency of this journal entry while preserving its authentic voice and message. Return the corrected writeup in suggestedUpdate.mergedRawText.';
     } else if (actionType === 'draft_email') {
       promptGoal = 'Please draft a clear, professional email based on this entry and user style.';
     } else if (actionType === 'refine_email_tone') {
@@ -1279,6 +1282,16 @@ Respond warmly according to your tone instructions and output valid JSON.`;
           { id: `act-${now}-2`, text: 'Set aside 15 minutes of uninterrupted focus at midday', task: 'Set aside 15 minutes of uninterrupted focus at midday', completed: false, category: 'Next Step', priority: 'medium' }
         ];
         fallbackFollowUp = 'Would you like to add these checklist tasks to your active action items?';
+      } else if (actionType === 'improve_fluency') {
+        const cleaned = (rawText || '').trim();
+        fallbackText = `✨ **Language Fluency & Grammar Enhanced**:\n\nI have reviewed and polished your journal entry for smooth sentence flow, correct grammar, and crystal-clear phrasing while keeping your authentic voice!\n\nYou can review the fluent version below, make edits if you wish, and click **Save to Journal Post** to apply it.`;
+        fallbackSuggestedUpdate = {
+          mergedRawText: cleaned,
+          refinedSummary: `Polished: ${(reflectionSummary || cleaned).slice(0, 100)} (enhanced flow & grammar)`,
+          refinedAdaptiveResponse: `Your reflection now flows seamlessly with clean grammar and crystal-clear phrasing!`
+        };
+        fallbackSuggestions = ['✨ Save to Journal Post', 'Further polish tone', 'Looks great!'];
+        fallbackFollowUp = '✨ Would you like to apply these fluency and grammar improvements to your journal post?';
       } else if (actionType === 'refine_tone') {
         fallbackText = `✨ **Refined Synthesis**:\n\n*"${(rawText || '').slice(0, 160)}..."*\n\n**Polished Insight**: You are making steady progress through complex dynamics. By maintaining grounded presence and focusing on what is within direct control, clarity naturally emerges.`;
         fallbackSuggestedUpdate = {
