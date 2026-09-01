@@ -1,4 +1,4 @@
-# MirrorSync 🪞
+# MirrorSync
 
 > **Persona-Adaptive Cognitive Journal & Executive Reflection Intelligence Engine**  
 > *Built for the **Google Cloud Gen AI Academy Cohort 3 Ideathon Challenge**.*  
@@ -14,13 +14,30 @@
   <img src="assets/mirrorsync_banner.png" alt="MirrorSync Banner" width="100%">
 </p>
 
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=jzinWA-A2jA">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/YouTube_Logo_June.png"
+         alt="YouTube"
+         width="110">
+  </a>
+</p>
+
+<p align="center">
+  <strong>▶ Watch the MirrorSync Project Walkthrough</strong><br>
+  <sub>See the deployed application, AI reflection workflow, and Google Cloud integration in action.</sub>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=jzinWA-A2jA"><strong>Watch on YouTube →</strong></a>
+</p>
+
 ---
 
 ## 🌟 Executive Overview & The Story Behind MirrorSync
 
 Most journaling applications operate as passive digital notebooks: you dump raw thoughts, and at best, receive generic, one-size-fits-all summaries. Real human growth and mental clarity, however, occur through **structured cognitive synthesis, deep pedagogical/strategic calibration, emotional grounding, and continuous multi-turn dialogue**.
 
-**MirrorSync** is an intelligent, privacy-first reflection engine designed to turn fragmented daily thoughts into high-leverage clarity, executive actions, and mindful growth. It dynamically calibrates its reasoning lens based on your unique persona—whether you are an educator evaluating classroom pedagogy, an engineer navigating sprint architecture blockers, an executive drafting sensitive communications, or an athlete mastering new kinetic skills.
+**MirrorSync** is an intelligent, privacy-first reflection engine designed to turn fragmented daily thoughts into high-leverage clarity, executive actions, and mindful growth. It dynamically calibrates its reasoning lens based on your unique persona.
 
 ---
 
