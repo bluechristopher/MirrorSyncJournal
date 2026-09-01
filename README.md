@@ -20,15 +20,15 @@
 </p>
 
 <p align="center">
-  <img src="assets/mirrorsync_banner.png" alt="MirrorSync Banner" width="100%">
-</p>
-
-<p align="center">
   <a href="https://www.youtube.com/watch?v=jzinWA-A2jA">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/YouTube_Logo_June.png"
          alt="YouTube"
          width="110">
   </a>
+</p>
+
+<p align="center">
+  <img src="assets/mirrorsync_banner.png" alt="MirrorSync Banner" width="100%">
 </p>
 
 ---
