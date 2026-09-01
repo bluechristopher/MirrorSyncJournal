@@ -65,6 +65,16 @@ export interface EmailDraft {
   keyPoints?: string[];
 }
 
+export interface JournalPhoto {
+  id: string;
+  url: string;
+  storagePath?: string;
+  name?: string;
+  size?: number;
+  createdAt: number;
+  caption?: string;
+}
+
 export interface ReflectionResult {
   title?: string;
   domain?: DomainCategory;
@@ -78,6 +88,8 @@ export interface ReflectionResult {
   creativeSpark?: string | null;
   editorialArtPrompt: string;
   bannerImageUrl?: string | null;
+  bannerStoragePath?: string | null;
+  photos?: JournalPhoto[];
   location?: LocationPin | null;
   locationContext?: string | null;
   cognitiveMetrics?: CognitiveMetrics;
@@ -155,8 +167,10 @@ export interface JournalEntry {
   creativeSpark?: string | null;
   editorialArtPrompt: string;
   bannerImageUrl?: string | null;
+  bannerStoragePath?: string | null;
   bannerImageLoading?: boolean;
   imageHistory?: string[];
+  photos?: JournalPhoto[];
   location?: LocationPin | null;
   locationContext?: string | null;
   cognitiveMetrics?: CognitiveMetrics;

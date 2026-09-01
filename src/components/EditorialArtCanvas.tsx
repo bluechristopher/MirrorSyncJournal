@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, RefreshCw, Image as ImageIcon, Check, AlertTriangle, ChevronLeft, ChevronRight, Pencil, Edit3, X, Maximize2, Minimize2 } from 'lucide-react';
 import type { DomainCategory } from '../types';
 import { workBannerImg, personalBannerImg, creativeBannerImg, emailBannerImg } from '../assets/bannerAssets';
+import { uploadBannerImageToStorage, deleteCloudStorageFile, auth } from '../firebase';
 
 const defaultDomainBanners: Record<string, string> = {
   Work: workBannerImg,
@@ -12,22 +13,26 @@ const defaultDomainBanners: Record<string, string> = {
 };
 
 interface EditorialArtCanvasProps {
+  entryId?: string;
   prompt?: string;
   domain?: DomainCategory;
   imageUrl?: string | null;
+  storagePath?: string | null;
   rawText?: string;
   topicTitle?: string;
   className?: string;
   isExpanded?: boolean;
   onRegenerate?: () => void;
-  onImageGenerated?: (newUrl: string) => void;
+  onImageGenerated?: (newUrl: string, storagePath?: string) => void;
   onClickToggleExpand?: () => void;
 }
 
 export function EditorialArtCanvas({ 
+  entryId,
   prompt = 'Journal reflection moment', 
   domain = 'Work', 
   imageUrl: initialImageUrl,
+  storagePath = null,
   rawText = '',
   topicTitle,
   className = '',
@@ -86,14 +91,34 @@ export function EditorialArtCanvas({
       if (res.ok) {
         const data = await res.json();
         if (data.imageUrl) {
-          setCurrentImageUrl(data.imageUrl);
+          let finalUrl = data.imageUrl;
+          let newStoragePath: string | undefined = undefined;
+
+          // If user is authenticated in Pro Mode, persist banner directly to Cloud Storage
+          const currentUser = auth.currentUser;
+          if (currentUser && entryId) {
+            try {
+              const uploaded = await uploadBannerImageToStorage(currentUser.uid, entryId, data.imageUrl);
+              finalUrl = uploaded.url;
+              newStoragePath = uploaded.storagePath;
+
+              // Purge previous banner asset from Cloud Storage if one existed
+              if (storagePath && storagePath !== newStoragePath) {
+                await deleteCloudStorageFile(storagePath);
+              }
+            } catch (storageErr) {
+              console.warn('[EditorialArtCanvas] Cloud Storage upload fallback to data url:', storageErr);
+            }
+          }
+
+          setCurrentImageUrl(finalUrl);
           if (data.generatedArtPrompt) {
             setActivePrompt(data.generatedArtPrompt);
             setCustomPromptInput(data.generatedArtPrompt);
           }
-          onImageGenerated?.(data.imageUrl);
+          onImageGenerated?.(finalUrl, newStoragePath);
           if (isCustomPrompt) {
-            showStatusNotice('success', '✨ AI Banner updated!');
+            showStatusNotice('success', '✨ AI Banner updated & saved!');
           }
         } else {
           setHasError(true);

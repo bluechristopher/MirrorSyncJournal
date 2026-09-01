@@ -20,7 +20,17 @@ import {
   deleteDoc, 
   updateDoc 
 } from 'firebase/firestore';
-import type { UserPersona, JournalEntry } from './types';
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  uploadString,
+  getDownloadURL,
+  deleteObject,
+  listAll,
+  type FirebaseStorage
+} from 'firebase/storage';
+import type { UserPersona, JournalEntry, JournalPhoto } from './types';
 
 const defaultFallbackConfig = {
   projectId: "genaiacademy3",
@@ -57,6 +67,7 @@ let currentConfig = getInitialConfig();
 export let app: FirebaseApp = !getApps().length ? initializeApp(currentConfig) : getApp();
 export let auth: Auth = getAuth(app);
 export let db = getFirestore(app);
+export let storage: FirebaseStorage = getStorage(app);
 
 // Subscription manager so App.tsx always receives auth events even if auth instance re-initializes
 type AuthListener = (user: User | null) => void;
@@ -113,6 +124,7 @@ export async function initializeRuntimeFirebaseConfig(): Promise<boolean> {
         app = initializeApp(data.config);
         auth = getAuth(app);
         db = getFirestore(app);
+        storage = getStorage(app);
         setupAuthSubscription();
         return true;
       }
@@ -168,6 +180,7 @@ export async function initializeRuntimeFirebase(): Promise<void> {
           app = initializeApp(liveConfig);
           auth = getAuth(app);
           db = getFirestore(app);
+          storage = getStorage(app);
           initializedConfigKey = configKey;
           
           setupAuthSubscription();
@@ -380,4 +393,238 @@ export const deleteAllJournalEntries = async (userId: string): Promise<void> => 
   }
 };
 
+// ============================================================================
+// 📸 Cloud Storage Asset Management (Photos & AI Generated Banners)
+// ============================================================================
+
+/**
+ * Client-side image compressor using HTML Canvas
+ * Resizes large high-res camera photos to max 1600px width/height and compresses to WebP/JPEG
+ */
+export async function compressImage(file: File | Blob, maxDimension = 1600, quality = 0.85): Promise<Blob> {
+  if (typeof window === 'undefined') return file;
+  
+  return new Promise((resolve) => {
+    // If SVG or GIF, preserve original format without raster conversion
+    if ('type' in file && (file.type === 'image/svg+xml' || file.type === 'image/gif')) {
+      return resolve(file);
+    }
+
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        return resolve(file);
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Attempt to export as webp, fallback to jpeg
+      canvas.toBlob(
+        (blob) => {
+          if (blob && blob.size < file.size) {
+            resolve(blob);
+          } else {
+            resolve(file);
+          }
+        },
+        'image/webp',
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file);
+    };
+
+    img.src = objectUrl;
+  });
+}
+
+/**
+ * Converts a File or Blob into a base64 Data URL (used for local Demo mode & instant preview)
+ */
+export function fileToDataUrl(file: File | Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Uploads a photo to Cloud Storage under /users/{userId}/entries/{entryId}/photos/{photoId}_{fileName}
+ */
+export async function uploadJournalPhoto(
+  userId: string,
+  entryId: string,
+  file: File | Blob,
+  fileName?: string,
+  caption?: string
+): Promise<JournalPhoto> {
+  const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const cleanName = (fileName || 'journal_photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `users/${userId}/entries/${entryId}/photos/${photoId}_${cleanName}`;
+
+  try {
+    await ensureAuthToken();
+    const compressed = await compressImage(file, 1600, 0.85);
+    const photoStorageRef = storageRef(storage, path);
+    
+    const snapshot = await uploadBytes(photoStorageRef, compressed, {
+      contentType: ('type' in compressed && compressed.type) ? compressed.type : 'image/jpeg',
+      customMetadata: {
+        userId,
+        entryId,
+        photoId,
+        uploadedAt: String(Date.now()),
+      }
+    });
+
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+
+    return {
+      id: photoId,
+      url: downloadUrl,
+      storagePath: path,
+      name: cleanName,
+      size: compressed.size,
+      createdAt: Date.now(),
+      caption: caption || undefined,
+    };
+  } catch (error) {
+    console.error(`[Cloud Storage] Error uploading photo to ${path}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes a single photo from Cloud Storage
+ */
+export async function deleteJournalPhoto(storagePath: string): Promise<void> {
+  if (!storagePath) return;
+  try {
+    await ensureAuthToken();
+    const photoRef = storageRef(storage, storagePath);
+    await deleteObject(photoRef);
+  } catch (error: any) {
+    // If file does not exist (e.g. 404), log and proceed gracefully
+    if (error?.code !== 'storage/object-not-found') {
+      console.warn(`[Cloud Storage] Could not delete photo at ${storagePath}:`, error);
+    }
+  }
+}
+
+/**
+ * Uploads a generated banner image (Data URL or Blob) to Cloud Storage
+ */
+export async function uploadBannerImageToStorage(
+  userId: string,
+  entryId: string,
+  dataUrlOrBlob: string | Blob
+): Promise<{ url: string; storagePath: string }> {
+  const timestamp = Date.now();
+  const path = `users/${userId}/entries/${entryId}/banner/banner_${timestamp}.png`;
+
+  try {
+    await ensureAuthToken();
+    const bannerStorageRef = storageRef(storage, path);
+
+    let downloadUrl = '';
+    if (typeof dataUrlOrBlob === 'string' && dataUrlOrBlob.startsWith('data:')) {
+      const snapshot = await uploadString(bannerStorageRef, dataUrlOrBlob, 'data_url', {
+        contentType: 'image/png',
+        customMetadata: { userId, entryId, uploadedAt: String(timestamp) }
+      });
+      downloadUrl = await getDownloadURL(snapshot.ref);
+    } else {
+      const blob = typeof dataUrlOrBlob === 'string' ? await (await fetch(dataUrlOrBlob)).blob() : dataUrlOrBlob;
+      const snapshot = await uploadBytes(bannerStorageRef, blob, {
+        contentType: 'image/png',
+        customMetadata: { userId, entryId, uploadedAt: String(timestamp) }
+      });
+      downloadUrl = await getDownloadURL(snapshot.ref);
+    }
+
+    return { url: downloadUrl, storagePath: path };
+  } catch (error) {
+    console.error(`[Cloud Storage] Error uploading banner to ${path}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes any file by its Cloud Storage path
+ */
+export async function deleteCloudStorageFile(storagePath: string): Promise<void> {
+  if (!storagePath) return;
+  try {
+    await ensureAuthToken();
+    const fileRef = storageRef(storage, storagePath);
+    await deleteObject(fileRef);
+  } catch (error: any) {
+    if (error?.code !== 'storage/object-not-found') {
+      console.warn(`[Cloud Storage] Warning deleting storage path ${storagePath}:`, error);
+    }
+  }
+}
+
+/**
+ * Purges ALL photos and banner assets associated with an entry from Cloud Storage
+ */
+export async function deleteAllEntryStorageFiles(userId: string, entryId: string): Promise<void> {
+  if (!userId || !entryId) return;
+
+  const folderPaths = [
+    `users/${userId}/entries/${entryId}/photos`,
+    `users/${userId}/entries/${entryId}/banner`,
+  ];
+
+  await ensureAuthToken();
+
+  for (const folderPath of folderPaths) {
+    try {
+      const folderRef = storageRef(storage, folderPath);
+      const res = await listAll(folderRef);
+      
+      const deletePromises = res.items.map((itemRef) => 
+        deleteObject(itemRef).catch((e) => {
+          if (e?.code !== 'storage/object-not-found') {
+            console.warn(`[Cloud Storage] Could not delete item ${itemRef.fullPath}:`, e);
+          }
+        })
+      );
+
+      await Promise.all(deletePromises);
+    } catch (err: any) {
+      // If folder does not exist, ignore
+      if (err?.code !== 'storage/object-not-found') {
+        console.warn(`[Cloud Storage] Could not list folder ${folderPath}:`, err);
+      }
+    }
+  }
+}
+
 export type { User };
+

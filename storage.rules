@@ -1,0 +1,43 @@
+﻿rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Core Authentication & Ownership Helpers
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Validate that uploaded files are valid images under safe size bound (15MB)
+    function isValidImage(maxMb) {
+      return request.resource.contentType.matches('image/.*')
+        && request.resource.size < maxMb * 1024 * 1024;
+    }
+
+    // Isolated User Storage Sandbox: /users/{userId}/**
+    match /users/{userId} {
+      
+      // Journal Entry Assets (Photos and Generated Banners)
+      match /entries/{entryId}/{allPaths=**} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && isValidImage(15);
+        allow delete: if isOwner(userId);
+      }
+
+      // General user asset catch-all
+      match /{allPaths=**} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && isValidImage(15);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Deny-all on root or unmapped storage paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

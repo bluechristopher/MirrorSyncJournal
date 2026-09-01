@@ -52,6 +52,7 @@ import { GoogleMapView } from './GoogleMapView';
 import { StreamingMarkdown } from './StreamingMarkdown';
 import { sendChatMessageAPI } from '../services/api';
 import { JournalVoicePlayer } from './JournalVoicePlayer';
+import { JournalPhotoGallery } from './JournalPhotoGallery';
 import { getRelativeTimeInfo } from '../utils/dateUtils';
 import { logoImg, fountainPenImg } from '../assets/bannerAssets';
 
@@ -872,18 +873,20 @@ export function ReflectionCard({
         ) : (
           <div className="p-4 pb-0 animate-in fade-in-50 duration-200">
             <EditorialArtCanvas 
+              entryId={entry.id}
               prompt={entry.rawText || entry.reflectionSummary} 
               domain={entry.category?.domain} 
               imageUrl={entry.bannerImageUrl}
+              storagePath={entry.bannerStoragePath}
               rawText={entry.rawText}
               topicTitle={postTitle}
               isExpanded={isExpanded}
               className="w-full shadow-lg border border-white/15"
               onRegenerate={() => {
-                onUpdateEntry?.(entry.id, { bannerImageUrl: undefined });
+                onUpdateEntry?.(entry.id, { bannerImageUrl: undefined, bannerStoragePath: undefined });
               }}
-              onImageGenerated={(newUrl) => {
-                onUpdateEntry?.(entry.id, { bannerImageUrl: newUrl });
+              onImageGenerated={(newUrl, newStoragePath) => {
+                onUpdateEntry?.(entry.id, { bannerImageUrl: newUrl, bannerStoragePath: newStoragePath });
               }}
               onClickToggleExpand={() => setIsExpanded(!isExpanded)}
             />
@@ -1089,6 +1092,16 @@ export function ReflectionCard({
               </div>
             </motion.div>
           )}
+
+          {/* JOURNAL PHOTOS GALLERY (Parked directly under the post, visible in condensed and expanded views) */}
+          <JournalPhotoGallery
+            entryId={entry.id}
+            photos={entry.photos || []}
+            onUpdatePhotos={(updatedPhotos) => {
+              onUpdateEntry?.(entry.id, { photos: updatedPhotos });
+            }}
+            isExpanded={isExpanded}
+          />
 
           {/* CONDENSED VIEW FOOTER (Shown when isExpanded is false) */}
           {!isExpanded && (

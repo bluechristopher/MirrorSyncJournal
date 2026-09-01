@@ -47,6 +47,7 @@ import {
   updateJournalEntry, 
   deleteJournalEntry,
   deleteAllJournalEntries,
+  deleteAllEntryStorageFiles,
   type User 
 } from './firebase';
 import { reflectEntryAPI, clusterTopicsAPI } from './services/api';
@@ -386,6 +387,10 @@ export default function App() {
     if (user) {
       try {
         await deleteAllJournalEntries(user.uid);
+        // Purge all files in Cloud Storage for all deleted entries
+        for (const entry of entries) {
+          deleteAllEntryStorageFiles(user.uid, entry.id).catch(() => {});
+        }
       } catch (dbErr) {
         console.warn('Firestore wipe warning:', dbErr);
       }
@@ -400,7 +405,7 @@ export default function App() {
     try {
       localStorage.removeItem(GUEST_STORAGE_KEY);
     } catch (_e) {}
-    showToast('All journal posts & stored banner images deleted!');
+    showToast('All journal posts & stored assets deleted!');
   };
 
   const showToast = (msg: string) => {
@@ -885,6 +890,10 @@ export default function App() {
 
     if (user) {
       await deleteJournalEntry(user.uid, entryId);
+      // Purge all photos and banner assets from Cloud Storage for this entry
+      deleteAllEntryStorageFiles(user.uid, entryId).catch((err) => {
+        console.warn('[Cloud Storage] Post delete asset cleanup notice:', err);
+      });
     }
     showToast('Journal entry deleted.');
   };

@@ -58,12 +58,12 @@ MirrorSync is built from the ground up on Google Cloud Platform, combining serve
    [ Google Cloud Run ] (Node.js 20 LTS + Express API Gateway)
           │  • Serverless container auto-scaling (0 to N instances)
           │  • 1MB payload limits, CORS guards & prompt injection fencing
-          ├─────────────────────────────────────────┬─────────────────────────────────────┐
-          ▼                                         ▼                                     ▼
-   [ Secret Manager ]                     [ Cloud Firestore ]                   [ Google Gemini API ]
-    • GEMINI_API_KEY isolation             • Multi-tenant user subcollections    • gemini-3.7-flash (Primary)
-    • Least-privilege IAM bindings         • Document rules: /users/{uid}/**     • gemini-3.5-flash-lite / 2.5
-                                                                                 • gemini-3.1-flash-lite-image
+          ├──────────────────────────┬──────────────────────────┬──────────────────────────┐
+          ▼                          ▼                          ▼                          ▼
+   [ Secret Manager ]       [ Cloud Firestore ]       [ Firebase Storage ]       [ Google Gemini API ]
+    • GEMINI_API_KEY         • Multi-tenant database   • Isolated user buckets    • gemini-3.7-flash
+    • IAM least-privilege    • Rules: /users/{uid}/**  • Photos & 16:9 Banners    • Fallback ladder
+                                                       • Cascade delete cleanup   • 3.1-flash-lite-image
 ```
 
 ### Core GCP Services Utilized:
@@ -76,6 +76,7 @@ MirrorSync is built from the ground up on Google Cloud Platform, combining serve
   - **`gemini-3.1-flash-lite-image`**: Native Gemini image generation for 16:9 banner illustrations.
 * **Google Secret Manager**: Secure storage for `GEMINI_API_KEY`, accessed strictly at runtime via IAM service account bindings (never exposed to client-side bundles).
 * **Cloud Firestore**: Multi-tenant database enforcing strict subcollection path isolation (`/users/{userId}/**`) locked by server-authoritative Firestore Security Rules.
+* **Firebase Cloud Storage**: Secure blob storage for journal photos and generated 16:9 banner illustrations under user-isolated buckets (`/users/{userId}/entries/{entryId}/**`) with automatic lifecycle cleanup on entry deletion.
 * **Firebase Authentication**: Google Single Sign-On (SSO) with popup auth and JWT session verification.
 * **Google Maps Platform (`@vis.gl/react-google-maps`)**: Spatial memory grounding, place search, and interactive dark-mode map snippet previews.
 
@@ -89,14 +90,15 @@ MirrorSync is built from the ground up on Google Cloud Platform, combining serve
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ 1. 🎙️ Continuous Multi-Sentence Voice Dictation with 3s Grace Detection               │
 │ 2. 🎧 Natural Voice Audio Reader (Read Aloud) with Word Teleprompter & Speed Control   │
-│ 3. 🗺️ Google Maps Spatial Grounding & Place Memory Anchoring                          │
-│ 4. 🎨 Automated 16:9 Contextual Banner Artwork Generation via Gemini                   │
-│ 5. 🏷️ Smart Automatic Content Categorization (Work, Personal, Creative, Email)         │
-│ 6. 📖 Immersive 3D Leather Book Flip Journal vs. Streamlined Feed View                 │
-│ 7. 🔮 Dynamic Unsupervised AI Topic Clustering Cards                                   │
-│ 8. ✉️ Executive Email Drafting Studio with Length & Tone Controls                     │
-│ 9. 💬 Prominent "Chat More" Multi-Turn Assistant with Animated Silver-Blue Shimmer     │
-│ 10. 👤 Demo Mode vs. Pro Mode (Google Firebase SSO + Firestore Sync)                   │
+│ 3. 📸 Instagram-Style Journal Photo Gallery with Cloud Storage & Lightbox Modal        │
+│ 4. 🗺️ Google Maps Spatial Grounding & Place Memory Anchoring                          │
+│ 5. 🎨 Automated 16:9 Contextual Banner Artwork Generation via Gemini                   │
+│ 6. 🏷️ Smart Automatic Content Categorization (Work, Personal, Creative, Email)         │
+│ 7. 📖 Immersive 3D Leather Book Flip Journal vs. Streamlined Feed View                 │
+│ 8. 🔮 Dynamic Unsupervised AI Topic Clustering Cards                                   │
+│ 9. ✉️ Executive Email Drafting Studio with Length & Tone Controls                     │
+│ 10. 💬 Prominent "Chat More" Multi-Turn Assistant with Animated Silver-Blue Shimmer    │
+│ 11. 👤 Demo Mode vs. Pro Mode (Google Firebase SSO + Firestore + Storage Sync)         │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -111,15 +113,30 @@ MirrorSync is built from the ground up on Google Cloud Platform, combining serve
 - **Instant Speed Switching**: Toggle playback speed between `0.8x`, `1.0x`, `1.2x`, and `1.5x` with real-time character-position preservation.
 - **Simple Controls**: One-touch **Play**, **Pause**, and **Resume** buttons.
 
-### 3. 🗺️ Google Maps Spatial Grounding ([GoogleMapView.tsx](src/components/GoogleMapView.tsx))
+### 3. 📸 Instagram-Style Journal Photo Gallery & Cloud Storage ([JournalPhotoGallery.tsx](src/components/JournalPhotoGallery.tsx))
+- **Parked Under Post Memo**: Displayed directly below the journal paper memo in both condensed and expanded views.
+- **Adaptive Multi-Photo Layouts**:
+  - *1 Photo*: Full-width high-resolution hero display with zoom on hover.
+  - *2 Photos*: Clean symmetrical 2-column split.
+  - *3 Photos*: 1 large featured left tile + 2 stacked right tiles.
+  - *4+ Photos*: 2x2 quad grid with a frosted `+N more` overlay opening the full gallery.
+- **Full-Screen Lightbox Modal**: Click any photo to view high-resolution imagery, navigate with keyboard arrow keys or thumbnail seeking, download, and delete.
+- **Automated Cloud Storage Lifecycle**:
+  - Uploads directly to user-isolated Cloud Storage paths (`/users/{uid}/entries/{entryId}/photos/`).
+  - Automatic client-side canvas compression for snappy uploads and bandwidth savings.
+  - Individual photo deletions instantly purge the asset from Cloud Storage.
+  - Deleting an entry automatically cascades and cleans up all associated photos and AI banners.
+
+### 4. 🗺️ Google Maps Spatial Grounding ([GoogleMapView.tsx](src/components/GoogleMapView.tsx))
 - **Memory Anchoring**: Tag any reflection with real-world places (e.g., *Google Campus, Mountain View*, *Kallang Tennis Centre, Singapore*).
 - **Interactive Map Previews**: Features an embedded double-height Google Map preview with custom dark-mode styling, coordinate pins, and full-screen view modal.
 
-### 4. 🎨 Automated AI Post Banner Generation ([EditorialArtCanvas.tsx](src/components/EditorialArtCanvas.tsx))
+### 5. 🎨 Automated AI Post Banner Generation ([EditorialArtCanvas.tsx](src/components/EditorialArtCanvas.tsx))
 - **Contextual Visual Synthesis**: Uses Google's `gemini-3.1-flash-lite-image` engine to generate high-resolution 16:9 banner illustrations tailored to the mood, location, and topic of your entry.
+- **Cloud Storage Persistence**: Automatically uploads generated banners to Cloud Storage (`/users/{uid}/entries/{entryId}/banner/`) and deletes outdated banner versions when regenerated.
 - **Standby & Prompt Editor**: Includes elegant category standby artwork and an interactive prompt editor allowing users to tweak visual instructions and regenerate artwork on demand.
 
-### 5. 🏷️ Smart Automatic Content Categorization ([server.ts](server.ts))
+### 6. 🏷️ Smart Automatic Content Categorization ([server.ts](server.ts))
 - **Multi-Domain Intelligence**: Automatically classifies raw thoughts into **Work**, **Personal**, **Creative**, or **Email Drafting**.
 - **Domain-Specific Cognitive Engines**:
   - **Work**: Extracts action items checklists, operational next steps, and project blockers.
@@ -175,9 +192,9 @@ To ensure MirrorSync never goes down during high-traffic spikes or quota limits,
 
 ---
 
-## 🔒 Database Isolation & Firestore Security Rules
+## 🔒 Database & Storage Security Rules
 
-All user data in Firestore is partitioned under `/users/{userId}/**`. Multi-tenant cross-talk is prevented at the database kernel level through the following security rules:
+### Firestore Security Rules (`firestore.rules`)
 
 ```javascript
 rules_version = '2';
@@ -218,6 +235,49 @@ service cloud.firestore {
 
     // 4. Default Deny-All for any root or unmapped collections
     match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+```
+
+### Firebase Cloud Storage Security Rules (`storage.rules`)
+
+User photos and generated banner illustrations are strictly isolated under `/users/{userId}/**` with content type verification and file size limits:
+
+```javascript
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidImage(maxMb) {
+      return request.resource.contentType.matches('image/.*')
+        && request.resource.size < maxMb * 1024 * 1024;
+    }
+
+    match /users/{userId} {
+      match /entries/{entryId}/{allPaths=**} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && isValidImage(15);
+        allow delete: if isOwner(userId);
+      }
+
+      match /{allPaths=**} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && isValidImage(15);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    match /{allPaths=**} {
       allow read, write: if false;
     }
   }
@@ -292,17 +352,40 @@ options:
 
 ---
 
+## 💻 Local Development Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/bluechristopher/MirrorSyncJournal.git
+cd MirrorSyncJournal
+
+# 2. Install dependencies
+npm install
+
+# 3. Create .env.local file with your Gemini API key & Firebase credentials
+cp .env.example .env.local
+
+# 4. Start full-stack development server (Backend + Vite Frontend)
+npm run dev
+
+# 5. Build production bundle
+npm run build
+```
+
+---
+
 ## 📂 Project Structure
 
 ```
 ├── Dockerfile                # Production container specification for Cloud Run
 ├── firestore.rules           # Hardened Firestore security and isolation rules
+├── storage.rules             # Hardened Cloud Storage security and quota rules
 ├── metadata.json             # Applet capabilities and permissions
 ├── package.json              # App scripts and dependencies
 ├── server.ts                 # Full-stack Express backend with 4-tier Gemini model ladder
 ├── src/
-│   ├── components/           # UI Components (BookJournalView, Maps, Voice, Email, DynamicCards)
-│   ├── firebase.ts           # Firebase Auth & Firestore client SDK
+│   ├── components/           # UI Components (JournalPhotoGallery, BookJournalView, Maps, Voice, Email)
+│   ├── firebase.ts           # Firebase Auth, Firestore & Cloud Storage client SDK
 │   ├── services/             # API client services & endpoints
 │   ├── utils/                # Date formatting, semantic clustering utilities
 │   ├── types.ts              # Global TypeScript interfaces and domain schemas
