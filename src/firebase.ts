@@ -93,6 +93,8 @@ setupAuthSubscription();
 
 // Dynamic runtime config initialization from Express server
 export async function initializeRuntimeFirebaseConfig(): Promise<boolean> {
+  if (isInitializing) return false;
+  isInitializing = true;
   try {
     const res = await fetch('/api/firebase-config');
     if (res.ok) {
@@ -131,6 +133,8 @@ export async function initializeRuntimeFirebaseConfig(): Promise<boolean> {
     }
   } catch (err) {
     console.warn('[Firebase] Runtime config fetch fallback:', err);
+  } finally {
+    isInitializing = false;
   }
   return false;
 }
@@ -148,54 +152,6 @@ export function onAuthStateChanged(_authInstance: Auth, callback: AuthListener):
     listeners.delete(callback);
   };
 }
-
-let isInitializing = false;
-let initializedConfigKey = `${currentConfig.apiKey}:${currentConfig.projectId}`;
-
-// Fetch dynamic runtime config from Secret Manager backend if not already set
-export async function initializeRuntimeFirebase(): Promise<void> {
-  if (isInitializing) return;
-  isInitializing = true;
-  try {
-    const res = await fetch('/api/config');
-    if (res.ok) {
-      const data = await res.json();
-      if (data.firebaseApiKey && data.firebaseApiKey !== 'AIzaSy_demo_client_key') {
-        const configKey = `${data.firebaseApiKey}:${data.projectId}`;
-        if (configKey !== initializedConfigKey) {
-          const liveConfig = {
-            projectId: data.projectId || "genaiacademy3",
-            appId: data.appId || "1:217104786977:web:default",
-            apiKey: data.firebaseApiKey,
-            authDomain: data.authDomain || `${data.projectId || "genaiacademy3"}.firebaseapp.com`,
-            firestoreDatabaseId: "(default)",
-            storageBucket: `${data.projectId || "genaiacademy3"}.firebasestorage.app`,
-            messagingSenderId: "217104786977",
-          };
-          
-          if (getApps().length) {
-            await deleteApp(app).catch(() => {});
-          }
-          
-          app = initializeApp(liveConfig);
-          auth = getAuth(app);
-          db = getFirestore(app);
-          storage = getStorage(app);
-          initializedConfigKey = configKey;
-          
-          setupAuthSubscription();
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('Could not load dynamic firebase config from /api/config:', e);
-  } finally {
-    isInitializing = false;
-  }
-}
-
-// Auto-run on module load in background
-initializeRuntimeFirebase();
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
@@ -474,7 +430,8 @@ export function fileToDataUrl(file: File | Blob): Promise<string> {
 }
 
 /**
- * Uploads a photo to Cloud Storage under /users/{userId}/entries/{entryId}/photos/{photoId}_{fileName}
+ * Uploads a photo to Cloud Storage under /users/{userId}/entries/{entryId}/photos/{photoId}_{fileName},
+ * or automatically falls back to in-database storage if Storage is disabled or restricted
  */
 export async function uploadJournalPhoto(
   userId: string,
@@ -513,9 +470,17 @@ export async function uploadJournalPhoto(
       createdAt: Date.now(),
       caption: caption || undefined,
     };
-  } catch (error) {
-    console.error(`[Cloud Storage] Error uploading photo to ${path}:`, error);
-    throw error;
+  } catch (_error) {
+    const compressed = await compressImage(file, 1400, 0.82);
+    const dataUrl = await fileToDataUrl(compressed);
+    return {
+      id: photoId,
+      url: dataUrl,
+      name: cleanName,
+      size: compressed.size,
+      createdAt: Date.now(),
+      caption: caption || undefined,
+    };
   }
 }
 
@@ -528,22 +493,19 @@ export async function deleteJournalPhoto(storagePath: string): Promise<void> {
     await ensureAuthToken();
     const photoRef = storageRef(storage, storagePath);
     await deleteObject(photoRef);
-  } catch (error: any) {
-    // If file does not exist (e.g. 404), log and proceed gracefully
-    if (error?.code !== 'storage/object-not-found') {
-      console.warn(`[Cloud Storage] Could not delete photo at ${storagePath}:`, error);
-    }
+  } catch (_error: any) {
+    // Silently proceed
   }
 }
 
 /**
- * Uploads a generated banner image (Data URL or Blob) to Cloud Storage
+ * Uploads a generated banner image (Data URL or Blob) to Cloud Storage with automatic fallback
  */
 export async function uploadBannerImageToStorage(
   userId: string,
   entryId: string,
   dataUrlOrBlob: string | Blob
-): Promise<{ url: string; storagePath: string }> {
+): Promise<{ url: string; storagePath?: string }> {
   const timestamp = Date.now();
   const path = `users/${userId}/entries/${entryId}/banner/banner_${timestamp}.png`;
 
@@ -568,9 +530,9 @@ export async function uploadBannerImageToStorage(
     }
 
     return { url: downloadUrl, storagePath: path };
-  } catch (error) {
-    console.error(`[Cloud Storage] Error uploading banner to ${path}:`, error);
-    throw error;
+  } catch (_error) {
+    const rawUrl = typeof dataUrlOrBlob === 'string' ? dataUrlOrBlob : await fileToDataUrl(dataUrlOrBlob);
+    return { url: rawUrl };
   }
 }
 
@@ -583,10 +545,8 @@ export async function deleteCloudStorageFile(storagePath: string): Promise<void>
     await ensureAuthToken();
     const fileRef = storageRef(storage, storagePath);
     await deleteObject(fileRef);
-  } catch (error: any) {
-    if (error?.code !== 'storage/object-not-found') {
-      console.warn(`[Cloud Storage] Warning deleting storage path ${storagePath}:`, error);
-    }
+  } catch (_error: any) {
+    // Silently proceed
   }
 }
 
@@ -601,28 +561,19 @@ export async function deleteAllEntryStorageFiles(userId: string, entryId: string
     `users/${userId}/entries/${entryId}/banner`,
   ];
 
-  await ensureAuthToken();
-
-  for (const folderPath of folderPaths) {
-    try {
-      const folderRef = storageRef(storage, folderPath);
-      const res = await listAll(folderRef);
-      
-      const deletePromises = res.items.map((itemRef) => 
-        deleteObject(itemRef).catch((e) => {
-          if (e?.code !== 'storage/object-not-found') {
-            console.warn(`[Cloud Storage] Could not delete item ${itemRef.fullPath}:`, e);
-          }
-        })
-      );
-
-      await Promise.all(deletePromises);
-    } catch (err: any) {
-      // If folder does not exist, ignore
-      if (err?.code !== 'storage/object-not-found') {
-        console.warn(`[Cloud Storage] Could not list folder ${folderPath}:`, err);
+  try {
+    await ensureAuthToken();
+    for (const folderPath of folderPaths) {
+      try {
+        const folderRef = storageRef(storage, folderPath);
+        const res = await listAll(folderRef);
+        await Promise.all(res.items.map((itemRef) => deleteObject(itemRef).catch(() => {})));
+      } catch (_err) {
+        // Silently continue
       }
     }
+  } catch (_e) {
+    // Silently continue
   }
 }
 
