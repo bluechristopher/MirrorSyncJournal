@@ -11,10 +11,6 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 <p align="center">
-  <img src="assets/mirrorsync_banner.png" alt="MirrorSync Banner" width="100%">
-</p>
-
-<p align="center">
   <a href="https://www.youtube.com/watch?v=jzinWA-A2jA">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/67/YouTube_Logo_June.png"
          alt="YouTube"
@@ -24,11 +20,15 @@
 
 <p align="center">
   <strong>▶ Watch the MirrorSync Project Walkthrough</strong><br>
-  <sub>See the deployed application, AI reflection workflow, and Google Cloud integration in action.</sub>
+  <sub>See the deployed application in action.</sub>
 </p>
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=jzinWA-A2jA"><strong>Watch on YouTube →</strong></a>
+</p>
+
+<p align="center">
+  <img src="assets/mirrorsync_banner.png" alt="MirrorSync Banner" width="100%">
 </p>
 
 ---
