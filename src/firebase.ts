@@ -108,23 +108,21 @@ export async function initializeRuntimeFirebaseConfig(): Promise<boolean> {
 
         console.info('[Firebase] Updating to runtime config for project:', data.config.projectId);
         
-        // Detach active listener prior to deleting previous app instance
+        // Detach active listener prior to switching app instance
         if (currentUnsubscribe) {
           currentUnsubscribe();
           currentUnsubscribe = null;
         }
 
-        const existingApps = getApps();
-        if (existingApps.length > 0) {
-          try {
-            await deleteApp(existingApps[0]);
-          } catch (_delErr) {
-            // Silence background heartbeat race warnings
-          }
+        const appName = `mirrorsync_runtime`;
+        const existingRuntimeApp = getApps().find(a => a.name === appName);
+        if (existingRuntimeApp) {
+          app = existingRuntimeApp;
+        } else {
+          app = initializeApp(data.config, appName);
         }
 
         currentConfig = data.config;
-        app = initializeApp(data.config);
         auth = getAuth(app);
         db = getFirestore(app);
         storage = getStorage(app);
