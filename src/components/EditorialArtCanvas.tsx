@@ -91,25 +91,8 @@ export function EditorialArtCanvas({
       if (res.ok) {
         const data = await res.json();
         if (data.imageUrl) {
-          let finalUrl = data.imageUrl;
-          let newStoragePath: string | undefined = undefined;
-
-          // If user is authenticated in Pro Mode, persist banner directly to Cloud Storage
-          const currentUser = auth.currentUser;
-          if (currentUser && entryId) {
-            try {
-              const uploaded = await uploadBannerImageToStorage(currentUser.uid, entryId, data.imageUrl);
-              finalUrl = uploaded.url;
-              newStoragePath = uploaded.storagePath;
-
-              // Purge previous banner asset from Cloud Storage if one existed
-              if (storagePath && storagePath !== newStoragePath) {
-                await deleteCloudStorageFile(storagePath);
-              }
-            } catch (storageErr) {
-              console.warn('[EditorialArtCanvas] Cloud Storage upload fallback to data url:', storageErr);
-            }
-          }
+          const finalUrl = data.imageUrl;
+          const newStoragePath: string | undefined = undefined;
 
           setCurrentImageUrl(finalUrl);
           if (data.generatedArtPrompt) {
