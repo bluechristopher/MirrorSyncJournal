@@ -32,12 +32,12 @@ MirrorSync was specifically designed and engineered against the four official ev
 ├───────────────────────┼────────────────────────┼────────────────────────┼────────────────────────┤
 │ • Solves real human   │ • Continuous voice     │ • 4-tier Gemini model  │ • Strict Firestore UID │
 │   cognitive fatigue   │   dictation & speech   │   resilience ladder    │   path isolation rules │
-│ • Persona extraction  │ • Word teleprompter &  │ • Graceful 429 quota   │ • Secret Manager key   │
-│   & tone calibration  │   audio player         │   spike mitigation     │   isolation (IAM)      │
-│ • Unsupervised dynamic│ • Interactive Google   │ • Zero-downtime Cloud  │ • Google AI Studio     │
-│   topic clustering    │   Maps spatial memory  │   Run auto-scaling     │   prompt fence guards  │
+│ • Persona extraction  │ • Word teleprompter &  │ • Graceful 429 quota   │ • Cloud Storage user   │
+│   & tone calibration  │   audio player         │   spike mitigation     │   sandbox & MIME rules │
+│ • Unsupervised dynamic│ • Photo gallery with   │ • Zero-downtime Cloud  │ • Secret Manager key   │
+│   topic clustering    │   Cloud Storage sync   │   Run auto-scaling     │   isolation (IAM)      │
 │ • Domain-tailored     │ • Auto 16:9 banner art │ • Multi-device state   │ • Built-in 5-zone      │
-│   reasoning engines   │ • 3D Book & Feed views │   fallback sync        │   OWASP LLM inspector  │
+│   reasoning engines   │ • 3D Book & Feed views │   & media sync         │   OWASP LLM inspector  │
 └───────────────────────┴────────────────────────┴────────────────────────┴────────────────────────┘
 ```
 
@@ -45,40 +45,50 @@ MirrorSync was specifically designed and engineered against the four official ev
 
 ## 🛠️ Google Cloud Platform (GCP) Architecture & Infrastructure
 
-MirrorSync is built from the ground up on Google Cloud Platform, combining serverless compute, AI reasoning, database security, and spatial mapping:
+MirrorSync is built from the ground up on Google Cloud Platform, uniting serverless compute, multimodal AI reasoning, secure NoSQL data partitioning, user-isolated media storage, and geospatial intelligence:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                               MIRRORSYNC GCP ARCHITECTURE                               │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-   [ Client Browser ]
-          │  • React 19 + TypeScript + Vite SPA + Tailwind CSS
-          │  • Firebase Google Auth & Interactive Google Maps Platform
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                       MIRRORSYNC GCP ARCHITECTURE                                      │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+ [ Client Presentation Layer ]
+   • React 19 + TypeScript + Vite SPA + Tailwind CSS (3D Book Journal & Responsive Feed)
+   • Web Speech API (Continuous Voice Dictation with 3s Grace + Natural Neural Voice Synthesis)
+   • Google Maps Platform (@vis.gl/react-google-maps for Dark-Mode Spatial Grounding)
+   • Client-Side HTML Canvas Compressor (Automatic 1600px WebP/JPEG Optimization)
+          │
+          │ HTTPS / REST / SSE
           ▼
-   [ Google Cloud Run ] (Node.js 20 LTS + Express API Gateway)
-          │  • Serverless container auto-scaling (0 to N instances)
-          │  • 1MB payload limits, CORS guards & prompt injection fencing
+ [ Compute & API Gateway Layer: Google Cloud Run ]
+   • Serverless Node.js + Express Container with Zero Cold-Start Auto-Scaling (0 to N)
+   • Continuous Deployment (CD) via Google Cloud Build on every push to main
+   • 1MB JSON Body Armor, Strict CORS Policy & System Prompt Injection Fencing
+          │
           ├──────────────────────────┬──────────────────────────┬──────────────────────────┐
           ▼                          ▼                          ▼                          ▼
-   [ Secret Manager ]       [ Cloud Firestore ]       [ Firebase Storage ]       [ Google Gemini API ]
-    • GEMINI_API_KEY         • Multi-tenant database   • Isolated user buckets    • gemini-3.7-flash
-    • IAM least-privilege    • Rules: /users/{uid}/**  • Photos & 16:9 Banners    • Fallback ladder
-                                                       • Cascade delete cleanup   • 3.1-flash-lite-image
+ [ Google Secret Manager ]  [ Cloud Firestore ]       [ Firebase Cloud Storage ] [ Google Gemini API ]
+  • GEMINI_API_KEY Vault     • Multi-Tenant NoSQL      • User-Isolated Buckets    • gemini-3.7-flash (Primary)
+  • IAM Least-Privilege      • Strict Path Partition:  • /users/{uid}/entries/    • 4-Tier Fallback Ladder
+    Service Account Access     /users/{uid}/entries/**   {id}/photos/ & /banner/  • gemini-3.1-flash-lite-image
+                             • Server-Authoritative    • Cascade Delete Purge       (16:9 Contextual Art)
+                               Security Rules            on Entry Deletion        • Prototyped in AI Studio
 ```
 
-### Core GCP Services Utilized:
-* **Google Cloud Run**: Hosts the full-stack containerized service (`Dockerfile` + Node.js 20 LTS + Express backend + Vite SPA) with instant auto-scaling and zero-downtime rolling deploys.
-* **Google Cloud Build**: Native CI/CD pipeline triggered automatically on every push to `main` for hands-free continuous delivery.
-* **Google AI Studio**: Used to design, prototype, few-shot calibrate, and export structured JSON schemas and system prompts for persona-adaptive reflection.
-* **Google Gemini API (`@google/genai` SDK)**:
-  - **`gemini-3.7-flash`**: Primary multimodal cognitive reflection engine, emotional sentiment calibration, and dynamic topic clustering.
-  - **`gemini-3.5-flash-lite` & `gemini-2.5-flash-lite`**: High-speed, low-latency fallback models in our automated resilience ladder.
-  - **`gemini-3.1-flash-lite-image`**: Native Gemini image generation for 16:9 banner illustrations.
-* **Google Secret Manager**: Secure storage for `GEMINI_API_KEY`, accessed strictly at runtime via IAM service account bindings (never exposed to client-side bundles).
-* **Cloud Firestore**: Multi-tenant database enforcing strict subcollection path isolation (`/users/{userId}/**`) locked by server-authoritative Firestore Security Rules.
-* **Firebase Cloud Storage**: Secure blob storage for journal photos and generated 16:9 banner illustrations under user-isolated buckets (`/users/{userId}/entries/{entryId}/**`) with automatic lifecycle cleanup on entry deletion.
-* **Firebase Authentication**: Google Single Sign-On (SSO) with popup auth and JWT session verification.
-* **Google Maps Platform (`@vis.gl/react-google-maps`)**: Spatial memory grounding, place search, and interactive dark-mode map snippet previews.
+### Core GCP & Google Technologies Utilized:
+
+| Service / Technology | Role & Engineering Implementation in MirrorSync |
+| :--- | :--- |
+| **Google Cloud Run** | Fully managed serverless container runtime hosting the Node.js Express backend and compiled Vite SPA with auto-scaling (`0` to `N`), HTTP/2, and zero-downtime deployments. |
+| **Google Cloud Build** | Native CI/CD pipeline triggered automatically on every push to `main` with buildpack containerization and rolling Cloud Run release steps. |
+| **Google AI Studio** | Used to design, prototype, few-shot calibrate, and export structured JSON schemas and system prompts for persona-adaptive reflection. |
+| **Google Gemini API (`@google/genai`)** | Multi-tier reasoning hierarchy:<br>• **`gemini-3.7-flash`**: Primary multimodal cognitive reflection, domain classification, and structured takeaways.<br>• **`gemini-3.5-flash` / `gemini-3.5-flash-lite` / `gemini-2.5-flash-lite`**: Automated fallback tiers.<br>• **`gemini-3.1-flash-lite-image`**: Native Gemini image generation for 16:9 banner illustrations. |
+| **Google Secret Manager** | Secure storage for `GEMINI_API_KEY`, accessed strictly at runtime via IAM service account bindings (`roles/secretmanager.secretAccessor`). |
+| **Cloud Firestore** | Multi-tenant database enforcing strict subcollection path isolation (`/users/{userId}/**`) locked by server-authoritative Firestore Security Rules. |
+| **Firebase Cloud Storage** | User-isolated media storage for journal photos and generated 16:9 banner illustrations (`/users/{userId}/entries/{entryId}/**`) with client-side canvas compression and automated cascade cleanup on post deletion. |
+| **Firebase Authentication** | Google Single Sign-On (SSO) with popup auth and JWT session verification to separate instant local Demo Mode from cloud-synced Pro Mode. |
+| **Google Maps Platform (`@vis.gl/react-google-maps`)** | Spatial memory grounding, place search, coordinate pinning, and interactive dark-mode map snippet previews. |
+| **Google Speech Services & Web Audio** | Continuous speech recognition engine for hands-free dictation with 3s grace silence detection, paired with Google neural text-to-speech for "Read Aloud" narration with word seeking. |
 
 ---
 
@@ -114,8 +124,8 @@ MirrorSync is built from the ground up on Google Cloud Platform, combining serve
 - **Simple Controls**: One-touch **Play**, **Pause**, and **Resume** buttons.
 
 ### 3. 📸 Instagram-Style Journal Photo Gallery & Cloud Storage ([JournalPhotoGallery.tsx](src/components/JournalPhotoGallery.tsx))
-- **Parked Under Post Memo**: Displayed directly below the journal paper memo in both condensed and expanded views.
-- **Adaptive Multi-Photo Layouts**:
+- **Parked Directly Under Post Memo**: Positioned cleanly below the journal paper memo sheet in both condensed and expanded views.
+- **Adaptive Multi-Photo Formats**:
   - *1 Photo*: Full-width high-resolution hero display with zoom on hover.
   - *2 Photos*: Clean symmetrical 2-column split.
   - *3 Photos*: 1 large featured left tile + 2 stacked right tiles.
@@ -144,28 +154,28 @@ MirrorSync is built from the ground up on Google Cloud Platform, combining serve
   - **Creative**: Generates innovative creative spark challenges and exploratory exercises.
   - **Email Drafting**: Constructs send-ready email drafts with recipient and tone controls.
 
-### 6. 📖 Dual-View Mode: 3D Leather Book vs. Feed View ([BookJournalView.tsx](src/components/BookJournalView.tsx))
+### 7. 📖 Dual-View Mode: 3D Leather Book vs. Feed View ([BookJournalView.tsx](src/components/BookJournalView.tsx))
 - **Luxury Book Flip Experience**: Features rich vintage saddle brown leather grain, embossed spine ribs, 3D satin bookmark ribbons, realistic lined journal paper with subtle dotted grids, and smooth left/right drag page advance gestures.
 - **Protected Text Selection**: Standard text selection (`cursor-text`) is preserved over the journal paper so you can copy and highlight words freely without shifting pages.
 - **Streamlined Vertical Feed**: One-click toggle to switch to a rapid vertical feed view with expandable cards.
 
-### 7. 🔮 Dynamic Unsupervised AI Topic Clustering Cards ([DynamicCategoryCards.tsx](src/components/DynamicCategoryCards.tsx))
+### 8. 🔮 Dynamic Unsupervised AI Topic Clustering Cards ([DynamicCategoryCards.tsx](src/components/DynamicCategoryCards.tsx))
 - Automatically clusters journal history into emergent topical archetypes with keyword tags and entry count analytics.
 
-### 8. ✉️ Executive Email Drafting Studio ([EmailDraftingStudio.tsx](src/components/EmailDraftingStudio.tsx))
+### 9. ✉️ Executive Email Drafting Studio ([EmailDraftingStudio.tsx](src/components/EmailDraftingStudio.tsx))
 - Transforms unstructured draft thoughts or meeting notes into structured, professional emails with length controls (*Standard*, *Expanded*, *Concise*) and 1-click clipboard copying.
 
-### 9. 💬 Prominent "Chat More" Multi-Turn Assistant ([ReflectionCard.tsx](src/components/ReflectionCard.tsx))
+### 10. 💬 Prominent "Chat More" Multi-Turn Assistant ([ReflectionCard.tsx](src/components/ReflectionCard.tsx))
 - Features an animated silver-to-celestial-blue shimmer gradient title with multi-turn chat capabilities that extend dynamically downwards as conversation progresses.
 
-### 10. 👤 Demo Mode vs. Pro Mode (Google SSO + Cloud Firestore Sync) ([App.tsx](src/App.tsx))
+### 11. 👤 Demo Mode vs. Pro Mode (Google SSO + Cloud Firestore Sync) ([App.tsx](src/App.tsx))
 - **Demo Mode (Guest)**:
   - Instant access with zero sign-up friction.
-  - Explore pre-seeded reflections across domains, test voice dictation, test Google Maps, and generate live AI coaching.
+  - Explore pre-seeded reflections across domains, test voice dictation, test Google Maps, upload local photos, and generate live AI coaching.
   - Safe client-side persistence in local browser storage.
 - **Pro Mode (Google Firebase SSO)**:
   - One-click Google Single Sign-On via Firebase Authentication.
-  - Real-time cloud sync to **Cloud Firestore** under strict subcollection isolation (`/users/{uid}/entries/**`).
+  - Real-time cloud sync to **Cloud Firestore** and **Firebase Cloud Storage** under strict subcollection isolation (`/users/{uid}/entries/**`).
   - Seamless multi-device access with automatic migration of local guest entries upon first login.
 
 ---
