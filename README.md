@@ -10,6 +10,10 @@
 [![Google Maps](https://img.shields.io/badge/Spatial-Google%20Maps%20Platform-34A853?logo=google-maps&logoColor=white)](https://developers.google.com/maps)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
+<p align="center">
+  <img src="assets/mirrorsync_banner.png" alt="MirrorSync Banner" width="100%">
+</p>
+
 ---
 
 ## 🌟 Executive Overview & The Story Behind MirrorSync
@@ -93,6 +97,10 @@ MirrorSync is built from the ground up on Google Cloud Platform, uniting serverl
 ---
 
 ## 🚀 Key Features & Capabilities
+
+<p align="center">
+  <img src="assets/mirrorsync_features.jpg" alt="MirrorSync Features Showcase" width="100%">
+</p>
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
