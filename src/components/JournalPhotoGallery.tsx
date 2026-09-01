@@ -99,14 +99,28 @@ export const JournalPhotoGallery: React.FC<JournalPhotoGalleryProps> = ({
         setUploadProgress(`Uploading ${i + 1} of ${files.length}...`);
 
         if (currentUser) {
-          // PRO MODE: Upload directly to Firebase Cloud Storage under /users/{uid}/entries/{entryId}/photos/
-          const uploaded = await uploadJournalPhoto(
-            currentUser.uid,
-            entryId,
-            file,
-            file.name
-          );
-          newUploadedPhotos.push(uploaded);
+          try {
+            // PRO MODE: Upload directly to Firebase Cloud Storage under /users/{uid}/entries/{entryId}/photos/
+            const uploaded = await uploadJournalPhoto(
+              currentUser.uid,
+              entryId,
+              file,
+              file.name
+            );
+            newUploadedPhotos.push(uploaded);
+          } catch (storageErr) {
+            console.warn('[JournalPhotoGallery] Cloud Storage upload fallback to optimized local Data URL:', storageErr);
+            const compressedBlob = await compressImage(file, 1400, 0.82);
+            const dataUrl = await fileToDataUrl(compressedBlob);
+            const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+            newUploadedPhotos.push({
+              id: photoId,
+              url: dataUrl,
+              name: file.name,
+              size: compressedBlob.size,
+              createdAt: Date.now(),
+            });
+          }
         } else {
           // DEMO MODE: Compress and generate local Data URL
           const compressedBlob = await compressImage(file, 1400, 0.82);

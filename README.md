@@ -340,7 +340,18 @@ gcloud secrets add-iam-policy-binding GEMINI_API_KEY \
   --role=roles/secretmanager.secretAccessor
 ```
 
-### 3. Continuous Deployment (CD) via Cloud Build Triggers
+### 3. Configure Firebase Cloud Storage CORS
+
+To permit photo uploads and banner updates directly from your Cloud Run web origin:
+
+```bash
+# Apply cors.json to your Cloud Storage bucket
+gsutil cors set cors.json gs://mirrorsync-journal.firebasestorage.app
+# OR using modern gcloud storage:
+# gcloud storage buckets update gs://mirrorsync-journal.firebasestorage.app --cors-file=cors.json
+```
+
+### 4. Continuous Deployment (CD) via Cloud Build Triggers
 
 1. Connect your GitHub repository (`MirrorSyncJournal`) under **Cloud Build** ➔ **Repositories (1st gen)**.
 2. Create a Cloud Build Trigger:
