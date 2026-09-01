@@ -92,6 +92,7 @@ function setupAuthSubscription() {
 setupAuthSubscription();
 
 // Dynamic runtime config initialization from Express server
+let isInitializing = false;
 export async function initializeRuntimeFirebaseConfig(): Promise<boolean> {
   if (isInitializing) return false;
   isInitializing = true;
