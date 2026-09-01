@@ -159,7 +159,7 @@ googleProvider.setCustomParameters({
 });
 
 export const signInWithGoogle = async (): Promise<User> => {
-  await initializeRuntimeFirebase();
+  await initializeRuntimeFirebaseConfig();
   const result = await signInWithPopup(auth, googleProvider);
   return result.user;
 };
