@@ -31,8 +31,9 @@ function getGenAI(): GoogleGenAI {
   return genAIClient;
 }
 
-// Fallback Model Ladder strictly prioritizing gemini-3.7-flash, then gemini-3.5-flash, then gemini-3.5-flash-lite, then gemini-2.5-flash
+// Fallback Model Ladder strictly prioritizing gemini-3.8-flash, then gemini-3.7-flash, then gemini-3.5-flash, then gemini-3.5-flash-lite, then gemini-2.5-flash
 const MODEL_FALLBACK_LADDER = [
+  'gemini-3.8-flash',
   'gemini-3.7-flash',
   'gemini-3.5-flash',
   'gemini-3.5-flash-lite',
@@ -529,10 +530,11 @@ app.post('/api/gemini/generate-banner', async (req: Request, res: Response) => {
 
       let concreteTopic = '';
 
-      try {
-        const geminiRes = await ai.models.generateContent({
-          model: 'gemini-3.7-flash',
-          contents: `Analyze this journal entry:
+      for (const fallbackModel of MODEL_FALLBACK_LADDER) {
+        try {
+          const geminiRes = await ai.models.generateContent({
+            model: fallbackModel,
+            contents: `Analyze this journal entry:
 "${combinedText.slice(0, 700)}"
 
 Task:
@@ -544,19 +546,21 @@ Output JSON ONLY format:
   "concreteTopic": "pickleball court paddle",
   "visualPrompt": "A vibrant outdoor pickleball court with paddle and neon yellow ball under clear skies"
 }`,
-          config: {
-            responseMimeType: 'application/json',
-            temperature: 0.2,
-          }
-        });
+            config: {
+              responseMimeType: 'application/json',
+              temperature: 0.2,
+            }
+          });
 
-        if (geminiRes.text) {
-          const parsed = JSON.parse(geminiRes.text);
-          visualPrompt = parsed.visualPrompt || visualPrompt;
-          concreteTopic = parsed.concreteTopic || '';
+          if (geminiRes.text) {
+            const parsed = JSON.parse(geminiRes.text);
+            visualPrompt = parsed.visualPrompt || visualPrompt;
+            concreteTopic = parsed.concreteTopic || '';
+            if (concreteTopic) break;
+          }
+        } catch (_gErr) {
+          console.warn(`Gemini topic extraction fallback (${fallbackModel}):`, _gErr);
         }
-      } catch (_gErr) {
-        console.warn('Gemini topic extraction fallback:', _gErr);
       }
 
       if (!concreteTopic) {
@@ -718,7 +722,7 @@ ${preferredStyle ? `Additional Preferred Style: ${preferredStyle}` : ''}`;
     };
 
     let personaData: any;
-    let modelUsed = 'gemini-3.7-flash';
+    let modelUsed = 'gemini-3.8-flash';
     let attemptedModels = MODEL_FALLBACK_LADDER;
     let latencyMs = 0;
 

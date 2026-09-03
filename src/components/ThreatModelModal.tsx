@@ -51,7 +51,7 @@ export function ThreatModelModal({ isOpen, onClose }: ThreatModelModalProps) {
       icon: Cpu,
       badge: 'Active (3 Tiers)',
       badgeColor: 'text-[#f6e7b8] border-[#f6e7b8]/40 bg-[#f6e7b8]/15',
-      summary: 'Automated fallback ladder (Gemini 3.7 Flash → 3.1 Flash-Lite → Latest) prevents disruptions.'
+      summary: 'Automated fallback ladder (Gemini 3.8 Flash → 3.7 Flash → Fallbacks) prevents disruptions.'
     }
   ];
 

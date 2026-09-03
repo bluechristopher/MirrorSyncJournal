@@ -46,7 +46,7 @@ export function OnboardingModal({
 
     setIsExtracting(true);
     setError(null);
-    setExtractionStage('Connecting to Gemini 3.7 Flash model...');
+    setExtractionStage('Connecting to Gemini 3.8 Flash model...');
 
     const timer = setTimeout(() => {
       setExtractionStage('Extracting cognitive lens, role archetype & tone...');

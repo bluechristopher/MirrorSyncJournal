@@ -5,7 +5,7 @@
 > *Prototyped in **Google AI Studio**, architected & hardened with **Google Antigravity**, and deployed on **Google Cloud Run** via **Google Cloud Build**.*
 
 [![Google Cloud Run](https://img.shields.io/badge/Deployed%20on-Google%20Cloud%20Run-4285F4?logo=google-cloud&logoColor=white)](https://mirrorsync-217104786977.us-central1.run.app)
-[![Google Gemini API](https://img.shields.io/badge/AI%20Engine-Gemini%203.7%20Flash-8E75B2?logo=google-gemini&logoColor=white)](https://ai.google.dev/)
+[![Google Gemini API](https://img.shields.io/badge/AI%20Engine-Gemini%203.8%20Flash-8E75B2?logo=google-gemini&logoColor=white)](https://ai.google.dev/)
 [![Firebase & Firestore](https://img.shields.io/badge/Database-Cloud%20Firestore-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Google Maps](https://img.shields.io/badge/Spatial-Google%20Maps%20Platform-34A853?logo=google-maps&logoColor=white)](https://developers.google.com/maps)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -51,8 +51,8 @@ MirrorSync was specifically designed and engineered against the four official ev
 ├───────────────────────┬────────────────────────┬────────────────────────┬────────────────────────┤
 │     AUTHENTICITY      │       USABILITY        │       STABILITY        │        SECURITY        │
 ├───────────────────────┼────────────────────────┼────────────────────────┼────────────────────────┤
-│ • Solves real human   │ • Continuous voice     │ • 4-tier Gemini model  │ • Strict Firestore UID │
-│   cognitive fatigue   │   dictation & speech   │   resilience ladder    │   path isolation rules │
+│ • Solves real human   │ • Continuous voice     │ • Multi-tier Gemini    │ • Strict Firestore UID │
+│   cognitive fatigue   │   dictation & speech   │   model ladder         │   path isolation rules │
 │ • Persona extraction  │ • Word teleprompter &  │ • Graceful 429 quota   │ • Cloud Storage user   │
 │   & tone calibration  │   audio player         │   spike mitigation     │   sandbox & MIME rules │
 │ • Unsupervised dynamic│ • Photo gallery with   │ • Zero-downtime Cloud  │ • Secret Manager key   │
@@ -89,8 +89,8 @@ MirrorSync is built from the ground up on Google Cloud Platform, uniting serverl
           ├──────────────────────────┬──────────────────────────┬──────────────────────────┐
           ▼                          ▼                          ▼                          ▼
  [ Google Secret Manager ]  [ Cloud Firestore ]       [ Firebase Cloud Storage ] [ Google Gemini API ]
-  • GEMINI_API_KEY Vault     • Multi-Tenant NoSQL      • User-Isolated Buckets    • gemini-3.7-flash (Primary)
-  • IAM Least-Privilege      • Strict Path Partition:  • /users/{uid}/entries/    • 4-Tier Fallback Ladder
+  • GEMINI_API_KEY Vault     • Multi-Tenant NoSQL      • User-Isolated Buckets    • gemini-3.8-flash (Primary)
+  • IAM Least-Privilege      • Strict Path Partition:  • /users/{uid}/entries/    • Multi-Tier Fallback Ladder
     Service Account Access     /users/{uid}/entries/**   {id}/photos/ & /banner/  • gemini-3.1-flash-lite-image
                              • Server-Authoritative    • Cascade Delete Purge       (16:9 Contextual Art)
                                Security Rules            on Entry Deletion        • Prototyped in AI Studio
@@ -103,7 +103,7 @@ MirrorSync is built from the ground up on Google Cloud Platform, uniting serverl
 | **Google Cloud Run** | Fully managed serverless container runtime hosting the Node.js Express backend and compiled Vite SPA with auto-scaling (`0` to `N`), HTTP/2, and zero-downtime deployments. |
 | **Google Cloud Build** | Native CI/CD pipeline triggered automatically on every push to `main` with buildpack containerization and rolling Cloud Run release steps. |
 | **Google AI Studio** | Used to design, prototype, few-shot calibrate, and export structured JSON schemas and system prompts for persona-adaptive reflection. |
-| **Google Gemini API (`@google/genai`)** | Multi-tier reasoning hierarchy:<br>• **`gemini-3.7-flash`**: Primary multimodal cognitive reflection, domain classification, and structured takeaways.<br>• **`gemini-3.5-flash` / `gemini-3.5-flash-lite` / `gemini-2.5-flash-lite`**: Automated fallback tiers.<br>• **`gemini-3.1-flash-lite-image`**: Native Gemini image generation for 16:9 banner illustrations. |
+| **Google Gemini API (`@google/genai`)** | Multi-tier reasoning hierarchy:<br>• **`gemini-3.8-flash`**: Primary multimodal cognitive reflection, domain classification, and structured takeaways.<br>• **`gemini-3.7-flash` / `gemini-3.5-flash` / `gemini-3.5-flash-lite` / `gemini-2.5-flash` / `gemini-2.5-flash-lite`**: Automated fallback tiers.<br>• **`gemini-3.1-flash-lite-image`**: Native Gemini image generation for 16:9 banner illustrations. |
 | **Google Secret Manager** | Secure storage for `GEMINI_API_KEY`, accessed strictly at runtime via IAM service account bindings (`roles/secretmanager.secretAccessor`). |
 | **Cloud Firestore** | Multi-tenant database enforcing strict subcollection path isolation (`/users/{userId}/**`) locked by server-authoritative Firestore Security Rules. |
 | **Firebase Cloud Storage** | User-isolated media storage for journal photos and generated 16:9 banner illustrations (`/users/{userId}/entries/{entryId}/**`) with client-side canvas compression and automated cascade cleanup on post deletion. |
@@ -205,21 +205,24 @@ MirrorSync is built from the ground up on Google Cloud Platform, uniting serverl
 
 ---
 
-## ⚡ 4-Tier Automated Gemini Fallback Ladder
+## ⚡ Automated Gemini Fallback Ladder
 
 To ensure MirrorSync never goes down during high-traffic spikes or quota limits, API calls run through an automated fallback hierarchy:
 
 ```
-[ Primary: gemini-3.7-flash ]
+[ Primary: gemini-3.8-flash ]
            │ (On 429 Quota / 503 Busy / Timeout)
            ▼
-[ Tier 2: gemini-3.5-flash ]
+[ Tier 2: gemini-3.7-flash ]
            │ (On Rate Limit)
            ▼
-[ Tier 3: gemini-3.5-flash-lite ]
+[ Tier 3: gemini-3.5-flash ]
            │ (On Rate Limit)
            ▼
-[ Tier 4: gemini-2.5-flash-lite ]
+[ Tier 4: gemini-3.5-flash-lite ]
+           │ (On Rate Limit)
+           ▼
+[ Tier 5: gemini-2.5-flash / gemini-2.5-flash-lite ]
            │ (Emergency Continuity)
            ▼
 [ Graceful Deterministic Local Semantic Engine ]
@@ -428,7 +431,7 @@ npm run build
 ├── storage.rules             # Hardened Cloud Storage security and quota rules
 ├── metadata.json             # Applet capabilities and permissions
 ├── package.json              # App scripts and dependencies
-├── server.ts                 # Full-stack Express backend with 4-tier Gemini model ladder
+├── server.ts                 # Full-stack Express backend with multi-tier Gemini model ladder
 ├── src/
 │   ├── components/           # UI Components (JournalPhotoGallery, BookJournalView, Maps, Voice, Email)
 │   ├── firebase.ts           # Firebase Auth, Firestore & Cloud Storage client SDK
