@@ -146,8 +146,13 @@ export function EditorialArtCanvas({
 
   // Trigger banner generation automatically for any post without an image
   useEffect(() => {
+    const valid = isInvalidUrl(initialImageUrl) ? null : initialImageUrl;
+    if (isInvalidUrl(initialImageUrl) && initialImageUrl) {
+      // Purge dead URL from Firestore entry state immediately
+      onImageGenerated?.(null, null);
+    }
     const textSignature = `${domain}::${(rawText || prompt || '').trim().slice(0, 160)}`;
-    if (!initialImageUrl && !currentImageUrl && textSignature.length > 5 && requestedKeyRef.current !== textSignature && !isLoading) {
+    if (!valid && !currentImageUrl && textSignature.length > 5 && requestedKeyRef.current !== textSignature && !isLoading) {
       requestedKeyRef.current = textSignature;
       handleGeneratePhotorealisticImage(prompt, domain, rawText, false);
     }
