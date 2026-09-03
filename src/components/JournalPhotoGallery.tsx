@@ -98,16 +98,24 @@ export const JournalPhotoGallery: React.FC<JournalPhotoGalleryProps> = ({
         const file = files[i];
         setUploadProgress(`Uploading ${i + 1} of ${files.length}...`);
 
-        const compressedBlob = await compressImage(file, 1400, 0.82);
-        const dataUrl = await fileToDataUrl(compressedBlob);
-        const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        newUploadedPhotos.push({
-          id: photoId,
-          url: dataUrl,
-          name: file.name,
-          size: compressedBlob.size,
-          createdAt: Date.now(),
-        });
+        if (currentUser && entryId && !entryId.startsWith('seed-')) {
+          // Uses Firebase Cloud Storage if setup, or automatically falls back to compressed JPEG base64 Data URL
+          const photo = await uploadJournalPhoto(currentUser.uid, entryId, file, file.name);
+          newUploadedPhotos.push(photo);
+        } else {
+          // Guest or local mode: compress to max 600px width at 0.6 JPEG quality
+          const compressedBlob = await compressImage(file, 600, 0.6);
+          const dataUrl = await fileToDataUrl(compressedBlob);
+          const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+          const cleanName = (file.name || 'journal_photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^/.]+$/, '') + '.jpg';
+          newUploadedPhotos.push({
+            id: photoId,
+            url: dataUrl,
+            name: cleanName,
+            size: compressedBlob.size,
+            createdAt: Date.now(),
+          });
+        }
       }
 
       const updated = [...photos, ...newUploadedPhotos];

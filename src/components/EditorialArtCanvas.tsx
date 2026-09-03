@@ -91,8 +91,22 @@ export function EditorialArtCanvas({
       if (res.ok) {
         const data = await res.json();
         if (data.imageUrl) {
-          const finalUrl = data.imageUrl;
-          const newStoragePath: string | undefined = undefined;
+          let finalUrl = data.imageUrl;
+          let newStoragePath: string | undefined = undefined;
+
+          // If user is logged in, upload banner to Firebase Cloud Storage with automatic fallback to Firestore
+          const currentUser = auth.currentUser;
+          if (currentUser && entryId && !entryId.startsWith('seed-')) {
+            try {
+              const uploadRes = await uploadBannerImageToStorage(currentUser.uid, entryId, data.imageUrl);
+              if (uploadRes.url) {
+                finalUrl = uploadRes.url;
+                newStoragePath = uploadRes.storagePath;
+              }
+            } catch (_uploadErr) {
+              console.warn('[Banner Canvas] Storage upload fallback to server URL:', _uploadErr);
+            }
+          }
 
           setCurrentImageUrl(finalUrl);
           if (data.generatedArtPrompt) {

@@ -354,9 +354,13 @@ export const deleteAllJournalEntries = async (userId: string): Promise<void> => 
 
 /**
  * Client-side image compressor using HTML Canvas
- * Resizes large high-res camera photos to max 1600px width/height and compresses to WebP/JPEG
+ * Resizes images to max 600px width and compresses to memory-saving JPEG at 0.6 quality
  */
-export async function compressImage(file: File | Blob, maxDimension = 1600, quality = 0.85): Promise<Blob> {
+export async function compressImage(
+  file: File | Blob, 
+  maxWidth = 600, 
+  quality = 0.6
+): Promise<Blob> {
   if (typeof window === 'undefined') return file;
   
   return new Promise((resolve) => {
@@ -372,14 +376,10 @@ export async function compressImage(file: File | Blob, maxDimension = 1600, qual
       URL.revokeObjectURL(objectUrl);
       let { width, height } = img;
 
-      if (width > maxDimension || height > maxDimension) {
-        if (width > height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
+      // Restrict width to maxWidth (600px), scaling height proportionally
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
       }
 
       const canvas = document.createElement('canvas');
@@ -391,18 +391,21 @@ export async function compressImage(file: File | Blob, maxDimension = 1600, qual
         return resolve(file);
       }
 
+      // Fill with white background to handle transparency cleanly in JPEG
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Attempt to export as webp, fallback to jpeg
+      // Export as memory-saving JPEG at target quality (default 0.6)
       canvas.toBlob(
         (blob) => {
-          if (blob && blob.size < file.size) {
+          if (blob) {
             resolve(blob);
           } else {
             resolve(file);
           }
         },
-        'image/webp',
+        'image/jpeg',
         quality
       );
     };
@@ -440,16 +443,18 @@ export async function uploadJournalPhoto(
   caption?: string
 ): Promise<JournalPhoto> {
   const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-  const cleanName = (fileName || 'journal_photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const cleanName = (fileName || 'journal_photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^/.]+$/, '') + '.jpg';
   const path = `users/${userId}/entries/${entryId}/photos/${photoId}_${cleanName}`;
+
+  // Always compress to 600px max width at 0.6 JPEG quality for memory & bandwidth savings
+  const compressed = await compressImage(file, 600, 0.6);
 
   try {
     await ensureAuthToken();
-    const compressed = await compressImage(file, 1600, 0.85);
     const photoStorageRef = storageRef(storage, path);
     
     const snapshot = await uploadBytes(photoStorageRef, compressed, {
-      contentType: ('type' in compressed && compressed.type) ? compressed.type : 'image/jpeg',
+      contentType: 'image/jpeg',
       customMetadata: {
         userId,
         entryId,
@@ -470,7 +475,7 @@ export async function uploadJournalPhoto(
       caption: caption || undefined,
     };
   } catch (_error) {
-    const compressed = await compressImage(file, 1400, 0.82);
+    // Cloud Storage fallback: store compressed JPEG base64 Data URL directly in Firestore entry
     const dataUrl = await fileToDataUrl(compressed);
     return {
       id: photoId,
@@ -498,40 +503,54 @@ export async function deleteJournalPhoto(storagePath: string): Promise<void> {
 }
 
 /**
- * Uploads a generated banner image (Data URL or Blob) to Cloud Storage with automatic fallback
+ * Uploads a generated banner image (Data URL or Blob or Fetch URL) to Cloud Storage with automatic fallback
+ * Compresses to max 600px width JPEG at 0.6 quality for memory savings & reliable Firestore fallback.
  */
 export async function uploadBannerImageToStorage(
   userId: string,
   entryId: string,
-  dataUrlOrBlob: string | Blob
+  dataUrlOrBlobOrUrl: string | Blob
 ): Promise<{ url: string; storagePath?: string }> {
   const timestamp = Date.now();
-  const path = `users/${userId}/entries/${entryId}/banner/banner_${timestamp}.png`;
+  const path = `users/${userId}/entries/${entryId}/banner/banner_${timestamp}.jpg`;
 
   try {
-    await ensureAuthToken();
-    const bannerStorageRef = storageRef(storage, path);
-
-    let downloadUrl = '';
-    if (typeof dataUrlOrBlob === 'string' && dataUrlOrBlob.startsWith('data:')) {
-      const snapshot = await uploadString(bannerStorageRef, dataUrlOrBlob, 'data_url', {
-        contentType: 'image/png',
-        customMetadata: { userId, entryId, uploadedAt: String(timestamp) }
-      });
-      downloadUrl = await getDownloadURL(snapshot.ref);
+    let sourceBlob: Blob;
+    if (typeof dataUrlOrBlobOrUrl === 'string') {
+      if (dataUrlOrBlobOrUrl.startsWith('data:')) {
+        const res = await fetch(dataUrlOrBlobOrUrl);
+        sourceBlob = await res.blob();
+      } else if (dataUrlOrBlobOrUrl.startsWith('http://') || dataUrlOrBlobOrUrl.startsWith('https://') || dataUrlOrBlobOrUrl.startsWith('/api/')) {
+        const res = await fetch(dataUrlOrBlobOrUrl);
+        sourceBlob = await res.blob();
+      } else {
+        sourceBlob = new Blob([dataUrlOrBlobOrUrl], { type: 'image/jpeg' });
+      }
     } else {
-      const blob = typeof dataUrlOrBlob === 'string' ? await (await fetch(dataUrlOrBlob)).blob() : dataUrlOrBlob;
-      const snapshot = await uploadBytes(bannerStorageRef, blob, {
-        contentType: 'image/png',
-        customMetadata: { userId, entryId, uploadedAt: String(timestamp) }
-      });
-      downloadUrl = await getDownloadURL(snapshot.ref);
+      sourceBlob = dataUrlOrBlobOrUrl;
     }
 
-    return { url: downloadUrl, storagePath: path };
-  } catch (_error) {
-    const rawUrl = typeof dataUrlOrBlob === 'string' ? dataUrlOrBlob : await fileToDataUrl(dataUrlOrBlob);
-    return { url: rawUrl };
+    // Always compress banner to 600px max width at 0.6 JPEG quality
+    const compressed = await compressImage(sourceBlob, 600, 0.6);
+
+    try {
+      await ensureAuthToken();
+      const bannerStorageRef = storageRef(storage, path);
+      const snapshot = await uploadBytes(bannerStorageRef, compressed, {
+        contentType: 'image/jpeg',
+        customMetadata: { userId, entryId, uploadedAt: String(timestamp) }
+      });
+      const downloadUrl = await getDownloadURL(snapshot.ref);
+      return { url: downloadUrl, storagePath: path };
+    } catch (_storageErr) {
+      // Cloud Storage not set up or restricted -> fallback to compressed JPEG Data URL for Firestore
+      const dataUrl = await fileToDataUrl(compressed);
+      return { url: dataUrl };
+    }
+  } catch (_processErr) {
+    // If anything fails in processing, return original string if available
+    const fallbackStr = typeof dataUrlOrBlobOrUrl === 'string' ? dataUrlOrBlobOrUrl : '';
+    return { url: fallbackStr };
   }
 }
 
