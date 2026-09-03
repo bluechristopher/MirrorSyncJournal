@@ -431,6 +431,9 @@ export function fileToDataUrl(file: File | Blob): Promise<string> {
   });
 }
 
+// Module-level cache: if Cloud Storage is blocked (e.g. CORS not configured on bucket), fallback directly to Firestore
+let isCloudStorageBlocked = false;
+
 /**
  * Uploads a photo to Cloud Storage under /users/{userId}/entries/{entryId}/photos/{photoId}_{fileName},
  * or automatically falls back to in-database storage if Storage is disabled or restricted
@@ -448,6 +451,18 @@ export async function uploadJournalPhoto(
 
   // Always compress to 600px max width at 0.6 JPEG quality for memory & bandwidth savings
   const compressed = await compressImage(file, 600, 0.6);
+
+  if (isCloudStorageBlocked) {
+    const dataUrl = await fileToDataUrl(compressed);
+    return {
+      id: photoId,
+      url: dataUrl,
+      name: cleanName,
+      size: compressed.size,
+      createdAt: Date.now(),
+      caption: caption || undefined,
+    };
+  }
 
   try {
     await ensureAuthToken();
@@ -475,6 +490,7 @@ export async function uploadJournalPhoto(
       caption: caption || undefined,
     };
   } catch (storageError: any) {
+    isCloudStorageBlocked = true;
     console.warn('[Firebase Storage] Cloud Storage upload bypassed/failed (e.g. CORS or bucket permissions). Falling back to Firestore in-document compressed JPEG storage:', storageError?.message || storageError);
     // Cloud Storage fallback: store compressed JPEG base64 Data URL directly in Firestore entry
     const dataUrl = await fileToDataUrl(compressed);
@@ -534,6 +550,12 @@ export async function uploadBannerImageToStorage(
     // Always compress banner to 600px max width at 0.6 JPEG quality
     const compressed = await compressImage(sourceBlob, 600, 0.6);
 
+    // If storage was already flagged as blocked (e.g. CORS preflight failure), skip directly to Firestore base64 fallback
+    if (isCloudStorageBlocked) {
+      const dataUrl = await fileToDataUrl(compressed);
+      return { url: dataUrl };
+    }
+
     try {
       await ensureAuthToken();
       const bannerStorageRef = storageRef(storage, path);
@@ -544,6 +566,7 @@ export async function uploadBannerImageToStorage(
       const downloadUrl = await getDownloadURL(snapshot.ref);
       return { url: downloadUrl, storagePath: path };
     } catch (_storageErr) {
+      isCloudStorageBlocked = true;
       // Cloud Storage not set up or restricted -> fallback to compressed JPEG Data URL for Firestore
       const dataUrl = await fileToDataUrl(compressed);
       return { url: dataUrl };

@@ -41,11 +41,20 @@ export function EditorialArtCanvas({
   onImageGenerated,
   onClickToggleExpand
 }: EditorialArtCanvasProps) {
-  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(initialImageUrl || null);
+  // Treat volatile server endpoints (/api/gemini/banner-image/) as invalid to prevent 404s and loop cycles
+  const isInvalidUrl = (url: string | null | undefined): boolean => {
+    if (!url) return true;
+    if (url.startsWith('/api/gemini/banner-image/')) return true;
+    return false;
+  };
+
+  const sanitizedInitialUrl = isInvalidUrl(initialImageUrl) ? null : initialImageUrl;
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(sanitizedInitialUrl || null);
   const requestedKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setCurrentImageUrl(initialImageUrl || null);
+    const valid = isInvalidUrl(initialImageUrl) ? null : initialImageUrl;
+    setCurrentImageUrl(valid || null);
   }, [initialImageUrl]);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -188,6 +197,8 @@ export function EditorialArtCanvas({
               onError={() => {
                 const badUrl = currentImageUrl;
                 setCurrentImageUrl(null);
+                // Purge broken URL from parent state and database immediately so it doesn't re-render
+                onImageGenerated?.(null, null);
                 if (badUrl && !failedUrlsRef.current.has(badUrl)) {
                   failedUrlsRef.current.add(badUrl);
                   console.warn('[EditorialArtCanvas] Image failed to load, triggering fresh banner generation for:', badUrl);
