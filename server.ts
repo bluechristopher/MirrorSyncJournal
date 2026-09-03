@@ -439,25 +439,14 @@ app.get('/api/firebase-config', (_req: Request, res: Response) => {
   res.json({ success: false, message: 'No server-side environment variables configured' });
 });
 
-// Server-side Image Storage Map (Stores image buffers outside Firestore)
-const bannerImageStore = new Map<string, { mimeType: string; data: Buffer }>();
-
+// Server-side Image Helper: returns a compact base64 data URL directly so images survive across instances, cold starts, and reloads
 function storeBannerImage(mimeType: string, base64Data: string): string {
-  const imageId = `img-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-  const buffer = Buffer.from(base64Data, 'base64');
-  bannerImageStore.set(imageId, { mimeType, data: buffer });
-  return `/api/gemini/banner-image/${imageId}`;
+  const safeMime = mimeType || 'image/jpeg';
+  return `data:${safeMime};base64,${base64Data}`;
 }
 
-function deletePreviousBannerImage(oldImageUrl?: string) {
-  if (oldImageUrl && oldImageUrl.includes('/api/gemini/banner-image/')) {
-    const parts = oldImageUrl.split('/api/gemini/banner-image/');
-    const oldId = parts[parts.length - 1];
-    if (oldId && bannerImageStore.has(oldId)) {
-      bannerImageStore.delete(oldId);
-      console.info(`[Server Image Store] Deleted previous image: ${oldId}`);
-    }
-  }
+function deletePreviousBannerImage(_oldImageUrl?: string) {
+  // No-op for data URLs
 }
 
 // Endpoint to purge all stored banner images when Clear All Posts is triggered

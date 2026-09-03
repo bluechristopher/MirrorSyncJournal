@@ -474,7 +474,8 @@ export async function uploadJournalPhoto(
       createdAt: Date.now(),
       caption: caption || undefined,
     };
-  } catch (_error) {
+  } catch (storageError: any) {
+    console.warn('[Firebase Storage] Cloud Storage upload bypassed/failed (e.g. CORS or bucket permissions). Falling back to Firestore in-document compressed JPEG storage:', storageError?.message || storageError);
     // Cloud Storage fallback: store compressed JPEG base64 Data URL directly in Firestore entry
     const dataUrl = await fileToDataUrl(compressed);
     return {
