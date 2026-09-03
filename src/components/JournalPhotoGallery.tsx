@@ -424,121 +424,128 @@ export const JournalPhotoGallery: React.FC<JournalPhotoGalleryProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-6"
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
             onClick={() => setActiveLightboxIndex(null)}
           >
-            {/* Top Toolbar */}
-            <div 
-              className="w-full max-w-5xl flex items-center justify-between text-white/90 z-10"
+            {/* Dimension-Scoped Modal Card */}
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0, y: 8 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 8 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+              className="relative max-w-[94vw] sm:max-w-[88vw] max-h-[92vh] flex flex-col items-center bg-neutral-900/95 border border-white/20 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/10 border border-white/15">
-                  {activeLightboxIndex + 1} of {photos.length}
-                </span>
-                <span className="text-xs text-white/70 truncate max-w-[200px] sm:max-w-md">
-                  {activePhoto.name || 'Journal Photo'}
-                </span>
-              </div>
+              {/* Top Scoped Header */}
+              <div className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 bg-black/40 border-b border-white/10 text-white/90 shrink-0 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
+                    {activeLightboxIndex + 1} / {photos.length}
+                  </span>
+                  <span className="text-xs text-white/80 truncate max-w-[180px] sm:max-w-xs font-medium">
+                    {activePhoto.name || 'Journal Photo'}
+                  </span>
+                </div>
 
-              <div className="flex items-center gap-2">
-                {/* Download Button */}
-                <a
-                  href={activePhoto.url}
-                  download={activePhoto.name || 'journal_photo.jpg'}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                  title="Download / Open Full Res"
-                >
-                  <Download className="w-4 h-4" />
-                </a>
-
-                {/* Delete in Lightbox */}
-                <button
-                  type="button"
-                  onClick={() => setPhotoToDelete(activePhoto)}
-                  className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500/40 text-red-300 border border-red-500/30 transition-colors cursor-pointer"
-                  title="Delete this photo"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-
-                {/* Close Button */}
-                <button
-                  type="button"
-                  onClick={() => setActiveLightboxIndex(null)}
-                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                  title="Close (Esc)"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Central Photo View with Nav Arrows */}
-            <div 
-              className="relative w-full max-w-5xl flex-1 flex items-center justify-center my-2"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Prev Button */}
-              {photos.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setActiveLightboxIndex((prev) => (prev !== null ? (prev - 1 + photos.length) % photos.length : 0))}
-                  className="absolute left-2 sm:left-4 z-20 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 transition-all cursor-pointer active:scale-95"
-                  title="Previous (Left Arrow)"
-                >
-                  <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-              )}
-
-              {/* Main Image */}
-              <motion.img
-                key={activePhoto.id || activeLightboxIndex}
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                src={activePhoto.url}
-                alt={activePhoto.name || 'Full view'}
-                className="max-w-full max-h-[78vh] object-contain rounded-lg shadow-2xl border border-white/10 select-none"
-              />
-
-              {/* Next Button */}
-              {photos.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setActiveLightboxIndex((prev) => (prev !== null ? (prev + 1) % photos.length : 0))}
-                  className="absolute right-2 sm:right-4 z-20 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 transition-all cursor-pointer active:scale-95"
-                  title="Next (Right Arrow)"
-                >
-                  <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-              )}
-            </div>
-
-            {/* Bottom Thumbnail Strip for Fast Seeking */}
-            {photos.length > 1 && (
-              <div 
-                className="w-full max-w-2xl flex items-center justify-center gap-1.5 overflow-x-auto py-1 px-2 scrollbar-none z-10"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {photos.map((p, idx) => (
-                  <button
-                    key={p.id || idx}
-                    type="button"
-                    onClick={() => setActiveLightboxIndex(idx)}
-                    className={`relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all cursor-pointer ${
-                      idx === activeLightboxIndex 
-                        ? 'border-amber-400 scale-105 shadow-md shadow-amber-500/20' 
-                        : 'border-white/20 opacity-50 hover:opacity-100'
-                    }`}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Download Button */}
+                  <a
+                    href={activePhoto.url}
+                    download={activePhoto.name || 'journal_photo.jpg'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                    title="Download / Open Full Res"
                   >
-                    <img src={p.url} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                    <Download className="w-3.5 h-3.5" />
+                  </a>
+
+                  {/* Delete in Lightbox */}
+                  <button
+                    type="button"
+                    onClick={() => setPhotoToDelete(activePhoto)}
+                    className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-300 border border-red-500/30 transition-colors cursor-pointer"
+                    title="Delete this photo"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
-                ))}
+
+                  {/* Close Button */}
+                  <button
+                    type="button"
+                    onClick={() => setActiveLightboxIndex(null)}
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                    title="Close (Esc)"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-            )}
+
+              {/* Dimension-Fitted Image Viewport */}
+              <div className="relative flex items-center justify-center p-2 sm:p-3 overflow-hidden bg-black/50">
+                {/* Prev Navigation Arrow */}
+                {photos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveLightboxIndex((prev) => (prev !== null ? (prev - 1 + photos.length) % photos.length : 0));
+                    }}
+                    className="absolute left-3 z-20 p-2 sm:p-2.5 rounded-full bg-black/70 hover:bg-black/90 text-white border border-white/25 transition-all cursor-pointer active:scale-95 shadow-lg"
+                    title="Previous (Left Arrow)"
+                  >
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                )}
+
+                {/* Main Image Fitted Naturally to Its Proportions */}
+                <motion.img
+                  key={activePhoto.id || activeLightboxIndex}
+                  initial={{ scale: 0.96, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                  src={activePhoto.url}
+                  alt={activePhoto.name || 'Full view'}
+                  className="max-w-full max-h-[68vh] sm:max-h-[74vh] object-contain rounded-xl select-none shadow-inner"
+                />
+
+                {/* Next Navigation Arrow */}
+                {photos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveLightboxIndex((prev) => (prev !== null ? (prev + 1) % photos.length : 0));
+                    }}
+                    className="absolute right-3 z-20 p-2 sm:p-2.5 rounded-full bg-black/70 hover:bg-black/90 text-white border border-white/25 transition-all cursor-pointer active:scale-95 shadow-lg"
+                    title="Next (Right Arrow)"
+                  >
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Bottom Thumbnail Strip (if multiple photos) */}
+              {photos.length > 1 && (
+                <div className="w-full flex items-center justify-center gap-1.5 overflow-x-auto py-2 px-3 bg-black/40 border-t border-white/10 shrink-0 scrollbar-none">
+                  {photos.map((p, idx) => (
+                    <button
+                      key={p.id || idx}
+                      type="button"
+                      onClick={() => setActiveLightboxIndex(idx)}
+                      className={`relative w-11 h-11 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all cursor-pointer ${
+                        idx === activeLightboxIndex 
+                          ? 'border-amber-400 scale-105 shadow-md shadow-amber-500/25' 
+                          : 'border-white/15 opacity-50 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={p.url} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
