@@ -449,24 +449,10 @@ function deletePreviousBannerImage(_oldImageUrl?: string) {
   // No-op for data URLs
 }
 
-// Endpoint to purge all stored banner images when Clear All Posts is triggered
-app.post('/api/gemini/clear-all-images', (_req: Request, res: Response) => {
-  const count = bannerImageStore.size;
-  bannerImageStore.clear();
-  console.info(`[Server Image Store] Cleared all ${count} banner images!`);
-  res.json({ success: true, countCleared: count });
-});
-
-// Endpoint to serve generated banner images cleanly by ID
-app.get('/api/gemini/banner-image/:imageId', (req: Request, res: Response) => {
-  const { imageId } = req.params;
-  const img = bannerImageStore.get(imageId);
-  if (!img) {
-    return res.status(404).send('Image not found');
-  }
-  res.setHeader('Content-Type', img.mimeType);
-  res.setHeader('Cache-Control', 'public, max-age=86400');
-  res.send(img.data);
+// Endpoint to serve legacy generated banner images cleanly by ID if requested
+app.get('/api/gemini/banner-image/:imageId', (_req: Request, res: Response) => {
+  // Banners now use self-contained base64 data URLs or Firebase URLs
+  res.status(404).send('Banner image not available');
 });
 
 /**

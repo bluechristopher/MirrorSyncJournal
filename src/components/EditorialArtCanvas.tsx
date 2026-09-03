@@ -57,6 +57,7 @@ export function EditorialArtCanvas({
   const [isEditingPrompt, setIsEditingPrompt] = useState(false);
   const [activePrompt, setActivePrompt] = useState<string>(prompt || '');
   const [customPromptInput, setCustomPromptInput] = useState<string>(prompt || '');
+  const failedUrlsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     setActivePrompt(prompt || '');
@@ -185,8 +186,16 @@ export function EditorialArtCanvas({
               referrerPolicy="no-referrer"
               className={`w-full h-full object-cover transition-transform duration-700 group-hover/canvas:scale-[1.04] ${isLoading ? 'blur-sm brightness-75 scale-105' : 'brightness-90 contrast-105'}`}
               onError={() => {
+                const badUrl = currentImageUrl;
                 setCurrentImageUrl(null);
-                setHasError(true);
+                if (badUrl && !failedUrlsRef.current.has(badUrl)) {
+                  failedUrlsRef.current.add(badUrl);
+                  console.warn('[EditorialArtCanvas] Image failed to load, triggering fresh banner generation for:', badUrl);
+                  setHasError(false);
+                  handleGeneratePhotorealisticImage(prompt, domain, rawText, false);
+                } else {
+                  setHasError(true);
+                }
               }}
             />
             {/* Metallic Sheen Overlay */}
