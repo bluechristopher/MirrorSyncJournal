@@ -99,6 +99,7 @@ export function Header({
   onToggleHistorySidebar
 }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   return (
     <header className={`sticky top-0 z-40 w-full transition-all duration-700 backdrop-blur-2xl relative ${
@@ -172,11 +173,22 @@ export function Header({
                   )}
                 </div>
 
-                <span className={`text-[9px] sm:text-[11px] font-montserrat tracking-[0.12em] uppercase font-semibold mt-0.5 hidden sm:block ${
-                  user ? 'text-emerald-300/90 drop-shadow-[0_1px_4px_rgba(52,211,153,0.3)]' : 'text-[#f6e7b8]/85 drop-shadow-[0_1px_4px_rgba(246,231,184,0.3)]'
-                }`}>
-                  {user ? 'Cloud Reflection Vault' : 'AI Reflection Workspace'}
-                </span>
+                <div className="hidden sm:flex items-center gap-1.5 mt-0.5">
+                  <span className={`text-[9px] sm:text-[11px] font-montserrat tracking-[0.12em] uppercase font-semibold ${
+                    user ? 'text-emerald-300/90 drop-shadow-[0_1px_4px_rgba(52,211,153,0.3)]' : 'text-[#f6e7b8]/85 drop-shadow-[0_1px_4px_rgba(246,231,184,0.3)]'
+                  }`}>
+                    {user ? 'Cloud Reflection Vault' : 'AI Reflection Workspace'}
+                  </span>
+                  <span className="text-slate-600 text-[10px]">•</span>
+                  <span className="inline-flex items-center gap-1.5 text-[9.5px] font-medium text-amber-200/90 bg-amber-400/10 border border-amber-400/25 px-1.5 py-0.2 rounded-full">
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/1/1d/Google_Gemini_icon_2025.svg"
+                      alt="Gemini AI"
+                      className="w-2.5 h-2.5 object-contain"
+                    />
+                    Powered by Gemini 3.8 Flash
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -355,9 +367,9 @@ export function Header({
         </div>
 
         {/* Bottom Filter & Search Row */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-0.5">
+        <div className="flex items-center justify-between gap-1.5 pt-0.5">
           {/* Category Filter Pills styled like Sign In buttons with smooth horizontal scroll */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none -mx-1 px-1 sm:mx-0 sm:px-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none -mx-1 px-1 sm:mx-0 sm:px-0 flex-1 min-w-0">
             {CATEGORY_ITEMS.map((item) => {
               const isActive = selectedCategory === item.id;
               const IconComponent = item.icon;
@@ -386,8 +398,27 @@ export function Header({
             })}
           </div>
 
-          {/* Search Bar with small Match Bubble on the Right */}
-          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+          {/* Mobile Search Button Icon (ONLY shown on mobile < sm; search bar won't be there until tapped) */}
+          <button
+            type="button"
+            id="mobile-search-toggle-btn"
+            onClick={() => setIsMobileSearchOpen((prev) => !prev)}
+            className={`sm:hidden p-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 border relative flex items-center justify-center ${
+              isMobileSearchOpen || searchQuery.trim().length > 0
+                ? 'metallic-gold-button text-[#070d1e] border-[#f6e7b8]/60 shadow-[0_0_12px_rgba(246,231,184,0.4)]'
+                : 'metallic-titanium-button text-slate-300 hover:text-white border-white/10'
+            }`}
+            title={isMobileSearchOpen ? 'Close search' : 'Search reflections'}
+            aria-label="Toggle search"
+          >
+            <Search className="w-3.5 h-3.5" />
+            {searchQuery.trim().length > 0 && !isMobileSearchOpen && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
+            )}
+          </button>
+
+          {/* Desktop Search Bar (Always visible on sm and up) */}
+          <div className="hidden sm:flex items-center gap-1.5 shrink-0">
             <div className="relative w-36 sm:w-40 md:w-44">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
@@ -409,7 +440,7 @@ export function Header({
               )}
             </div>
 
-            {/* Found Match Bubble (Opaque green background with gold text) */}
+            {/* Found Match Bubble */}
             {searchQuery.trim().length > 0 && typeof searchMatchCount === 'number' && (
               <div 
                 className={`px-3 py-1 rounded-xl text-xs sm:text-sm font-sans font-semibold flex items-center gap-1.5 border animate-in fade-in-50 zoom-in-95 duration-150 shrink-0 shadow-md ${
@@ -427,6 +458,57 @@ export function Header({
             )}
           </div>
         </div>
+
+        {/* Mobile Search Bar Dropdown (Only appears when tapped on mobile) */}
+        {isMobileSearchOpen && (
+          <div className="sm:hidden flex items-center gap-1.5 pt-1 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="relative flex-1">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                id="reflection-search-input-mobile"
+                autoFocus
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Search reflections, tags..."
+                className="w-full metallic-panel text-slate-100 placeholder-slate-400 text-xs rounded-xl pl-7 pr-7 py-1.5 focus:outline-none focus:border-[#f6e7b8] focus:ring-1 focus:ring-[#f6e7b8]/40 transition-all shadow-inner"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => onSearchChange('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Found Match Bubble */}
+            {searchQuery.trim().length > 0 && typeof searchMatchCount === 'number' && (
+              <div 
+                className={`px-2.5 py-1 rounded-xl text-xs font-sans font-semibold flex items-center gap-1 border animate-in fade-in-50 zoom-in-95 duration-150 shrink-0 shadow-md ${
+                  searchMatchCount > 0
+                    ? 'bg-gradient-to-r from-[#063b27] via-[#0d593d] to-[#042e1e] border-emerald-400/80 text-[#f6e7b8] font-bold shadow-[0_0_14px_rgba(52,211,153,0.3)]'
+                    : 'bg-gradient-to-r from-[#4a1520] to-[#250810] border-rose-500/50 text-rose-200'
+                }`}
+              >
+                <span className="font-extrabold text-[#fae8a8]">{searchMatchCount}</span>
+                <span className="font-semibold text-[#f6e7b8]">found</span>
+              </div>
+            )}
+
+            {/* Close Button to collapse mobile search bar */}
+            <button
+              type="button"
+              onClick={() => setIsMobileSearchOpen(false)}
+              className="p-1.5 rounded-xl metallic-titanium-button text-slate-400 hover:text-white border border-white/10 shrink-0 cursor-pointer"
+              title="Close Search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

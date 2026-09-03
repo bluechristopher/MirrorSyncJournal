@@ -1395,9 +1395,20 @@ export default function App() {
 
       {/* Footer */}
       <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-8 border-t border-white/10 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#d4af37] shadow-[0_0_8px_#d4af37]" />
-          <span className="text-slate-300">MirrorSync • Persona-Adaptive Cognitive Journal</span>
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#d4af37] shadow-[0_0_8px_#d4af37]" />
+            <span className="text-slate-300">MirrorSync • Persona-Adaptive Cognitive Journal</span>
+          </div>
+          <span className="hidden sm:inline text-slate-600">•</span>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-200/90 bg-amber-500/10 border border-amber-400/25 px-2.5 py-0.5 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.15)]">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/1/1d/Google_Gemini_icon_2025.svg"
+              alt="Gemini AI"
+              className="w-3.5 h-3.5 object-contain"
+            />
+            <span>Powered by Gemini 3.8 Flash</span>
+          </span>
         </div>
         <div className="flex items-center gap-4 text-slate-400 text-xs">
           <button

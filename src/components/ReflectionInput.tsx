@@ -465,6 +465,15 @@ export function ReflectionInput({
                 {persona.coachingTone || 'Productivity Partner'}
               </span>
             </div>
+
+            <div className="inline-flex items-center gap-1.5 text-[10.5px] sm:text-[11px] font-medium text-amber-200/90 bg-amber-500/10 border border-amber-400/25 px-2.5 py-0.5 rounded-full shrink-0 shadow-[0_0_8px_rgba(245,158,11,0.15)]">
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/1/1d/Google_Gemini_icon_2025.svg"
+                alt="Gemini AI"
+                className="w-3.5 h-3.5 object-contain"
+              />
+              <span>Powered by Gemini 3.8 Flash</span>
+            </div>
           </div>
 
           {/* Category Selection Bar (Allows choosing category or auto-classifying based on contents) */}
