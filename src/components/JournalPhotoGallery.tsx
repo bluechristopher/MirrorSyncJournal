@@ -98,8 +98,8 @@ export const JournalPhotoGallery: React.FC<JournalPhotoGalleryProps> = ({
         const file = files[i];
         setUploadProgress(`Uploading ${i + 1} of ${files.length}...`);
 
-        // Store compressed JPEG base64 directly in Firestore (600px width, 0.6 quality)
-        const compressedBlob = await compressImage(file, 600, 0.6);
+        // Store compressed JPEG base64 directly in Firestore (800px width, 0.75 quality)
+        const compressedBlob = await compressImage(file, 800, 0.75);
         const dataUrl = await fileToDataUrl(compressedBlob);
         const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
         const cleanName = (file.name || 'journal_photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^/.]+$/, '') + '.jpg';

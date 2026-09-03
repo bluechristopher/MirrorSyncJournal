@@ -109,7 +109,7 @@ export function EditorialArtCanvas({
           try {
             const res = await fetch(data.imageUrl);
             const blob = await res.blob();
-            const compressed = await compressImage(blob, 600, 0.6);
+            const compressed = await compressImage(blob, 800, 0.75);
             finalUrl = await fileToDataUrl(compressed);
           } catch (_compressErr) {
             console.warn('[Banner Canvas] Base64 compression fallback:', _compressErr);
