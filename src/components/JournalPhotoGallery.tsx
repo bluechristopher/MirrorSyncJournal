@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Plus, 
@@ -98,8 +99,8 @@ export const JournalPhotoGallery: React.FC<JournalPhotoGalleryProps> = ({
         const file = files[i];
         setUploadProgress(`Uploading ${i + 1} of ${files.length}...`);
 
-        // Store compressed JPEG base64 directly in Firestore (800px width, 0.75 quality)
-        const compressedBlob = await compressImage(file, 800, 0.75);
+        // Store compressed JPEG base64 directly in Firestore (1000px width, 0.75 quality)
+        const compressedBlob = await compressImage(file, 1000, 0.75);
         const dataUrl = await fileToDataUrl(compressedBlob);
         const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
         const cleanName = (file.name || 'journal_photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^/.]+$/, '') + '.jpg';
@@ -417,138 +418,151 @@ export const JournalPhotoGallery: React.FC<JournalPhotoGalleryProps> = ({
         </div>
       )}
 
-      {/* FULL-SCREEN LIGHTBOX MODAL */}
-      <AnimatePresence>
-        {activeLightboxIndex !== null && activePhoto && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
-            onClick={() => setActiveLightboxIndex(null)}
-          >
-            {/* Dimension-Scoped Modal Card */}
+      {/* GLOBAL FLOATING LIGHTBOX (Mounted to document.body via Portal) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {activeLightboxIndex !== null && activePhoto && (
             <motion.div
-              initial={{ scale: 0.94, opacity: 0, y: 8 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.94, opacity: 0, y: 8 }}
-              transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-              className="relative max-w-[94vw] sm:max-w-[88vw] max-h-[92vh] flex flex-col items-center bg-neutral-900/95 border border-white/20 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 select-none"
+              onClick={() => setActiveLightboxIndex(null)}
             >
-              {/* Top Scoped Header */}
-              <div className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 bg-black/40 border-b border-white/10 text-white/90 shrink-0 gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
-                    {activeLightboxIndex + 1} / {photos.length}
-                  </span>
-                  <span className="text-xs text-white/80 truncate max-w-[180px] sm:max-w-xs font-medium">
-                    {activePhoto.name || 'Journal Photo'}
-                  </span>
-                </div>
+              {/* Floating Image Container */}
+              <div 
+                className="relative flex flex-col items-center max-w-[95vw] max-h-[92vh]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Floating Minimalist Top Control Pill */}
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-2.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/20 shadow-2xl flex items-center gap-3 text-white/90"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold text-amber-300">
+                      {activeLightboxIndex + 1} / {photos.length}
+                    </span>
+                    {activePhoto.name && (
+                      <span className="text-xs text-white/70 truncate max-w-[160px] sm:max-w-[280px] font-medium">
+                        {activePhoto.name}
+                      </span>
+                    )}
+                  </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {/* Download Button */}
-                  <a
-                    href={activePhoto.url}
-                    download={activePhoto.name || 'journal_photo.jpg'}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                    title="Download / Open Full Res"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                  </a>
+                  <div className="h-3 w-px bg-white/20" />
 
-                  {/* Delete in Lightbox */}
-                  <button
-                    type="button"
-                    onClick={() => setPhotoToDelete(activePhoto)}
-                    className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-300 border border-red-500/30 transition-colors cursor-pointer"
-                    title="Delete this photo"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-
-                  {/* Close Button */}
-                  <button
-                    type="button"
-                    onClick={() => setActiveLightboxIndex(null)}
-                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                    title="Close (Esc)"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Dimension-Fitted Image Viewport */}
-              <div className="relative flex items-center justify-center p-2 sm:p-3 overflow-hidden bg-black/50">
-                {/* Prev Navigation Arrow */}
-                {photos.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveLightboxIndex((prev) => (prev !== null ? (prev - 1 + photos.length) % photos.length : 0));
-                    }}
-                    className="absolute left-3 z-20 p-2 sm:p-2.5 rounded-full bg-black/70 hover:bg-black/90 text-white border border-white/25 transition-all cursor-pointer active:scale-95 shadow-lg"
-                    title="Previous (Left Arrow)"
-                  >
-                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
-                )}
-
-                {/* Main Image Fitted Naturally to Its Proportions */}
-                <motion.img
-                  key={activePhoto.id || activeLightboxIndex}
-                  initial={{ scale: 0.96, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  src={activePhoto.url}
-                  alt={activePhoto.name || 'Full view'}
-                  className="max-w-full max-h-[68vh] sm:max-h-[74vh] object-contain rounded-xl select-none shadow-inner"
-                />
-
-                {/* Next Navigation Arrow */}
-                {photos.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveLightboxIndex((prev) => (prev !== null ? (prev + 1) % photos.length : 0));
-                    }}
-                    className="absolute right-3 z-20 p-2 sm:p-2.5 rounded-full bg-black/70 hover:bg-black/90 text-white border border-white/25 transition-all cursor-pointer active:scale-95 shadow-lg"
-                    title="Next (Right Arrow)"
-                  >
-                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
-                )}
-              </div>
-
-              {/* Bottom Thumbnail Strip (if multiple photos) */}
-              {photos.length > 1 && (
-                <div className="w-full flex items-center justify-center gap-1.5 overflow-x-auto py-2 px-3 bg-black/40 border-t border-white/10 shrink-0 scrollbar-none">
-                  {photos.map((p, idx) => (
-                    <button
-                      key={p.id || idx}
-                      type="button"
-                      onClick={() => setActiveLightboxIndex(idx)}
-                      className={`relative w-11 h-11 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all cursor-pointer ${
-                        idx === activeLightboxIndex 
-                          ? 'border-amber-400 scale-105 shadow-md shadow-amber-500/25' 
-                          : 'border-white/15 opacity-50 hover:opacity-100'
-                      }`}
+                  <div className="flex items-center gap-1">
+                    {/* Download */}
+                    <a
+                      href={activePhoto.url}
+                      download={activePhoto.name || 'journal_photo.jpg'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-1.5 rounded-full hover:bg-white/20 text-white/90 hover:text-white transition-colors cursor-pointer"
+                      title="Download photo"
                     >
-                      <img src={p.url} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                      <Download className="w-3.5 h-3.5" />
+                    </a>
+
+                    {/* Delete */}
+                    <button
+                      type="button"
+                      onClick={() => setPhotoToDelete(activePhoto)}
+                      className="p-1.5 rounded-full hover:bg-red-500/30 text-red-300 hover:text-red-200 transition-colors cursor-pointer"
+                      title="Delete photo"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                  ))}
+
+                    {/* Close */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveLightboxIndex(null)}
+                      className="p-1.5 rounded-full hover:bg-white/20 text-white/90 hover:text-white transition-colors cursor-pointer"
+                      title="Close (Esc)"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </motion.div>
+
+                {/* The Floating Image */}
+                <div className="relative flex items-center justify-center">
+                  {/* Prev Navigation Arrow */}
+                  {photos.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveLightboxIndex((prev) => (prev !== null ? (prev - 1 + photos.length) % photos.length : 0));
+                      }}
+                      className="absolute -left-3 sm:-left-6 z-30 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-md transition-all cursor-pointer active:scale-95 shadow-2xl hover:scale-105"
+                      title="Previous"
+                    >
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                  )}
+
+                  <motion.img
+                    key={activePhoto.id || activeLightboxIndex}
+                    initial={{ scale: 0.94, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.94, opacity: 0 }}
+                    transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+                    src={activePhoto.url}
+                    alt={activePhoto.name || 'Floating view'}
+                    className="max-w-[92vw] sm:max-w-[85vw] max-h-[76vh] sm:max-h-[82vh] object-contain rounded-2xl shadow-[0_12px_45px_rgba(0,0,0,0.85)] border border-white/20 ring-1 ring-white/10 select-none cursor-default"
+                  />
+
+                  {/* Next Navigation Arrow */}
+                  {photos.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveLightboxIndex((prev) => (prev !== null ? (prev + 1) % photos.length : 0));
+                      }}
+                      className="absolute -right-3 sm:-right-6 z-30 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-md transition-all cursor-pointer active:scale-95 shadow-2xl hover:scale-105"
+                      title="Next"
+                    >
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                  )}
                 </div>
-              )}
+
+                {/* Floating Thumbnail Strip (Multi-photo) */}
+                {photos.length > 1 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 px-3 py-1.5 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/15 flex items-center justify-center gap-2 max-w-[90vw] overflow-x-auto scrollbar-none shadow-2xl"
+                  >
+                    {photos.map((p, idx) => (
+                      <button
+                        key={p.id || idx}
+                        type="button"
+                        onClick={() => setActiveLightboxIndex(idx)}
+                        className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all cursor-pointer ${
+                          idx === activeLightboxIndex 
+                            ? 'border-amber-400 scale-105 shadow-md shadow-amber-500/30' 
+                            : 'border-transparent opacity-50 hover:opacity-100 hover:scale-102'
+                        }`}
+                      >
+                        <img src={p.url} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* CONFIRM DELETE DIALOG MODAL */}
       <AnimatePresence>

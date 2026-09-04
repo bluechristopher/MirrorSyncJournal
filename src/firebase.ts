@@ -354,11 +354,11 @@ export const deleteAllJournalEntries = async (userId: string): Promise<void> => 
 
 /**
  * Client-side image compressor using HTML Canvas
- * Resizes images to max 800px width and compresses to memory-saving JPEG at 0.75 quality
+ * Resizes images to max 1000px width and compresses to high-clarity JPEG at 0.75 quality
  */
 export async function compressImage(
   file: File | Blob, 
-  maxWidth = 800, 
+  maxWidth = 1000, 
   quality = 0.75
 ): Promise<Blob> {
   if (typeof window === 'undefined') return file;
@@ -376,7 +376,7 @@ export async function compressImage(
       URL.revokeObjectURL(objectUrl);
       let { width, height } = img;
 
-      // Restrict width to maxWidth (600px), scaling height proportionally
+      // Restrict width to maxWidth (1000px), scaling height proportionally
       if (width > maxWidth) {
         height = Math.round((height * maxWidth) / width);
         width = maxWidth;
@@ -449,8 +449,8 @@ export async function uploadJournalPhoto(
   const cleanName = (fileName || 'journal_photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^/.]+$/, '') + '.jpg';
   const path = `users/${userId}/entries/${entryId}/photos/${photoId}_${cleanName}`;
 
-  // Always compress to 800px max width at 0.75 JPEG quality for memory & bandwidth savings
-  const compressed = await compressImage(file, 800, 0.75);
+  // Always compress to 1000px max width at 0.75 JPEG quality for high clarity
+  const compressed = await compressImage(file, 1000, 0.75);
 
   if (isCloudStorageBlocked) {
     const dataUrl = await fileToDataUrl(compressed);
@@ -547,8 +547,8 @@ export async function uploadBannerImageToStorage(
       sourceBlob = dataUrlOrBlobOrUrl;
     }
 
-    // Always compress banner to 800px max width at 0.75 JPEG quality
-    const compressed = await compressImage(sourceBlob, 800, 0.75);
+    // Always compress banner to 1000px max width at 0.75 JPEG quality
+    const compressed = await compressImage(sourceBlob, 1000, 0.75);
 
     // If storage was already flagged as blocked (e.g. CORS preflight failure), skip directly to Firestore base64 fallback
     if (isCloudStorageBlocked) {
